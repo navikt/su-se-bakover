@@ -51,7 +51,7 @@ class WebSetupLoggingTest {
     private val errorLogged = "true"
 
     @Test
-    fun `sensitiv adressegruppe utelates fra MDC mens ordinær rolle beholdes`() {
+    fun `ukjent Azure-gruppe utelates fra MDC mens ordinær rolle beholdes`() {
         val appender = object : ListAppender<ILoggingEvent>() {
             override fun append(eventObject: ILoggingEvent) {
                 eventObject.prepareForDeferredProcessing()
@@ -63,6 +63,7 @@ class WebSetupLoggingTest {
         val path = "/test/rollelogging"
         val loggmelding = "Test av rollelogging"
         val rolle = Brukerrolle.Saksbehandler
+        val ukjentGruppe = "ukjent-gruppe"
         try {
             testApplication {
                 application {
@@ -84,7 +85,7 @@ class WebSetupLoggingTest {
                         HttpHeaders.Authorization,
                         jwtStub.createJwtToken(
                             roller = listOf(rolle),
-                            extraGroups = listOf(config.azure.groups.strengtFortroligAdresse),
+                            extraGroups = listOf(ukjentGruppe),
                         ).asBearerToken(),
                     )
                 }.status shouldBe HttpStatusCode.OK

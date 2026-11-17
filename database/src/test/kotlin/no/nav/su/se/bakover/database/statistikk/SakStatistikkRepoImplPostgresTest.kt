@@ -41,7 +41,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.sakStatistikkRepo
         val personOppslag = mock<PersonOppslag>()
-        val service = SakStatistikkService(repo, fixedClock, personOppslag, testDataHelper.sakRepo, hentHarKode6Gruppe = { true })
+        val service = SakStatistikkService(repo, fixedClock, personOppslag, testDataHelper.sakRepo)
         whenever(personOppslag.person(any(), any()))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.UGRADERT.name).right())
         val fiktivSaksbehandler = NavIdentBruker.Saksbehandler("V123456")

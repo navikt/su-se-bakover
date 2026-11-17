@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.service.statistikk
 
 import behandling.domain.Behandling
 import behandling.domain.Stønadsbehandling
-import no.nav.su.se.bakover.common.SikkerLogg
-import no.nav.su.se.bakover.common.domain.auth.Kontekst
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -27,25 +25,17 @@ class SakStatistikkService(
     private val clock: Clock,
     private val personOppslag: PersonOppslag,
     private val sakRepo: SakRepo,
-    private val sikkerLogg: SikkerLogg = no.nav.su.se.bakover.common.sikkerLogg,
-    private val hentHarKode6Gruppe: () -> Boolean = {
-        requireNotNull(Kontekst.get()) { "Mangler brukerkontekst for sakstatistikk" }.harKode6Gruppe
-    },
 ) {
     fun vurderForBruker(
         personer: PersonerOgSakstype,
     ): Kode6Vurdering {
         require(personer.fnr.isNotEmpty()) { "Sakstatistikk krever minst én person" }
-        val harKode6Gruppe = hentHarKode6Gruppe()
         val harKode6 = personer.fnr.distinct().map { fnr ->
             personOppslag.person(fnr, personer.sakstype).fold(
                 { throw KunneIkkeVurdereKode6() },
                 { Adressebeskyttelse.fraPdl(it.adressebeskyttelse).erKode6() },
             )
         }.any { it }
-        if (harKode6 && !harKode6Gruppe) {
-            sikkerLogg.error("Sakstatistikk har kode 6, men brukeren mangler forventet gruppe for strengt fortrolig adresse")
-        }
         return Kode6Vurdering(harKode6)
     }
 

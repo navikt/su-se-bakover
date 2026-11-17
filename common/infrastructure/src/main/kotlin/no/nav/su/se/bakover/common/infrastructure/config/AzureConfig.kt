@@ -21,7 +21,6 @@ data class AzureConfig(
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
                     drift = getEnvironmentVariableOrThrow("AZURE_GROUP_DRIFT"),
-                    strengtFortroligAdresse = getEnvironmentVariableOrThrow("AZURE_GROUP_STRENGT_FORTROLIG_ADRESSE"),
                 ),
             )
         }
@@ -58,10 +57,6 @@ data class AzureConfig(
                     drift = getEnvironmentVariableOrDefault(
                         "AZURE_GROUP_DRIFT",
                         "5ccd88bd-58d6-41a7-9652-5e0597b00f9b",
-                    ),
-                    strengtFortroligAdresse = getEnvironmentVariableOrDefault(
-                        "AZURE_GROUP_STRENGT_FORTROLIG_ADRESSE",
-                        "a1b518e2-3947-478d-8929-e5d685c47cac",
                     ),
                 ),
             )

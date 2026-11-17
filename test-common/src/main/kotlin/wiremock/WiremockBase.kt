@@ -21,7 +21,7 @@ fun startedWireMockServerWithCorrelationId(token: String? = "Bearer token", bloc
 
         try {
             if (token != null) {
-                val tokenContextElement = Kontekst.asContextElement(TokenContext(token, harKode6Gruppe = false))
+                val tokenContextElement = Kontekst.asContextElement(TokenContext(token))
                 withContext(tokenContextElement) {
                     block(server)
                 }

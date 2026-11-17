@@ -4,13 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import no.nav.su.se.bakover.common.SikkerLogg
-import no.nav.su.se.bakover.common.domain.auth.Kontekst
-import no.nav.su.se.bakover.common.domain.auth.TokenContext
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -47,51 +41,11 @@ internal class SakStatistikkServiceTest {
     private val behandling = nySøknadsbehandlingUtenStønadsperiode(saksbehandler = fiktivSaksbehandler).second
     private val hendelse = StatistikkEvent.Behandling.Søknad.Opprettet(behandling, fiktivSaksbehandler)
     private val repo = mock<SakStatistikkRepo>()
-    private val log = mock<SikkerLogg.Logg>()
     private val personOppslag = mock<PersonOppslag>()
     private val sakRepo = mock<SakRepo>()
-    private var harKode6Gruppe = true
-    private val service = SakStatistikkService(repo, fixedClock, personOppslag, sakRepo, log) { harKode6Gruppe }
+    private val service = SakStatistikkService(repo, fixedClock, personOppslag, sakRepo)
     private val identForKode6 = "SKJERMET"
     private val vikafossen = "2103"
-
-    @ParameterizedTest
-    @ValueSource(booleans = [true, false])
-    fun `gruppetilgang leses fra coroutinens brukerkontekst og avvik går til sikkerlogg`(
-        harGruppen: Boolean,
-    ) = runBlocking<Unit> {
-        val opprinneligKontekst = Kontekst.get()
-        val brukerService = SakStatistikkService(repo, fixedClock, personOppslag, sakRepo, log)
-        ordinærePersoner()
-        whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
-
-        withContext(Kontekst.asContextElement(TokenContext("test-token", harGruppen))) {
-            withContext(Dispatchers.Default) {
-                brukerService.vurderForBruker(behandling).harKode6 shouldBe true
-            }
-        }
-
-        Kontekst.get() shouldBe opprinneligKontekst
-        if (harGruppen) {
-            verifyNoInteractions(log)
-        } else {
-            verify(log).error("Sakstatistikk har kode 6, men brukeren mangler forventet gruppe for strengt fortrolig adresse")
-        }
-        verifyNoInteractions(repo)
-    }
-
-    @Test
-    fun `manglende brukerkontekst avbryter før personoppslag og lagring`() {
-        val brukerService = SakStatistikkService(repo, fixedClock, personOppslag, sakRepo, log)
-        Kontekst.get() shouldBe null
-
-        shouldThrow<IllegalArgumentException> {
-            brukerService.vurderForBruker(behandling)
-        }
-
-        verifyNoInteractions(personOppslag, repo, log)
-    }
 
     @ParameterizedTest
     @EnumSource(value = Adressebeskyttelse::class, names = ["STRENGT_FORTROLIG", "STRENGT_FORTROLIG_UTLAND"])
@@ -109,7 +63,6 @@ internal class SakStatistikkServiceTest {
         rad.saksbehandler shouldBe fiktivSaksbehandler.navIdent
         rad.ansvarligBeslutter shouldBe null
         rad.ansvarligEnhet shouldBe vikafossen
-        verifyNoInteractions(log)
     }
 
     @ParameterizedTest
@@ -134,22 +87,9 @@ internal class SakStatistikkServiceTest {
         rad.ansvarligEnhet shouldBe vikafossen
     }
 
-    @Test
-    fun `manglende gruppe logges men endrer ikke statistikk for kode 6`() = runBlocking<Unit> {
-        ordinærePersoner()
-        whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
-        harKode6Gruppe = false
-        val vurdering = service.vurderForBruker(behandling)
-        service.lagreForBrukerflyt(hendelse, vurdering, null)
-
-        lagretRad().ansvarligEnhet shouldBe vikafossen
-        verify(log).error("Sakstatistikk har kode 6, men brukeren mangler forventet gruppe for strengt fortrolig adresse")
-    }
-
     @ParameterizedTest
     @EnumSource(value = Adressebeskyttelse::class, names = ["FORTROLIG", "UGRADERT"])
-    fun `gruppe alene eller kode 7 gir ikke kode 6-statistikk`(gradering: Adressebeskyttelse) {
+    fun `kode 7 og ugraderte personer beholder ordinær statistikk`(gradering: Adressebeskyttelse) {
         whenever(personOppslag.person(any(), any()))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
         val ordinærStatistikk = hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
@@ -157,7 +97,6 @@ internal class SakStatistikkServiceTest {
         service.lagreForBrukerflyt(hendelse, vurdering, null)
 
         lagretRad() shouldBe ordinærStatistikk
-        verifyNoInteractions(log)
     }
 
     @ParameterizedTest
@@ -178,12 +117,11 @@ internal class SakStatistikkServiceTest {
     }
 
     @Test
-    fun `automatisk behandling krever ikke personoppslag eller brukerkontekst`() {
-        val automatiskService = SakStatistikkService(repo, fixedClock, personOppslag, sakRepo, log)
-        automatiskService.lagreAutomatiskSystemflyt(hendelse, null)
+    fun `automatisk behandling krever ikke personoppslag`() {
+        service.lagreAutomatiskSystemflyt(hendelse, null)
 
         lagretRad() shouldBe hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
-        verifyNoInteractions(log, personOppslag, sakRepo)
+        verifyNoInteractions(personOppslag, sakRepo)
     }
 
     @ParameterizedTest

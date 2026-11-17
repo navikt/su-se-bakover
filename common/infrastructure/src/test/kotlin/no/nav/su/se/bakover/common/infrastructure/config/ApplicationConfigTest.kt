@@ -61,7 +61,6 @@ class ApplicationConfigTest {
                 saksbehandler = "saksbehandler",
                 veileder = "veileder",
                 drift = "drift",
-                strengtFortroligAdresse = "strengtFortroligAdresse",
             ),
         ),
         oppdrag = ApplicationConfig.OppdragConfig(
@@ -183,7 +182,6 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
-                "AZURE_GROUP_STRENGT_FORTROLIG_ADRESSE" to "strengtFortroligAdresse",
                 "MQ_QUEUE_MANAGER" to "oppdragMqQueueManager",
                 "MQ_PORT" to "77665",
                 "MQ_HOSTNAME" to "mqHostname",
@@ -258,7 +256,6 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
-                "AZURE_GROUP_STRENGT_FORTROLIG_ADRESSE" to "strengtFortroligAdresse",
             ),
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(

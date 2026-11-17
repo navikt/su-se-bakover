@@ -22,7 +22,6 @@ import kotlin.coroutines.CoroutineContext
 
 data class TokenContext(
     val token: String,
-    val harKode6Gruppe: Boolean,
 ) : AbstractCoroutineContextElement(Key) {
     override fun toString(): String = "TokenContext"
 
@@ -31,10 +30,7 @@ data class TokenContext(
 
 object Kontekst : ThreadLocal<TokenContext>()
 
-fun authTokenContextPlugin(
-    log: Logger,
-    harKode6Gruppe: (ApplicationCall) -> Boolean,
-): RouteScopedPlugin<Unit> {
+fun authTokenContextPlugin(log: Logger): RouteScopedPlugin<Unit> {
     return createRouteScopedPlugin("AuthTokenContextPlugin") {
         on(TokenHook(ApplicationCallPipeline.Call)) { call, proceed ->
             val authHeader = call.request.header(HttpHeaders.Authorization)
@@ -49,12 +45,7 @@ fun authTokenContextPlugin(
                 return@on
             }
 
-            val tokenContextElement = Kontekst.asContextElement(
-                TokenContext(
-                    token = authHeader,
-                    harKode6Gruppe = harKode6Gruppe(call),
-                ),
-            )
+            val tokenContextElement = Kontekst.asContextElement(TokenContext(token = authHeader))
 
             withContext(tokenContextElement) {
                 proceed()

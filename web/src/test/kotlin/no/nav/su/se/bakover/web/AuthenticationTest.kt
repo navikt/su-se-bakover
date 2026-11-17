@@ -13,22 +13,9 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.server.application.call
-import io.ktor.server.auth.authenticate
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.auth.Kontekst
 import no.nav.su.se.bakover.common.domain.auth.TokenContext
-import no.nav.su.se.bakover.common.infrastructure.web.withUser
-import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import org.junit.jupiter.api.Test
@@ -40,76 +27,16 @@ const val SECURE_ENDPOINT = "/me"
 
 internal class AuthenticationTest {
     @Test
-    fun `strengt fortrolig-gruppen leses fra validert token og isoleres til forespørselen`() {
-        val config = applicationConfig()
-        val path = "/test/statistikk-kode6"
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb()
-                routing {
-                    authenticate("jwt") {
-                        withUser(config) {
-                            get(path) {
-                                val harKode6Gruppe = withContext(Dispatchers.Default) {
-                                    requireNotNull(Kontekst.get()).harKode6Gruppe
-                                }
-                                call.respondText(harKode6Gruppe.toString())
-                            }
-                        }
-                    }
-                }
-            }
-
-            client.get(path) {
-                header(
-                    Authorization,
-                    jwtStub.createJwtToken(extraGroups = listOf(config.azure.groups.strengtFortroligAdresse)).asBearerToken(),
-                )
-            }.apply {
-                status shouldBe OK
-                bodyAsText() shouldBe "true"
-            }
-            client.get(path) {
-                header(Authorization, jwtStub.createJwtToken().asBearerToken())
-            }.apply {
-                status shouldBe OK
-                bodyAsText() shouldBe "false"
-            }
-            coroutineScope {
-                listOf(true, false).map { harGruppen ->
-                    async {
-                        client.get(path) {
-                            header(
-                                Authorization,
-                                jwtStub.createJwtToken(
-                                    extraGroups = if (harGruppen) listOf(config.azure.groups.strengtFortroligAdresse) else emptyList(),
-                                ).asBearerToken(),
-                            )
-                        }.apply {
-                            status shouldBe OK
-                            bodyAsText() shouldBe harGruppen.toString()
-                        }
-                    }
-                }.awaitAll()
-            }
-        }
-    }
-
-    @Test
-    fun `brukerkontekstens tekstrepresentasjon røper ikke token eller sensitiv gruppetilgang`() {
+    fun `brukerkontekstens tekstrepresentasjon røper ikke token`() {
         val token = "test-token"
-        val kontekst = TokenContext(token, harKode6Gruppe = true)
+        val kontekst = TokenContext(token)
 
-        kontekst.toString().apply {
-            this shouldNotContain token
-            this shouldNotContain "harKode6Gruppe"
-            this shouldNotContain "true"
-        }
+        kontekst.toString() shouldNotContain token
     }
 
     @Test
-    fun `strengt fortrolig-gruppen gir ikke applikasjonstilgang alene`() {
-        val config = applicationConfig()
+    fun `ukjent Azure-gruppe gir ikke applikasjonstilgang alene`() {
+        val ukjentGruppe = "ukjent-gruppe"
         testApplication {
             application {
                 testSusebakoverWithMockedDb()
@@ -119,7 +46,7 @@ internal class AuthenticationTest {
                     Authorization,
                     jwtStub.createJwtToken(
                         roller = emptyList(),
-                        extraGroups = listOf(config.azure.groups.strengtFortroligAdresse),
+                        extraGroups = listOf(ukjentGruppe),
                     ).asBearerToken(),
                 )
             }.status shouldBe Unauthorized

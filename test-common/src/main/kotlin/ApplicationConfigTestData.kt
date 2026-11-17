@@ -27,7 +27,6 @@ fun applicationConfig() = ApplicationConfig(
             saksbehandler = "testAzureGroupSaksbehandler",
             veileder = "testAzureGroupVeileder",
             drift = "testAzureGroupDrift",
-            strengtFortroligAdresse = "testAzureGroupStrengtFortroligAdresse",
         ),
     ),
     oppdrag = ApplicationConfig.OppdragConfig(
