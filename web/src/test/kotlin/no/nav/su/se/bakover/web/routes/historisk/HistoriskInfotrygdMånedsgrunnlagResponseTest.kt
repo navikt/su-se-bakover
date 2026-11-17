@@ -279,6 +279,7 @@ internal class HistoriskInfotrygdMånedsgrunnlagResponseTest {
         ),
         beregning = beregning,
         attesteringer = emptyList(),
+        simulering = null,
     )
 
     private companion object {
