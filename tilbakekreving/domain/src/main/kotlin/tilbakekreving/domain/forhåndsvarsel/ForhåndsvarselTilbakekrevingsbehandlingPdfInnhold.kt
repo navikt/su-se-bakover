@@ -19,7 +19,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
     ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
-        override val dokumentMal = DokumentMal.ForhåndsvarselTilbakekrevingsbehandling
+        override val dokumentMal = DokumentMal.Tilbakekreving.Forhåndsvarsel
     }
 
     data class Dødsbo(
@@ -32,7 +32,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
     ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
-        override val dokumentMal = DokumentMal.ForhåndsvarselTilbakekrevingsbehandlingDødsbo
+        override val dokumentMal = DokumentMal.Tilbakekreving.ForhåndsvarseDødsbo
     }
 
     companion object {
