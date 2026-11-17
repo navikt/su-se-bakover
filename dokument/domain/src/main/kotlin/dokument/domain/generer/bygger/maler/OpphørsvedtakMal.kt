@@ -8,6 +8,7 @@ import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.Innhold
 import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.avslagsparagrafer
 import dokument.domain.generer.bygger.beregning
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
@@ -16,7 +17,6 @@ import dokument.domain.generer.bygger.fødselsnummerAvsnitt
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.hilsen
 import dokument.domain.generer.bygger.punktliste
-import dokument.domain.generer.bygger.somOppramsing
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
@@ -84,7 +84,7 @@ val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnholdNy ->
             beregning(
                 sakstype = pdfInnhold.sakstype,
                 satsoversikt = pdfInnhold.satsoversikt,
-                harFradrag = pdfInnhold.harFradrag,
+                stønadErRedusert = pdfInnhold.harFradrag,
                 forventetInntektStørreEnn0 = pdfInnhold.forventetInntektStørreEnn0,
                 beregningsperioder = pdfInnhold.beregningsperioder,
             )
@@ -96,12 +96,6 @@ val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnholdNy ->
             visPostadresse = true,
         )
     }
-}
-
-fun avslagsparagrafer(paragrafer: List<Int>): String {
-    val tekster = paragrafer.map { paragraf -> paragraf.toString() }
-    val prefiks = if (paragrafer.size > 1) "§§" else "§"
-    return "$prefiks ${tekster.somOppramsing()}"
 }
 
 fun Innhold.opphørsgrunner(data: OpphørsvedtakPdfInnholdNy) {
