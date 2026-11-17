@@ -3,75 +3,45 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.getDistinkteParagrafer
 import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
-import com.fasterxml.jackson.annotation.JsonInclude
-import dokument.domain.generer.DokumentMal
-import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.BeregningsperiodeBrev
-import dokument.domain.generer.bygger.BrevPeriode
-import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
 import dokument.domain.generer.bygger.tilBrevperiode
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.toBrev
 
-data class OpphørsvedtakPdfInnhold(
-    override val sakstype: Sakstype,
-    val personalia: PersonaliaPdfInnhold,
-    val opphørsgrunner: List<Opphørsgrunn>,
-    val avslagsparagrafer: List<Int>,
-    val harEktefelle: Boolean,
-    val beregningsperioder: List<BeregningsperiodeBrev>,
-    val saksbehandlerNavn: String,
-    val attestantNavn: String,
-    val fritekst: String?,
-    val forventetInntektStørreEnn0: Boolean,
-    val halvGrunnbeløp: Int?,
-    val opphørsperiode: BrevPeriode,
-    val satsoversikt: Satsoversikt,
-) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Opphørsvedtak
+fun IverksettRevurderingDokumentCommand.Opphør.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+): OpphørsvedtakPdfInnholdNy {
+    val command = this
 
-    @Suppress("unused")
-    @JsonInclude
-    val harFradrag: Boolean = beregningsperioder.harFradrag()
+    return OpphørsvedtakPdfInnholdNy(
 
-    companion object {
-        fun fromBrevCommand(
-            command: IverksettRevurderingDokumentCommand.Opphør,
-            personalia: PersonaliaPdfInnhold,
-            saksbehandlerNavn: String,
-            attestantNavn: String,
-        ): OpphørsvedtakPdfInnhold {
-            return OpphørsvedtakPdfInnhold(
-                sakstype = command.sakstype,
-                personalia = personalia,
-                // Hvis både FOR_HØY_INNTEKT og SU_UNDER_MINSTEGRENSE, ønsker vi kun FOR_HØY_INNTEKT
-                opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense(),
-                avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
-                harEktefelle = command.harEktefelle,
-                beregningsperioder = if (
-                    command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
-                    command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-                ) {
-                    LagBrevinnholdForBeregning(command.beregning).brevInnhold
-                } else {
-                    emptyList()
-                },
-                saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn,
-                fritekst = command.fritekst,
-                forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
-                halvGrunnbeløp = command.halvtGrunnbeløp,
-                opphørsperiode = command.opphørsperiode.tilBrevperiode(),
-                satsoversikt = command.satsoversikt,
-            )
-        }
-    }
+        sakstype = command.sakstype,
+        personalia = personalia,
+        // Hvis både FOR_HØY_INNTEKT og SU_UNDER_MINSTEGRENSE, ønsker vi kun FOR_HØY_INNTEKT
+        opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
+        avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
+        harEktefelle = command.harEktefelle,
+        beregningsperioder = if (
+            command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
+            command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+        ) {
+            LagBrevinnholdForBeregning(command.beregning).brevInnhold
+        } else {
+            emptyList()
+        },
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        fritekst = command.fritekst,
+        forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
+        halvGrunnbeløp = command.halvtGrunnbeløp,
+        opphørsperiode = command.opphørsperiode.tilBrevperiode(),
+        satsoversikt = command.satsoversikt.toBrev(),
+    )
 }
 
 fun Opphørsgrunn.tilBrev(): OpphørsgrunnBrev {
@@ -91,22 +61,3 @@ fun Opphørsgrunn.tilBrev(): OpphørsgrunnBrev {
         Opphørsgrunn.FORMUE -> OpphørsgrunnBrev.FORMUE
     }
 }
-
-fun OpphørsvedtakPdfInnhold.tilPdfByggerInnhold(): OpphørsvedtakPdfInnholdNy =
-    OpphørsvedtakPdfInnholdNy(
-        sakstype = sakstype,
-        personalia = personalia,
-        opphørsgrunner = opphørsgrunner.map { it.tilBrev() },
-        avslagsparagrafer = avslagsparagrafer,
-        harEktefelle = harEktefelle,
-        beregningsperioder = beregningsperioder,
-        saksbehandlerNavn = saksbehandlerNavn,
-        attestantNavn = attestantNavn,
-        fritekst = fritekst,
-        forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-        halvGrunnbeløp = requireNotNull(halvGrunnbeløp) {
-            "Mangler halvt grunnbeløp for opphørsvedtak"
-        },
-        opphørsperiode = opphørsperiode,
-        satsoversikt = satsoversikt.toBrev(),
-    )

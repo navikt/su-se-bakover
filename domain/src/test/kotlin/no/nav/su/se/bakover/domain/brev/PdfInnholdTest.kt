@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.left
 import arrow.core.right
-import behandling.revurdering.domain.Opphørsgrunn
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
@@ -10,6 +9,8 @@ import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.test.brev.pdfInnholdPersonalia
 import no.nav.su.se.bakover.test.brev.pdfInnholdTrukketSøknad
@@ -241,9 +241,9 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for opphørsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val opphørsvedtak = OpphørsvedtakPdfInnhold(
+        val opphørsvedtak = OpphørsvedtakPdfInnholdNy(
             personalia = pdfInnholdPersonalia(),
-            opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
+            opphørsgrunner = listOf(OpphørsgrunnBrev.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
             harEktefelle = true,
             beregningsperioder = listOf(
@@ -265,9 +265,9 @@ internal class PdfInnholdTest {
                 fraOgMed = "01.01.2020",
                 tilOgMed = "31.12.2020",
             ),
-            satsoversikt = Satsoversikt(
+            satsoversikt = SatsoversiktBrev(
                 perioder = listOf(
-                    Satsoversikt.Satsperiode(
+                    SatsoversiktBrev.Satsperiode(
                         fraOgMed = "01.01.2020",
                         tilOgMed = "31.01.2020",
                         sats = "høy",

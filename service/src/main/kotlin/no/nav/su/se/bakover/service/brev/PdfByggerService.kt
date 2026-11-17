@@ -33,8 +33,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Runti
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Local
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
-import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
-import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfByggerInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -136,7 +134,6 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     is OpphørsvedtakPdfInnholdNy -> dokumentMal.lagBestilling(this)
-    is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(tilPdfByggerInnhold())
     // is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
     // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)

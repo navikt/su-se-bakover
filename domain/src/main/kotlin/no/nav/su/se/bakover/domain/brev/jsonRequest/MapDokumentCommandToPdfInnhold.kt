@@ -10,6 +10,7 @@ import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
 import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDoku
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.tilAvvistSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.toPdfInnhold
+import no.nav.su.se.bakover.domain.brev.toBrev
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
@@ -129,8 +131,7 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is IverksettRevurderingDokumentCommand.Opphør -> OpphørsvedtakPdfInnhold.fromBrevCommand(
-                command = command,
+            is IverksettRevurderingDokumentCommand.Opphør -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
@@ -181,10 +182,10 @@ fun fromBrevCommand(
                 satsoversikt = command.satsoversikt,
             )
 
-            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> OpphørsvedtakPdfInnhold(
+            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> OpphørsvedtakPdfInnholdNy(
                 sakstype = command.sakstype,
                 personalia = personalia().bind(),
-                opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense(),
+                opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
                 avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
                 harEktefelle = command.harEktefelle,
                 beregningsperioder = if (
@@ -201,7 +202,7 @@ fun fromBrevCommand(
                 forventetInntektStørreEnn0 = false,
                 halvGrunnbeløp = command.halvtGrunnbeløp,
                 opphørsperiode = command.opphørsperiode.tilBrevperiode(),
-                satsoversikt = command.satsoversikt,
+                satsoversikt = command.satsoversikt.toBrev(),
             )
 
             is VedtaksbrevVedReguleringCommand -> command.fromBrevCommand(
