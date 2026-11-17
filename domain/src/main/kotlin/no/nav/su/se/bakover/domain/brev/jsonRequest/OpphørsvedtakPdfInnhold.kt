@@ -5,7 +5,7 @@ import behandling.revurdering.domain.getDistinkteParagrafer
 import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
-import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -15,10 +15,10 @@ fun IverksettRevurderingDokumentCommand.Opphør.fromBrevCommand(
     personalia: PersonaliaPdfInnhold,
     saksbehandlerNavn: String,
     attestantNavn: String,
-): OpphørsvedtakPdfInnholdNy {
+): OpphørsvedtakPdfInnhold {
     val command = this
 
-    return OpphørsvedtakPdfInnholdNy(
+    return OpphørsvedtakPdfInnhold(
 
         sakstype = command.sakstype,
         personalia = personalia,

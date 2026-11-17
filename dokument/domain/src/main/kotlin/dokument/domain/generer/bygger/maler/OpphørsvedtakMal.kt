@@ -36,7 +36,7 @@ enum class OpphørsgrunnBrev {
     FAMILIEGJENFORENING,
 }
 
-data class OpphørsvedtakPdfInnholdNy(
+data class OpphørsvedtakPdfInnhold(
     override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val opphørsgrunner: List<OpphørsgrunnBrev>,
@@ -58,7 +58,7 @@ data class OpphørsvedtakPdfInnholdNy(
     val harFradrag: Boolean = beregningsperioder.harFradrag()
 }
 
-val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnholdNy ->
+val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnhold ->
 
     dokument(tittel, personalia = pdfInnhold.personalia) {
         fødselsnummerAvsnitt(pdfInnhold.personalia)
@@ -98,7 +98,7 @@ val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnholdNy ->
     }
 }
 
-fun Innhold.opphørsgrunner(data: OpphørsvedtakPdfInnholdNy) {
+fun Innhold.opphørsgrunner(data: OpphørsvedtakPdfInnhold) {
     val harEktefelle = data.harEktefelle
     val halvG = data.halvGrunnbeløp.toString()
     val punkter = data.opphørsgrunner.mapNotNull { grunn ->

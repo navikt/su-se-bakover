@@ -10,7 +10,7 @@ import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
-import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
@@ -241,7 +241,7 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for opphørsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val opphørsvedtak = OpphørsvedtakPdfInnholdNy(
+        val opphørsvedtak = OpphørsvedtakPdfInnhold(
             personalia = pdfInnholdPersonalia(),
             opphørsgrunner = listOf(OpphørsgrunnBrev.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),

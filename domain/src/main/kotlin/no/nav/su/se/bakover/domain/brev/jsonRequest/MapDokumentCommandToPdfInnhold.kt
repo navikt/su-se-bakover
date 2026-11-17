@@ -10,7 +10,7 @@ import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
-import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -182,7 +182,7 @@ fun fromBrevCommand(
                 satsoversikt = command.satsoversikt,
             )
 
-            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> OpphørsvedtakPdfInnholdNy(
+            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> OpphørsvedtakPdfInnhold(
                 sakstype = command.sakstype,
                 personalia = personalia().bind(),
                 opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
