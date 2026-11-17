@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -9,7 +10,9 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.roller.Eksternrolle
+import no.nav.su.se.bakover.common.infrastructure.auth.AuthStubCommonConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.web.erLokaltStubToken
 import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
@@ -24,11 +27,13 @@ internal fun Application.configureAuthentication(
 ) {
     val log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.configureAuthentication()")
 
+    val erLokalt = applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local
+
     val jwkProvider =
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
             JwkProviderStub
         } else {
-            JwkProviderBuilder(
+            val azureJwkProvider = JwkProviderBuilder(
                 URI(azureAd.jwksUri).toURL(),
             )
                 .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
@@ -38,11 +43,17 @@ internal fun Application.configureAuthentication(
                     TimeUnit.MINUTES,
                 ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
                 .build()
+            if (erLokalt) lokalJwkProvider(azureJwkProvider) else azureJwkProvider
         }
 
     install(Authentication) {
         jwt("jwt") {
-            verifier(jwkProvider, azureAd.issuer)
+            if (erLokalt) {
+                // Lokalt godtar vi også tokens som appen selv signerer (dev-rutene i LocalTestDataRoutes).
+                verifier(jwkProvider) { withIssuer(azureAd.issuer, AuthStubCommonConfig.ISSUER) }
+            } else {
+                verifier(jwkProvider, azureAd.issuer)
+            }
             realm = "su-se-bakover"
             validate { credentials ->
                 log.debug("jwt-auth su-se-framover: Validating token")
@@ -51,11 +62,12 @@ internal fun Application.configureAuthentication(
                         "jwt-auth su-se-framover: Missing audience in token"
                     }
                     require(
-                        credentials.payload.audience.any {
-                            it == applicationConfig.azure.clientId ||
-                                // TODO jah, ia: En tilpasning for mock-oauth. Vi kan f.eks. bytte til en mer Azure-spesifikk mock.
-                                it == """api://${applicationConfig.azure.clientId}/.default"""
-                        },
+                        erLokaltStubToken(applicationConfig, credentials.payload) ||
+                            credentials.payload.audience.any {
+                                it == applicationConfig.azure.clientId ||
+                                    // TODO jah, ia: En tilpasning for mock-oauth. Vi kan f.eks. bytte til en mer Azure-spesifikk mock.
+                                    it == """api://${applicationConfig.azure.clientId}/.default"""
+                            },
                     ) {
                         "jwt-auth su-se-framover: Valid audience not found in claims"
                     }
@@ -103,4 +115,12 @@ internal fun Application.configureAuthentication(
 
 fun JWTCredential.getRoles(): List<String> {
     return this.payload.getClaim("roles")?.asList(String::class.java) ?: emptyList()
+}
+
+/**
+ * Lokalt kommer tokens fra mock-oauth2 (frontend) og fra appen selv (dev-rutene bruker testhjelpere som signerer med
+ * [AuthStubCommonConfig]). Nøkkelen genereres i samme JVM, så bare den lokale appen kan lage slike tokens.
+ */
+private fun lokalJwkProvider(azureJwkProvider: JwkProvider) = JwkProvider { keyId ->
+    if (keyId == AuthStubCommonConfig.KEY_ID) JwkProviderStub.get(keyId) else azureJwkProvider.get(keyId)
 }
