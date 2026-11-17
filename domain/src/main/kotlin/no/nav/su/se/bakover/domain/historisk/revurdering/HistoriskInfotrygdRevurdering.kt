@@ -77,6 +77,7 @@ data class HistoriskInfotrygdRevurdering(
         if (beregning == null) {
             return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerBeregning.left()
         }
+        // TODO: her skal simulering inn
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.SIMULERT,
             saksbehandler = saksbehandler,

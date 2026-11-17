@@ -41,6 +41,10 @@ internal data class HistoriskErstatningslinjevalg(
     val refDelytelseId: UUID30?,
 )
 
+/**
+ * Opphørssatsen følger XSD-kravene dokumentert på [Oppdragslinje.sats]:
+ * maks 13 sifre totalt og 2 desimaler.
+ */
 internal fun byggHistoriskInfotrygdOppdragRequest(
     grunnlag: HistoriskInfotrygdOppdragsgrunnlag,
     saksnummer: Saksnummer,
@@ -73,8 +77,13 @@ internal fun byggHistoriskInfotrygdOppdragRequest(
     }
     format.opphørslinjer.forEach { (måned, valg) ->
         val normalisertSats = valg.sats.stripTrailingZeros()
-        val antallSifre = normalisertSats.precision() + maxOf(-normalisertSats.scale(), 0)
-        if (valg.sats.signum() < 0 || normalisertSats.scale() > 2 || antallSifre > 13) {
+        // 1000 normaliseres til 1E+3, så negativ skala må tas med når sifrene telles.
+        val antallSifreTotalt = normalisertSats.precision() + maxOf(-normalisertSats.scale(), 0)
+        val erNegativ = valg.sats.signum() < 0
+        val harForMangeDesimaler = normalisertSats.scale() > 2
+        val harForMangeSifreTotalt = antallSifreTotalt > 13
+
+        if (erNegativ || harForMangeDesimaler || harForMangeSifreTotalt) {
             return KunneIkkeByggeHistoriskInfotrygdOppdragRequest.UgyldigOpphørssats(måned).left()
         }
     }
