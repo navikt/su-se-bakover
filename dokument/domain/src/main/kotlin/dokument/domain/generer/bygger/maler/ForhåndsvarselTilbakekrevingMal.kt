@@ -112,7 +112,7 @@ private fun Innhold.slikKanDuUttaleDeg(sakstype: Sakstype) {
     )
 }
 
-private fun vedleggOmFeilutbetaltBeløp(kravgrunnlag: KravgrunnlagData?): List<Attachment> {
+fun vedleggOmFeilutbetaltBeløp(kravgrunnlag: KravgrunnlagData?): List<Attachment> {
     if (kravgrunnlag == null) return emptyList()
     val perioder = kravgrunnlag.beregningFeilutbetaltBeløp
     return listOf(
