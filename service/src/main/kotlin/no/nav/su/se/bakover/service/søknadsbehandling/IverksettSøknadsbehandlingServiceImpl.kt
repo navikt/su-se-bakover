@@ -129,10 +129,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
 
-        // TODO: Opprett GOSYS-oppgave her dersom EPS fyller 67 år i løpet av stønadsperioden.
-
         val sak = iverksattSøknadsbehandlingResponse.sak
-        // var bursdagEPS: LocalDate? = null
 
         if (iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget) {
             val fnrEPS = iverksattSøknadsbehandlingResponse.søknadsbehandling
@@ -149,7 +146,7 @@ class IverksettSøknadsbehandlingServiceImpl(
                             is Person.Fødsel.MedFødselsdato -> {
                                 val periode = iverksattSøknadsbehandlingResponse.søknadsbehandling.periode
 
-                                if (personEPS.fyller67ILøpetAvPeriode(periode) == true) {
+                                if (personEPS.fyller67ILøpetAvPeriode(periode)) {
                                     val fødselsdatoEPS = fødsel.dato
                                     val bursdagEPS = fødselsdatoEPS.plusYears(67)
 
