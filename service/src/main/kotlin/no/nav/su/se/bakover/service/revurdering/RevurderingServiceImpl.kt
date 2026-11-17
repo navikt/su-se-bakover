@@ -205,7 +205,7 @@ class RevurderingServiceImpl(
                 val relatertId = klageId?.value ?: sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, relatertId)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
             }
             revurdering
         }
@@ -946,7 +946,7 @@ class RevurderingServiceImpl(
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(tilAttestering, tx)
             observers.notify(statistikkhendelse, tx)
-            sakStatistikkService.lagreForBruker(statistikkhendelse, kode6Vurdering, tx)
+            sakStatistikkService.lagreForBrukerflyt(statistikkhendelse, kode6Vurdering, tx)
         }
         return tilAttestering.right()
     }
@@ -1081,7 +1081,7 @@ class RevurderingServiceImpl(
                     annullerKontrollsamtaleService.annuller(sakId, tx)
                 },
                 lagreSakstatistikk = { statistikkHendelse, tx ->
-                    sakStatistikkService.lagreForBruker(statistikkHendelse, kode6Vurdering, tx)
+                    sakStatistikkService.lagreForBrukerflyt(statistikkHendelse, kode6Vurdering, tx)
                 },
                 lagreDokumentMedKopi = { dokument, tx ->
                     lagreVedtaksbrevMedKopi(dokument, tx, null)
@@ -1132,7 +1132,7 @@ class RevurderingServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                    sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                 }
 
                 is UnderkjentRevurdering.Opphørt -> {
@@ -1141,7 +1141,7 @@ class RevurderingServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                    sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                 }
             }
         }
@@ -1349,19 +1349,19 @@ class RevurderingServiceImpl(
                     sakStatistikkEvent,
                     tx,
                 )
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             else -> Unit

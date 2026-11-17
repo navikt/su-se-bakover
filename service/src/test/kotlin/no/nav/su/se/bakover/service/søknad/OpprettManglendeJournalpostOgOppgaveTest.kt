@@ -185,7 +185,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         inOrder(serviceOgMocks.søknadRepo, serviceOgMocks.søknadsbehandlingRepo, serviceOgMocks.sakStatistikkService, observer) {
             verify(serviceOgMocks.søknadsbehandlingRepo).hentForSøknad(søknad.id)
             verify(serviceOgMocks.søknadsbehandlingRepo).lagre(eq(behandling), transactionContext.capture())
-            verify(serviceOgMocks.sakStatistikkService).lagreAutomatisk(event, transactionContext.firstValue)
+            verify(serviceOgMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, transactionContext.firstValue)
             verify(observer).handle(event, transactionContext.firstValue)
         }
         verifyNoInteractions(serviceOgMocks.oppgaveService, serviceOgMocks.journalførSøknadClient)

@@ -92,11 +92,11 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
             if (testRun == null) {
                 sessionFactory.withTransactionContext { tx ->
                     val relId = reguleringService.hentRelatertId(sakInfo.sakId, tx)
-                    statistikkService.lagreAutomatisk(
+                    statistikkService.lagreAutomatiskSystemflyt(
                         StatistikkEvent.Behandling.ReguleringOmregning.Opprettet(regulering, relId),
                         tx,
                     )
-                    statistikkService.lagreAutomatisk(
+                    statistikkService.lagreAutomatiskSystemflyt(
                         StatistikkEvent.Behandling.ReguleringOmregning.TilAttestering(attestertReguleringSjekk),
                         tx,
                     )

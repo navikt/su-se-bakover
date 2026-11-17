@@ -109,13 +109,13 @@ class SakStatistikkService(
         return vurderForBruker(behandling)
     }
 
-    fun lagreForBruker(
+    fun lagreForBrukerflyt(
         hendelse: StatistikkEvent.Behandling,
         vurdering: Kode6Vurdering,
         sessionContext: SessionContext?,
     ) = lagre(hendelse, vurdering.harKode6, sessionContext)
 
-    fun lagreAutomatisk(
+    fun lagreAutomatiskSystemflyt(
         hendelse: StatistikkEvent.Behandling,
         sessionContext: SessionContext?,
     ) = lagre(hendelse, harKode6 = false, sessionContext = sessionContext)

@@ -152,7 +152,7 @@ class GjenopptaYtelseServiceImpl(
                 revurderingRepo.lagre(simulertRevurdering.first, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering.first)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             return simulertRevurdering.right()
@@ -266,7 +266,7 @@ class GjenopptaYtelseServiceImpl(
                         )
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                        sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                         gjenopptak.sendUtbetaling().getOrElse {
                             throw IverksettTransactionException(
                                 """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",

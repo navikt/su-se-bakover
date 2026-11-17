@@ -102,7 +102,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
         val vurdering = service.vurderForBruker(behandling)
-        service.lagreForBruker(hendelse, vurdering, null)
+        service.lagreForBrukerflyt(hendelse, vurdering, null)
 
         val rad = lagretRad()
         rad.opprettetAv shouldBe identForKode6
@@ -125,7 +125,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(annenPerson, vedtak.behandling.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
         val vurdering = service.vurderForBruker(vedtak.behandling)
-        service.lagreForBruker(iverksatt, vurdering, null)
+        service.lagreForBrukerflyt(iverksatt, vurdering, null)
 
         val rad = lagretRad()
         rad.opprettetAv shouldBe identForKode6
@@ -141,7 +141,7 @@ internal class SakStatistikkServiceTest {
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         harKode6Gruppe = false
         val vurdering = service.vurderForBruker(behandling)
-        service.lagreForBruker(hendelse, vurdering, null)
+        service.lagreForBrukerflyt(hendelse, vurdering, null)
 
         lagretRad().ansvarligEnhet shouldBe vikafossen
         verify(log).error("Sakstatistikk har kode 6, men brukeren mangler forventet gruppe for strengt fortrolig adresse")
@@ -154,7 +154,7 @@ internal class SakStatistikkServiceTest {
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
         val ordinærStatistikk = hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
         val vurdering = service.vurderForBruker(behandling)
-        service.lagreForBruker(hendelse, vurdering, null)
+        service.lagreForBrukerflyt(hendelse, vurdering, null)
 
         lagretRad() shouldBe ordinærStatistikk
         verifyNoInteractions(log)
@@ -171,7 +171,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(personMedFeil, behandling.sakstype)).thenReturn(KunneIkkeHentePerson.Ukjent.left())
         shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
             val vurdering = service.vurderForBruker(behandling)
-            service.lagreForBruker(hendelse, vurdering, null)
+            service.lagreForBrukerflyt(hendelse, vurdering, null)
         }
 
         verifyNoInteractions(repo)
@@ -180,7 +180,7 @@ internal class SakStatistikkServiceTest {
     @Test
     fun `automatisk behandling krever ikke personoppslag eller brukerkontekst`() {
         val automatiskService = SakStatistikkService(repo, fixedClock, personOppslag, sakRepo, log)
-        automatiskService.lagreAutomatisk(hendelse, null)
+        automatiskService.lagreAutomatiskSystemflyt(hendelse, null)
 
         lagretRad() shouldBe hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
         verifyNoInteractions(log, personOppslag, sakRepo)
@@ -203,7 +203,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(kode6Person, klage.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val vurdering = service.vurderForBruker(klage, sak)
-        service.lagreForBruker(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
+        service.lagreForBrukerflyt(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
 
         val rad = lagretRad()
         rad.ansvarligEnhet shouldBe vikafossen
@@ -240,7 +240,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val vurdering = service.vurderForBruker(behandling)
-        service.lagreForBruker(hendelse, vurdering, null)
+        service.lagreForBrukerflyt(hendelse, vurdering, null)
         val sekvensId = 1L
         val sekvensIder = listOf(sekvensId)
         val unikeSekvensIder = sekvensIder.toSet()

@@ -232,10 +232,10 @@ internal class StansAvYtelseServiceTest {
                 tx,
             )
             if (automatisk) {
-                verify(serviceAndMocks.sakStatistikkService).lagreAutomatisk(event, tx)
+                verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, tx)
             } else {
                 verify(serviceAndMocks.sakStatistikkService).vurderForBruker(eq(sak), any())
-                verify(serviceAndMocks.sakStatistikkService).lagreForBruker(event, kode6Vurdering, tx)
+                verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
             }
             verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
             serviceAndMocks.verifyNoMoreInteractions()
@@ -388,10 +388,10 @@ internal class StansAvYtelseServiceTest {
             it.revurdering shouldBe response
         }
         if (automatisk) {
-            verify(serviceAndMocks.sakStatistikkService).lagreAutomatisk(event, tx)
+            verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, tx)
         } else {
             verify(serviceAndMocks.sakStatistikkService).vurderForBruker(simulertStans)
-            verify(serviceAndMocks.sakStatistikkService).lagreForBruker(event, kode6Vurdering, tx)
+            verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
         }
         verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
         serviceAndMocks.verifyNoMoreInteractions()

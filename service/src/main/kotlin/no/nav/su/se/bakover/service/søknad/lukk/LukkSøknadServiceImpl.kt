@@ -72,7 +72,7 @@ class LukkSøknadServiceImpl(
                     avvistForTidligSøknad,
                 )
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                 // Bruk søknadsbehandlingens oppgaveId. For en vanlig (ikke-omgjøring) søknadsbehandling er
                 // denne identisk med søknad.oppgaveId. For en omgjøring opprettes en ny oppgave på behandlingen
                 // mens søknad.oppgaveId fortsatt peker på den opprinnelige (allerede ferdigstilte) oppgaven.

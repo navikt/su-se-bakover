@@ -219,7 +219,7 @@ class SøknadsbehandlingServiceImpl(
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler)
 
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
             }
             Pair(sak, uavklartSøknadsbehandling)
         }
@@ -327,7 +327,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                        sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                     }
 
                     is SøknadsbehandlingTilAttestering.Innvilget -> {
@@ -336,7 +336,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                        sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                     }
 
                     else -> {
@@ -525,13 +525,13 @@ class SøknadsbehandlingServiceImpl(
                     is UnderkjentSøknadsbehandling.Avslag -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                        sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                     }
 
                     is UnderkjentSøknadsbehandling.Innvilget -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
+                        sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, tx)
                     }
                 }
             }
