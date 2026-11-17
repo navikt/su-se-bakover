@@ -8,6 +8,7 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
 import dokument.domain.generer.bygger.maler.avvistSøknadFritekst
@@ -22,7 +23,8 @@ import dokument.domain.generer.bygger.maler.opphørsvedtak
 import dokument.domain.generer.bygger.maler.påminnelseOmNyStønadsperiode
 import dokument.domain.generer.bygger.maler.revurderingAvInntekt
 import dokument.domain.generer.bygger.maler.sendtTilKlageinstans
-import dokument.domain.generer.bygger.maler.skattegrunnlag
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
+import dokument.domain.generer.bygger.maler.skattegrunnlag.skattegrunnlag
 import dokument.domain.generer.bygger.maler.soknad
 import dokument.domain.generer.bygger.maler.søknadTrukket
 import dokument.domain.generer.bygger.maler.vedtakAvslag
@@ -93,10 +95,10 @@ sealed interface DokumentMal {
     data object TrukketSøknad : DokumentMal {
         override val navn = "søknadTrukket"
         override val tittel = "Bekrefter at søknad er trukket"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: TrukketSøknadPdfInnhold): PdfBestilling =
             søknadTrukket(tittel, innhold)
     }
 
@@ -266,10 +268,10 @@ sealed interface DokumentMal {
     data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal {
         override val navn = "skattegrunnlag"
         override val tittel = nyTittel ?: "Skattegrunnlag"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: SkattegrunnlagsPdfInnhold): PdfBestilling =
             skattegrunnlag(tittel, innhold)
     }
 }

@@ -5,9 +5,9 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.generer.DokumentMal
-import dokument.domain.generer.PdfInnhold
-import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.BehandlingstypeForSkattemelding
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattPdfDataJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -20,95 +20,6 @@ import vilkår.skatt.domain.Skattegrunnlag
 import java.time.Clock
 import java.util.UUID
 
-data class SkattegrunnlagsPdfInnhold private constructor(
-    val saksnummer: String?,
-    val behandlingstype: BehandlingstypeForSkattemelding,
-    override val sakstype: Sakstype,
-    val behandlingsId: UUID?,
-    val vedtaksId: UUID?,
-    val hentet: Tidspunkt,
-    val opprettet: Tidspunkt,
-    val søkers: SkattPdfDataJson?,
-    val eps: SkattPdfDataJson?,
-    val begrunnelse: String?,
-) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Skattegrunnlag(
-        nyTittel = if (søkers == null && eps != null) "Skattegrunnlag - EPS" else null,
-    )
-
-    companion object {
-        fun lagSkattegrunnlagsPdf(
-            saksnummer: Saksnummer,
-            sakstype: Sakstype,
-            søknadsbehandlingId: SøknadsbehandlingId,
-            vedtaksId: UUID,
-            hentet: Tidspunkt,
-            skatt: ÅrsgrunnlagForPdf,
-            hentNavn: (Fnr) -> Person.Navn,
-            clock: Clock,
-        ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
-            saksnummer = saksnummer.toString(),
-            behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
-            sakstype = sakstype,
-            behandlingsId = søknadsbehandlingId.value,
-            vedtaksId = vedtaksId,
-            hentet = hentet,
-            opprettet = Tidspunkt.now(clock),
-            søkers = SkattPdfDataJson(
-                skatt.søkers.fnr,
-                hentNavn(skatt.søkers.fnr),
-                skatt.søkers.årsgrunnlag.tilPdfJson(),
-            ),
-            eps = skatt.eps?.let { SkattPdfDataJson(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson()) },
-            begrunnelse = null,
-        )
-
-        fun lagSkattegrunnlagsPdfInnholdFraFrioppslag(
-            fagsystemId: String,
-            sakstype: Sakstype,
-            begrunnelse: String?,
-            skattegrunnlagSøker: Skattegrunnlag?,
-            skattegrunnlagEps: Skattegrunnlag?,
-            hentNavn: (Fnr) -> Either<KunneIkkeHentePerson, Person.Navn>,
-            clock: Clock,
-        ): Either<KunneIkkeHentePerson, SkattegrunnlagsPdfInnhold> {
-            if (skattegrunnlagSøker == null && skattegrunnlagEps == null) {
-                throw IllegalArgumentException("Skattegrunnlag for søker og eps kan ikke være null samtidig")
-            }
-
-            return SkattegrunnlagsPdfInnhold(
-                saksnummer = fagsystemId,
-                behandlingstype = BehandlingstypeForSkattemelding.Frioppslag,
-                sakstype = sakstype,
-                behandlingsId = null,
-                vedtaksId = null,
-                hentet = skattegrunnlagSøker?.hentetTidspunkt ?: skattegrunnlagEps!!.hentetTidspunkt,
-                opprettet = Tidspunkt.now(clock),
-                søkers = skattegrunnlagSøker?.let {
-                    SkattPdfDataJson(
-                        fnr = it.fnr,
-                        navn = hentNavn(it.fnr).getOrElse { return it.left() },
-                        årsgrunnlag = it.årsgrunnlag.tilPdfJson(),
-                    )
-                },
-                eps = skattegrunnlagEps?.let {
-                    SkattPdfDataJson(
-                        fnr = it.fnr,
-                        navn = hentNavn(it.fnr).getOrElse { return it.left() },
-                        årsgrunnlag = it.årsgrunnlag.tilPdfJson(),
-                    )
-                },
-                begrunnelse = begrunnelse,
-            ).right()
-        }
-    }
-}
-
-enum class BehandlingstypeForSkattemelding {
-    Søknadsbehandling,
-    Frioppslag,
-}
-
 data class ÅrsgrunnlagMedFnr(
     val fnr: Fnr,
     val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
@@ -118,3 +29,68 @@ data class ÅrsgrunnlagForPdf(
     val søkers: ÅrsgrunnlagMedFnr,
     val eps: ÅrsgrunnlagMedFnr?,
 )
+
+fun lagSkattegrunnlagsPdf(
+    saksnummer: Saksnummer,
+    sakstype: Sakstype,
+    søknadsbehandlingId: SøknadsbehandlingId,
+    vedtaksId: UUID,
+    hentet: Tidspunkt,
+    skatt: ÅrsgrunnlagForPdf,
+    hentNavn: (Fnr) -> Person.Navn,
+    clock: Clock,
+): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
+    saksnummer = saksnummer.toString(),
+    behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
+    sakstype = sakstype,
+    behandlingsId = søknadsbehandlingId.value,
+    vedtaksId = vedtaksId,
+    hentet = hentet,
+    opprettet = Tidspunkt.now(clock),
+    søkers = SkattPdfDataJson(
+        skatt.søkers.fnr,
+        hentNavn(skatt.søkers.fnr),
+        skatt.søkers.årsgrunnlag.tilPdfJson(),
+    ),
+    eps = skatt.eps?.let { SkattPdfDataJson(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson()) },
+    begrunnelse = null,
+)
+
+fun lagSkattegrunnlagsPdfInnholdFraFrioppslag(
+    fagsystemId: String,
+    sakstype: Sakstype,
+    begrunnelse: String?,
+    skattegrunnlagSøker: Skattegrunnlag?,
+    skattegrunnlagEps: Skattegrunnlag?,
+    hentNavn: (Fnr) -> Either<KunneIkkeHentePerson, Person.Navn>,
+    clock: Clock,
+): Either<KunneIkkeHentePerson, SkattegrunnlagsPdfInnhold> {
+    if (skattegrunnlagSøker == null && skattegrunnlagEps == null) {
+        throw IllegalArgumentException("Skattegrunnlag for søker og eps kan ikke være null samtidig")
+    }
+
+    return SkattegrunnlagsPdfInnhold(
+        saksnummer = fagsystemId,
+        behandlingstype = BehandlingstypeForSkattemelding.Frioppslag,
+        sakstype = sakstype,
+        behandlingsId = null,
+        vedtaksId = null,
+        hentet = skattegrunnlagSøker?.hentetTidspunkt ?: skattegrunnlagEps!!.hentetTidspunkt,
+        opprettet = Tidspunkt.now(clock),
+        søkers = skattegrunnlagSøker?.let {
+            SkattPdfDataJson(
+                fnr = it.fnr,
+                navn = hentNavn(it.fnr).getOrElse { return it.left() },
+                årsgrunnlag = it.årsgrunnlag.tilPdfJson(),
+            )
+        },
+        eps = skattegrunnlagEps?.let {
+            SkattPdfDataJson(
+                fnr = it.fnr,
+                navn = hentNavn(it.fnr).getOrElse { return it.left() },
+                årsgrunnlag = it.årsgrunnlag.tilPdfJson(),
+            )
+        },
+        begrunnelse = begrunnelse,
+    ).right()
+}

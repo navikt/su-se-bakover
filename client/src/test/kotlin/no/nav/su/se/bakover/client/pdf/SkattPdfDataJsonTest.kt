@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.client.pdf
 
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SamletÅrsgrunnlagPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SpesifiseringPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.ÅrsgrunnlagStadie
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.extensions.trimWhitespace
 import no.nav.su.se.bakover.common.serialize
@@ -39,7 +42,6 @@ internal class SkattPdfDataJsonTest {
         oppjusteringAvEierinntekter = listOf(
             SkattegrunnlagPdfJson.OppjusteringAvEierinntekter("fradragForFagforeningskontingent", "4000"),
         ),
-        manglerKategori = listOf(SkattegrunnlagPdfJson.ManglerKategori("fradragForFagforeningskontingent", "4000")),
         annet = listOf(SkattegrunnlagPdfJson.Annet("fradragForFagforeningskontingent", "4000")),
         kjøretøy = listOf(
             SpesifiseringPdfJson.KjøretøyJson("15000", "AB12345", "Troll", "1957", "15000", null, null),
@@ -72,7 +74,6 @@ internal class SkattPdfDataJsonTest {
                 "formuesfradrag":[{"tekniskNavn":"samletAnnenGjeld","beløp":"6000","spesifisering":[]}],
                 "verdsettingsrabattSomGirGjeldsreduksjon":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
                 "oppjusteringAvEierinntekter":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
-                "manglerKategori":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
                 "annet":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
                 "kjøretøy": [
                       {"beløp":"15000","registreringsnummer":"AB12345","fabrikatnavn":"Troll","årForFørstegangsregistrering":"1957","formuesverdi":"15000","antattVerdiSomNytt":null,"antattMarkedsverdi":null},

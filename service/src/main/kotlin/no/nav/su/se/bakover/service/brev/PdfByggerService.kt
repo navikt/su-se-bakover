@@ -18,6 +18,8 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Dev
@@ -113,9 +115,10 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is KlagePdfInnhold.Oppretthold -> dokumentMal.lagBestiling(this)
     is KlagePdfInnhold.Avvist -> dokumentMal.lagBestiling(this)
     is InnvilgetSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
+    is SkattegrunnlagsPdfInnhold -> dokumentMal.lagBestilling(this)
+    is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
     // is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadFritekstPdfInnhold -> dokumentMal.lagBestilling(this)
     // is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
