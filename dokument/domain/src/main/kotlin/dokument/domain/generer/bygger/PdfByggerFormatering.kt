@@ -40,6 +40,8 @@ fun GenerellData.isoTilDato(): String {
 }
 
 fun avslagsparagrafer(paragrafer: List<Int>): String {
+    if (paragrafer.isEmpty()) return ""
+
     val tekster = paragrafer.map { paragraf -> paragraf.toString() }
     val prefiks = if (paragrafer.size > 1) "§§" else "§"
     return "$prefiks ${tekster.somOppramsing()}"
