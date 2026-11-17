@@ -1,5 +1,6 @@
 package dokument.domain.generer.bygger.maler
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
@@ -12,6 +13,7 @@ import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.hilsen
 import dokument.domain.generer.bygger.punktliste
 import dokument.domain.generer.bygger.somOppramsing
@@ -34,9 +36,6 @@ enum class OpphørsgrunnBrev {
     FAMILIEGJENFORENING,
 }
 
-fun <T> List<T>.inneholderAlle(vararg elementer: T): Boolean =
-    elementer.all { element -> this.any { listeElement: T -> listeElement == element } }
-
 data class OpphørsvedtakPdfInnholdNy(
     override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
@@ -53,13 +52,17 @@ data class OpphørsvedtakPdfInnholdNy(
     val satsoversikt: SatsoversiktBrev,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Opphørsvedtak
+
+    @Suppress("unused")
+    @JsonInclude
+    val harFradrag: Boolean = beregningsperioder.harFradrag()
 }
 
 val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnholdNy ->
 
     dokument(tittel, personalia = pdfInnhold.personalia) {
         fødselsnummerAvsnitt(pdfInnhold.personalia)
-        if (pdfInnhold.opphørsgrunner.inneholderAlle(OpphørsgrunnBrev.FAMILIEGJENFORENING)) {
+        if (pdfInnhold.opphørsgrunner.contains(OpphørsgrunnBrev.FAMILIEGJENFORENING)) {
             paragraph("Vi har opphørt stønaden din fordi oppholdstillatelsen din ikke gir deg rett til supplerende stønad.")
         } else {
             paragraph("Vi har opphørt fordi:")
@@ -81,22 +84,18 @@ val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnholdNy ->
             beregning(
                 sakstype = pdfInnhold.sakstype,
                 satsoversikt = pdfInnhold.satsoversikt,
-                harFradrag = pdfInnhold.beregningsperioder.harFradrag(),
+                harFradrag = pdfInnhold.harFradrag,
                 forventetInntektStørreEnn0 = pdfInnhold.forventetInntektStørreEnn0,
                 beregningsperioder = pdfInnhold.beregningsperioder,
             )
         }
-        avslagBaseSlutt(pdfInnhold)
+        fellesKlageinfo(pdfInnhold.sakstype)
+        hilsen(
+            saksbehandler = pdfInnhold.saksbehandlerNavn,
+            attestant = pdfInnhold.attestantNavn,
+            visPostadresse = true,
+        )
     }
-}
-
-private fun Innhold.avslagBaseSlutt(pdfInnhold: OpphørsvedtakPdfInnholdNy) {
-    fellesKlageinfo(pdfInnhold.sakstype)
-    hilsen(
-        saksbehandler = pdfInnhold.saksbehandlerNavn,
-        attestant = pdfInnhold.attestantNavn,
-        visPostadresse = true,
-    )
 }
 
 fun avslagsparagrafer(paragrafer: List<Int>): String {
@@ -106,10 +105,9 @@ fun avslagsparagrafer(paragrafer: List<Int>): String {
 }
 
 fun Innhold.opphørsgrunner(data: OpphørsvedtakPdfInnholdNy) {
-    val harEktefelle = data.harEktefelle // data["harEktefelle"].sann
-    val halvG = data.halvGrunnbeløp.toString() // data["halvGrunnbeløp"].tekst
+    val harEktefelle = data.harEktefelle
+    val halvG = data.halvGrunnbeløp.toString()
     val punkter = data.opphørsgrunner.mapNotNull { grunn ->
-        // data["opphørsgrunner"].liste.mapNotNull { grunn ->
         when (grunn) {
             OpphørsgrunnBrev.UFØRHET -> listOf("Vi har mottatt opplysninger om at uføretrygden din er opphørt etter paragrafene 12-4 til 12-7.")
             OpphørsgrunnBrev.FOR_HØY_INNTEKT -> listOf(

@@ -11,11 +11,13 @@ import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
 import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.toBrev
 
 data class OpphørsvedtakPdfInnhold(
     override val sakstype: Sakstype,
@@ -89,3 +91,22 @@ fun Opphørsgrunn.tilBrev(): OpphørsgrunnBrev {
         Opphørsgrunn.FORMUE -> OpphørsgrunnBrev.FORMUE
     }
 }
+
+fun OpphørsvedtakPdfInnhold.tilPdfByggerInnhold(): OpphørsvedtakPdfInnholdNy =
+    OpphørsvedtakPdfInnholdNy(
+        sakstype = sakstype,
+        personalia = personalia,
+        opphørsgrunner = opphørsgrunner.map { it.tilBrev() },
+        avslagsparagrafer = avslagsparagrafer,
+        harEktefelle = harEktefelle,
+        beregningsperioder = beregningsperioder,
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        fritekst = fritekst,
+        forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+        halvGrunnbeløp = requireNotNull(halvGrunnbeløp) {
+            "Mangler halvt grunnbeløp for opphørsvedtak"
+        },
+        opphørsperiode = opphørsperiode,
+        satsoversikt = satsoversikt.toBrev(),
+    )
