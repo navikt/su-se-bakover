@@ -149,7 +149,7 @@ sealed interface DokumentMal {
         data object Forhåndsvarsel : DokumentMal {
             override val navn = "forhåndsvarselTilbakekrevingsbehandling"
             override val tittel = "Varsel om mulig tilbakekreving"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
             fun lagBestilling(innhold: ForhåndsvarselTilbakekrevingPdfInnhold): PdfBestilling =
@@ -159,7 +159,7 @@ sealed interface DokumentMal {
         data object ForhåndsvarseDødsbo : DokumentMal {
             override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
             override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
             fun lagBestilling(innhold: ForhåndsvarselTilbakekrevingDødsboPdfInnhold): PdfBestilling =
