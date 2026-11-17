@@ -9,7 +9,7 @@ import java.time.Clock
 import java.time.LocalDate
 import javax.jms.IllegalStateException
 
-sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold {
+sealed interface ForhåndsvarselTilbakekrevingPdfInnhold : PdfInnhold {
 
     data class Vanlig(
         val personalia: PersonaliaPdfInnhold,
@@ -18,7 +18,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val dato: String,
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
-    ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
+    ) : ForhåndsvarselTilbakekrevingPdfInnhold {
         override val dokumentMal = DokumentMal.Tilbakekreving.Forhåndsvarsel
     }
 
@@ -31,7 +31,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val tilOgMed: String,
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
-    ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
+    ) : ForhåndsvarselTilbakekrevingPdfInnhold {
         override val dokumentMal = DokumentMal.Tilbakekreving.ForhåndsvarseDødsbo
     }
 
@@ -41,7 +41,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
             personalia: PersonaliaPdfInnhold,
             saksbehandlerNavn: String,
             clock: Clock,
-        ): ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
+        ): ForhåndsvarselTilbakekrevingPdfInnhold {
             return if (command.dødsbo) {
                 val kravgrunnlagPeriode = command.kravgrunnlag?.periode ?: throw IllegalStateException("Kan ikke forhåndsvarsle tilbakekreving dødsbo uten kravgrunnlag.")
                 Dødsbo(

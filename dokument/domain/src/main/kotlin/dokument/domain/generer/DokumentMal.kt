@@ -4,6 +4,7 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
@@ -150,7 +151,7 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            fun lagBestilling(innhold: ForhåndsvarselTilbakekrevingPdfInnhold): PdfBestilling =
                 forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
         }
 
