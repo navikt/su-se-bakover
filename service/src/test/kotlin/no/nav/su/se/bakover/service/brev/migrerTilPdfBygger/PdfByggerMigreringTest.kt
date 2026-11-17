@@ -7,6 +7,8 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avsluttRevurderingPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avsluttRevurderingVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlageVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
@@ -68,7 +70,7 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     // DokumentMal.VedtaksbrevTilbakekrevingsbehandlingDødsbo to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
     // DokumentMal.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
     // DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),
-    // DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),
+    DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),
     // DokumentMal.VedtaksbrevReguleringAldersfradrag to Pair(vedtaksbrevReguleringAldersfradragPdf, vedtaksbrevReguleringAldersfradragVerdier),
 )
 

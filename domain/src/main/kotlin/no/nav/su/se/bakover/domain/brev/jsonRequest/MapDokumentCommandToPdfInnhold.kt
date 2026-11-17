@@ -90,8 +90,7 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is AvsluttRevurderingDokumentCommand -> AvsluttRevurderingPdfInnhold.fromBrevCommand(
-                command = command,
+            is AvsluttRevurderingDokumentCommand -> command.toPdfInnhold(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
