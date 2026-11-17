@@ -67,8 +67,20 @@ spec:
         - application: pensjon-pen-q2
           namespace: pensjon-q2
           cluster: dev-fss
-        - application: supstonad-proxy
+        - application: supstonad-proxy-q1
           namespace: supstonad
+          cluster: dev-fss
+        - application: pdl-api-q1
+          namespace: pdl
+          cluster: dev-fss
+        - application: dokarkiv-q1
+          namespace: teamdokumenthandtering
+          cluster: dev-fss
+        - application: saf-q1
+          namespace: teamdokumenthandtering
+          cluster: dev-fss
+        - application: dokdistfordeling-q1
+          namespace: teamdokumenthandtering
           cluster: dev-fss
         - application: supstonad-historisk
           namespace: supstonad
@@ -104,14 +116,13 @@ spec:
           cluster: dev-gcp
       external:
         - host: pensjon-pen-q2.dev-fss-pub.nais.io
-        - host: supstonad-proxy.dev-fss-pub.nais.io
+        - host: supstonad-proxy-q1.dev-fss-pub.nais.io
         - host: supstonad-historisk.dev-fss-pub.nais.io
-        - host: kodeverk-api.nav.no
-        - host: pdl-api.dev-fss-pub.nais.io
+        - host: pdl-api-q1.dev-fss-pub.nais.io
         - host: sigrun-q2.dev-fss-pub.nais.io
-        - host: saf-q2.dev-fss-pub.nais.io
-        - host: dokdistfordeling.dev-fss-pub.nais.io
-        - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: saf.dev-fss-pub.nais.io
+        - host: dokdistfordeling-q1.dev-fss-pub.nais.io
+        - host: dokarkiv.dev-fss-pub.nais.io
         - host: oppgave.dev-fss-pub.nais.io
         - host: regoppslag.dev-fss-pub.nais.io
         - host: foerstesidegenerator.dev-fss-pub.nais.io
@@ -155,9 +166,9 @@ spec:
     - name: PESYS_CLIENT_ID
       value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
     - name: SUPSTONAD_PROXY_URL
-      value: "https://supstonad-proxy.dev-fss-pub.nais.io"
+      value: "https://supstonad-proxy-q1.dev-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID
-      value: "api://dev-fss.supstonad.supstonad-proxy"
+      value: "api://dev-fss.supstonad.supstonad-proxy-q1"
     - name: SUPSTONAD_HISTORISK_URL
       value: "https://supstonad-historisk.dev-fss-pub.nais.io"
     - name: SUPSTONAD_HISTORISK_CLIENT_ID
@@ -177,17 +188,17 @@ spec:
     - name: PDFGEN_URL
       value: "http://su-pdfgen"
     - name: DOKARKIV_URL
-      value: "https://dokarkiv-q2.dev-fss-pub.nais.io"
+      value: "https://dokarkiv.dev-fss-pub.nais.io"
     - name: DOKARKIV_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
+      value: "api://dev-fss.teamdokumenthandtering.dokarkiv-q1"
     - name: OPPGAVE_URL
       value: "https://oppgave.dev-fss-pub.nais.io"
     - name: OPPGAVE_CLIENT_ID
       value: "api://dev-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
-      value: "https://dokdistfordeling.dev-fss-pub.nais.io"
+      value: "https://dokdistfordeling-q1.dev-fss-pub.nais.io"
     - name: DOKDIST_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
+      value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling-q1"
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
     - name: SKJERMING_CLIENT_ID
@@ -207,17 +218,17 @@ spec:
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
     - name: PDL_URL
-      value: "https://pdl-api.dev-fss-pub.nais.io"
+      value: "https://pdl-api-q1.dev-fss-pub.nais.io"
     - name: PDL_CLIENT_ID
-      value: "api://dev-fss.pdl.pdl-api"
+      value: "api://dev-fss.pdl.pdl-api-q1"
     - name: KABAL_URL
       value: "http://kabal-api.klage"
     - name: KABAL_CLIENT_ID
       value: "api://dev-gcp.klage.kabal-api"
     - name: SAF_URL
-      value: "https://saf-q2.dev-fss-pub.nais.io"
+      value: "https://saf.dev-fss-pub.nais.io"
     - name: SAF_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.saf"
+      value: "api://dev-fss.teamdokumenthandtering.saf-q1"
     - name: MQ_TILBAKEKREVING_MOTTAK
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
     - name: SKATTEETATEN_URL
@@ -231,7 +242,7 @@ spec:
     - name: INSTITUSJONSOPPHOLD_TOPIC
       value: "team-rocket.institusjon-opphold-hendelser-q2"
     - name: KODEVERK_URL
-      value: "https://kodeverk-api.nav.no"
+      value: "http://kodeverk-api.team-rocket"
     - name: KODEVERK_CLIENT_ID
       value: "api://dev-gcp.team-rocket.kodeverk-api"
     - name: REGOPPSLAG_URL

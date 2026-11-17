@@ -121,7 +121,9 @@ class IverksettSøknadsbehandlingServiceImpl(
             lagreVedtak = vedtakService::lagreITransaksjon,
             statistikkObservers = observers,
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
-            lagreDokumentMedKopi = lagreVedtaksbrevMedKopi,
+            lagreDokumentMedKopi = { dokument, tx ->
+                lagreVedtaksbrevMedKopi(dokument, tx, null)
+            },
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker, // TODO: Flytt denne ut.
             lagreSakstatistikk = { statistikk, tx ->
                 sakStatistikkService.lagre(statistikk, tx)
