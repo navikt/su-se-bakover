@@ -779,7 +779,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakOgSøknadsbehandling = Pair(sak, behandling),
                 clock = clock,
                 fritekstService = fritekstServiceMock,
-                eps67OppgaveAktivert = true,
             )
             whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
                 .thenReturn(
@@ -865,7 +864,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, behandling),
                 fritekstService = fritekstServiceMock,
-                eps67OppgaveAktivert = true,
             )
             whenever(serviceAndMocks.personService.hentPerson(vurdertEpsFnr, sak.type))
                 .thenReturn(
@@ -889,49 +887,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 verify(serviceAndMocks.personService, never()).hentPerson(eq(vurdertEpsFnr), any())
                 org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
             }
-        }
-
-        @Test
-        fun `deaktivert EPS67-funksjon hopper over personoppslag og oppgave men journalfører vedtaksnotat`() {
-            val bosituasjon = bosituasjonEpsUnder67()
-            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget(
-                customGrunnlag = listOf(bosituasjon),
-                customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
-            )
-            val epsFnr = bosituasjon.fnr
-            val fødselsdato = LocalDate.of(1954, 6, 15)
-            val fritekstServiceMock = mock<FritekstService> {
-                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
-                    referanseId = behandling.id.value,
-                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
-                    fritekst = "",
-                ).right()
-            }
-            val serviceAndMocks = ServiceAndMocks(
-                sakOgSøknadsbehandling = Pair(sak, behandling),
-                fritekstService = fritekstServiceMock,
-            )
-            whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
-                .thenReturn(
-                    personMedAdresse(fnr = epsFnr).copy(
-                        fødsel = Person.Fødsel.MedFødselsdato(fødselsdato),
-                    ).right(),
-                )
-
-            serviceAndMocks.service.iverksett(
-                IverksettSøknadsbehandlingCommand(
-                    behandlingId = behandling.id,
-                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
-                ),
-            ).shouldBeRight()
-
-            verify(serviceAndMocks.personService, never()).hentPerson(eq(epsFnr), any())
-            org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
-            verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
-                sakId = sak.id,
-                referanseId = behandling.id.value,
-                referanseType = ReferanseType.SØKNADSBEHANDLING,
-            )
         }
 
         @Test
@@ -1342,7 +1297,6 @@ private data class ServiceAndMocks(
     val personService: PersonService = mock {
         on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
     },
-    val eps67OppgaveAktivert: Boolean = false,
 ) {
 
     val oppgaveV2Service = mock<OppgaveV2Service> {
@@ -1368,7 +1322,6 @@ private data class ServiceAndMocks(
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         personService = personService,
         oppgaveV2Service = oppgaveV2Service,
-        eps67OppgaveAktivert = eps67OppgaveAktivert,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

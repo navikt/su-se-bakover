@@ -57,7 +57,6 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val personService: PersonService,
     private val oppgaveV2Service: OppgaveV2Service,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
-    private val eps67OppgaveAktivert: Boolean,
 ) : IverksettSøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -135,10 +134,7 @@ class IverksettSøknadsbehandlingServiceImpl(
         val sak = iverksattSøknadsbehandlingResponse.sak
         // var bursdagEPS: LocalDate? = null
 
-        if (
-            eps67OppgaveAktivert &&
-            iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget
-        ) {
+        if (iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget) {
             val fnrEPS = iverksattSøknadsbehandlingResponse.søknadsbehandling
                 .grunnlagsdata.bosituasjon
                 .singleFullstendigEpsOrNull()
