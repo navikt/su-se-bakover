@@ -2,12 +2,14 @@ package dokument.domain.generer
 
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
+import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
 import dokument.domain.generer.bygger.maler.avvistSøknadFritekst
@@ -22,7 +24,8 @@ import dokument.domain.generer.bygger.maler.opphørsvedtak
 import dokument.domain.generer.bygger.maler.påminnelseOmNyStønadsperiode
 import dokument.domain.generer.bygger.maler.revurderingAvInntekt
 import dokument.domain.generer.bygger.maler.sendtTilKlageinstans
-import dokument.domain.generer.bygger.maler.skattegrunnlag
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
+import dokument.domain.generer.bygger.maler.skattegrunnlag.skattegrunnlag
 import dokument.domain.generer.bygger.maler.soknad
 import dokument.domain.generer.bygger.maler.søknadTrukket
 import dokument.domain.generer.bygger.maler.vedtakAvslag
@@ -84,19 +87,19 @@ sealed interface DokumentMal {
     data object AvslagsVedtak : DokumentMal {
         override val navn = "vedtakAvslag"
         override val tittel = "Avslag supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling = vedtakAvslag(tittel, innhold)
+        fun lagBestilling(innhold: AvslagSøknadsbehandlingPdfInnhold): PdfBestilling = vedtakAvslag(tittel, innhold)
     }
 
     data object TrukketSøknad : DokumentMal {
         override val navn = "søknadTrukket"
         override val tittel = "Bekrefter at søknad er trukket"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: TrukketSøknadPdfInnhold): PdfBestilling =
             søknadTrukket(tittel, innhold)
     }
 
@@ -140,44 +143,46 @@ sealed interface DokumentMal {
             forhåndsvarsel(tittel, innhold)
     }
 
-    data object ForhåndsvarselTilbakekrevingsbehandling : DokumentMal {
-        override val navn = "forhåndsvarselTilbakekrevingsbehandling"
-        override val tittel = "Varsel om mulig tilbakekreving"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+    sealed interface Tilbakekreving {
+        data object Forhåndsvarsel : DokumentMal {
+            override val navn = "forhåndsvarselTilbakekrevingsbehandling"
+            override val tittel = "Varsel om mulig tilbakekreving"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
-    }
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
+        }
 
-    data object VedtaksbrevTilbakekrevingsbehandling : DokumentMal {
-        override val navn = "vedtaksbrevTilbakekrevingsbehandling"
-        override val tittel = "Tilbakekreving av Supplerende stønad"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+        data object ForhåndsvarseDødsbo : DokumentMal {
+            override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
+            override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
-    }
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                forhåndsvarselTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+        }
 
-    data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : DokumentMal {
-        override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
-        override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+        data object Vedtaksbrev : DokumentMal {
+            override val navn = "vedtaksbrevTilbakekrevingsbehandling"
+            override val tittel = "Tilbakekreving av Supplerende stønad"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            forhåndsvarselTilbakekrevingsbehandlingDødsbo(tittel, innhold)
-    }
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
+        }
 
-    data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : DokumentMal {
-        override val navn = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
-        override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+        data object VedtaksbrevDødsbo : DokumentMal {
+            override val navn = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
+            override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            vedtaksbrevTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                vedtaksbrevTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+        }
     }
 
     data object InnkallingTilKontrollsamtale : DokumentMal {
@@ -236,7 +241,7 @@ sealed interface DokumentMal {
         data object Oppretthold : Klage {
             override val navn = "sendtTilKlageinstans"
             override val tittel = "Oversendelsesbrev til klager"
-            override val pdfByggerDev: Boolean = true
+            override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
 
             fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =
@@ -246,7 +251,7 @@ sealed interface DokumentMal {
         data object Avvist : Klage {
             override val navn = "avvistKlage"
             override val tittel = "Avvist klage"
-            override val pdfByggerDev: Boolean = true
+            override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
 
             fun lagBestiling(innhold: KlagePdfInnhold.Avvist): PdfBestilling = avvistKlage(tittel, innhold)
@@ -266,10 +271,10 @@ sealed interface DokumentMal {
     data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal {
         override val navn = "skattegrunnlag"
         override val tittel = nyTittel ?: "Skattegrunnlag"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: SkattegrunnlagsPdfInnhold): PdfBestilling =
             skattegrunnlag(tittel, innhold)
     }
 }

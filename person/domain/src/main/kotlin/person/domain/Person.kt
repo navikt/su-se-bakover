@@ -24,14 +24,14 @@ data class Person(
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
     fun fyller67ILøpetAvPeriode(
         periode: Periode,
-    ): Boolean? {
+    ): Boolean {
         when (fødsel) {
             is Fødsel.MedFødselsdato -> {
                 val fødselsdato = fødsel.dato
                 val bursdag = fødselsdato.plusYears(67)
                 return periode.inneholder(bursdag)
             }
-            is Fødsel.MedFødselsår, null -> return null
+            is Fødsel.MedFødselsår, null -> return false
         }
     }
 
