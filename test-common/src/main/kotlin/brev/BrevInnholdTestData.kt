@@ -9,9 +9,9 @@ import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.jsonRequest.toBrev
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.getDistinkteParagrafer
 

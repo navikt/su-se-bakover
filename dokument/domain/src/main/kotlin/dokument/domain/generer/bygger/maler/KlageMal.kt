@@ -21,6 +21,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
         val fritekst: String,
         val klageDato: String,
         val vedtakDato: String?,
+        val dødsbo: Boolean,
     ) : KlagePdfInnhold {
         override val dokumentMal = DokumentMal.Klage.Oppretthold
     }
@@ -32,6 +33,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
         val saksbehandlerNavn: String,
         val attestantNavn: String?,
         val fritekst: String,
+        val dødsbo: Boolean,
     ) : KlagePdfInnhold {
         override val dokumentMal = DokumentMal.Klage.Avvist
     }
