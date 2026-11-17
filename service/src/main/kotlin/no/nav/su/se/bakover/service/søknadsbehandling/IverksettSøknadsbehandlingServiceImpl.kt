@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import dokument.domain.brev.BrevService
-import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -36,6 +35,7 @@ import person.domain.Person
 import person.domain.PersonService
 import satser.domain.SatsFactory
 import vedtak.domain.Stønadsvedtak
+import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import økonomi.application.utbetaling.UtbetalingService
 import java.time.Clock
 
@@ -57,7 +57,6 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val personService: PersonService,
     private val oppgaveV2Service: OppgaveV2Service,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
-    private val eps67OppgaveAktivert: Boolean,
 ) : IverksettSøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -130,17 +129,13 @@ class IverksettSøknadsbehandlingServiceImpl(
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
 
-        // TODO: Opprett GOSYS-oppgave her dersom EPS fyller 67 år i løpet av stønadsperioden.
-
         val sak = iverksattSøknadsbehandlingResponse.sak
-        val søknad = iverksattSøknadsbehandlingResponse.vedtak.behandling.søknad
-        // var bursdagEPS: LocalDate? = null
 
-        if (
-            eps67OppgaveAktivert &&
-            iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget
-        ) {
-            val fnrEPS = søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr
+        if (iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget) {
+            val fnrEPS = iverksattSøknadsbehandlingResponse.søknadsbehandling
+                .grunnlagsdata.bosituasjon
+                .singleFullstendigEpsOrNull()
+                ?.fnr
             if (fnrEPS != null) {
                 personService.hentPerson(fnrEPS, sak.type)
                     .onLeft {
@@ -151,26 +146,24 @@ class IverksettSøknadsbehandlingServiceImpl(
                             is Person.Fødsel.MedFødselsdato -> {
                                 val periode = iverksattSøknadsbehandlingResponse.søknadsbehandling.periode
 
-                                if (personEPS.fyller67ILøpetAvPeriode(periode) == true) {
+                                if (personEPS.fyller67ILøpetAvPeriode(periode)) {
                                     val fødselsdatoEPS = fødsel.dato
                                     val bursdagEPS = fødselsdatoEPS.plusYears(67)
 
-                                    if (bursdagEPS.isAfter(idagOslo(clock))) {
-                                        val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
-                                            saksnummer = sak.saksnummer,
-                                            bursdagEps = bursdagEPS,
-                                            fnr = sak.fnr,
-                                            clock = clock,
-                                            sakstype = sak.type,
-                                            journalpostId = iverksattSøknadsbehandlingResponse.vedtak.behandling.søknad.journalpostId,
-                                        )
-                                        oppgaveV2Service.opprettOppgave(
-                                            config = oppgaveConfig,
-                                            representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
-                                            idempotencyKey = iverksattSøknadsbehandlingResponse.søknadsbehandling.id.value,
-                                        ).onLeft { feil ->
-                                            log.error("Kunne ikke opprette Gosys-oppgave ettersom EPS fyller 67 år i løpet av stønadsperioden. SakId: ${sak.id}. Originalfeil: $feil")
-                                        }
+                                    val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
+                                        saksnummer = sak.saksnummer,
+                                        bursdagEps = bursdagEPS,
+                                        fnr = sak.fnr,
+                                        clock = clock,
+                                        sakstype = sak.type,
+                                        journalpostId = iverksattSøknadsbehandlingResponse.vedtak.behandling.søknad.journalpostId,
+                                    )
+                                    oppgaveV2Service.opprettOppgave(
+                                        config = oppgaveConfig,
+                                        representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
+                                        idempotencyKey = iverksattSøknadsbehandlingResponse.søknadsbehandling.id.value,
+                                    ).onLeft { feil ->
+                                        log.error("Kunne ikke opprette Gosys-oppgave ettersom EPS fyller 67 år i løpet av stønadsperioden. SakId: ${sak.id}. Originalfeil: $feil")
                                     }
                                 }
                             }
