@@ -43,8 +43,7 @@ kubectl get pod "$POD" \
   -o jsonpath='{.spec.containers[*].name}{"\n"}'
 ```
 
-Sett `APP_CONTAINER` til app-containeren, ikke en sidecar. Kjør deretter følgende
-i Bash eller Zsh. Kommandoen monterer appens skrivbare `/tmp`-volum også i
+Sett `APP_CONTAINER` til app-containeren, ikke en sidecar. Start deretter
 debug-containeren:
 
 ```bash
@@ -52,8 +51,7 @@ APP_CONTAINER=sett-inn-appcontainer
 kubectl debug -it "$POD" \
   --target="$APP_CONTAINER" \
   --image=europe-north1-docker.pkg.dev/nais-io/nais/images/debug:latest \
-  --profile=restricted \
-  --custom=<(printf '%s\n' '{"volumeMounts":[{"mountPath":"/tmp","name":"writable-tmp"}]}')
+  --profile=restricted
 ```
 
 ### Hva kan undersøkes?
@@ -61,10 +59,10 @@ kubectl debug -it "$POD" \
 | Område | Muligheter og begrensninger |
 |--------|----------------------------|
 | Logger | Les ordinær app-logg med `kubectl logs`, også fra forrige kjøring etter en restart. Ingen debug-container trengs. |
-| Filer | Undersøk delt `/tmp`, ledig plass og eventuelle feildumper fra debug-containeren. |
+| Filer | Debug-containerens filsystem er separat fra appens. Volum-montering er blokkert i clusteret. |
 | Nettverk | Test navneoppslag og forbindelser fra samme podnettverk. |
 | Java-krasj | Se avslutningsårsak, avslutningskode og loggen fra forrige kjøring. |
-| Minne og tråder | Se Nais-veiledningen i seksjonen «Minne og tråder i Java». |
+| Minne og tråder | Vi undersøker hvordan dette kan gjøres i Nais. |
 
 ### Logger og krasjstatus
 
@@ -95,22 +93,28 @@ ikke årsaken.
 
 ### Filer og nettverk
 
-Kjør inne i debug-containeren. `/tmp` deles bare hvis den ble montert som i
-oppstartseksemplet:
+Debug-containeren har sitt eget filsystem, inkludert `/tmp`.
 
-```sh
-ls -lh /tmp
-df -h /tmp
-```
+`jcmd` og `jmap` trenger tilgang til tilkoblingsfilene Java bruker i appens
+`/tmp` for å sende diagnosekommandoer til den kjørende Java-prosessen.
+Ved å montere appens eksisterende volum `writable-tmp` som `/tmp` også i
+debug-containeren ville begge sett de samme filene. `writable-tmp` er navnet
+på volumet i Nais-oppsettet, ikke et Java-flagg.
 
-Resten av app-containerens filsystem deles ikke automatisk. Endringer i delt
-`/tmp` påvirker også appen.
+I første forsøk i `dev-gcp` var `/tmp` i debug-containeren eid av root uten
+skrivetilgang for debug-brukeren. Tilgang via `/proc/1/root/tmp` ble også
+avvist. Java-verktøyene fikk derfor ikke opprettet filen for tilkoblingen
+og feilet med `Permission denied`. Verktøyene var installert; problemet var
+filtilgang.
 
-`kubectl cp` krever `tar` i containeren det kopieres fra. Ved godkjent
-filuthenting fra delt `/tmp`, bruk en debug-container med `tar`, ikke appens
-distroless-container.
+Neste forsøk skulle starte en ny debug-container med delt `writable-tmp`.
+Clusterets sikkerhetsregel `deny-ephemeral-volumemounts` avviste dette fordi
+volumer kan inneholde hemmeligheter. Den nye debug-containeren ble derfor
+ikke opprettet. Vi undersøker en støttet fremgangsmåte for minne- og
+trådanalyse uten å omgå denne regelen.
 
-Med `curl` tilgjengelig i debug-imaget kan du sjekke appens helse fra samme pod:
+Kjør inne i debug-containeren. Med `curl` tilgjengelig i debug-imaget kan du
+sjekke appens helse fra samme pod:
 
 ```sh
 curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/isalive
@@ -120,12 +124,6 @@ curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/isready
 Debug-containeren deler podens nettverk, men arver ikke automatisk appens
 miljøvariabler, sertifikater eller autentisering. Et vellykket nettverkskall
 bekrefter derfor ikke at Java-klientens konfigurasjon er riktig.
-
-### Minne og tråder i Java
-
-Se Nais-veiledningen:
-
-https://docs.nais.io/workloads/how-to/debugging/#kubectl-debug
 
 ### Eksempel: prosessorkravene til Java4Shell
 
