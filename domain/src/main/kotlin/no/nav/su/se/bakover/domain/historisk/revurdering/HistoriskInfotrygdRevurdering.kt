@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 @JvmInline
@@ -32,6 +33,7 @@ data class HistoriskInfotrygdRevurdering(
     val vedtaksbrevFritekst: String?,
     val vedtakSomRevurderesMånedsvis: HistoriskeVedtakSomRevurderesMånedsvis,
     val beregning: HistoriskInfotrygdBeregning?,
+    val simulering: Simulering?,
     val attesteringer: List<HistoriskInfotrygdAttestering>,
     val forhåndsvarsel: HistoriskInfotrygdForhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
 ) {
@@ -62,6 +64,24 @@ data class HistoriskInfotrygdRevurdering(
             oppdatert = tidspunkt,
             beregning = beregning,
             forhåndsvarsel = forhåndsvarsel.markerUtdatert(),
+        ).right()
+    }
+
+    fun simuler(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        tidspunkt: Tidspunkt,
+    ): Either<KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering, HistoriskInfotrygdRevurdering> {
+        if (status !in redigerbareStatuser) {
+            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.UgyldigStatus(status).left()
+        }
+        if (beregning == null) {
+            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerBeregning.left()
+        }
+        // TODO: her skal simulering inn
+        return copy(
+            status = HistoriskInfotrygdRevurderingStatus.SIMULERT,
+            saksbehandler = saksbehandler,
+            oppdatert = tidspunkt,
         ).right()
     }
 
@@ -279,6 +299,7 @@ data class HistoriskInfotrygdRevurdering(
                 beregning = null,
                 attesteringer = emptyList(),
                 forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
+                simulering = null,
             ).right()
         }
     }
@@ -287,6 +308,7 @@ data class HistoriskInfotrygdRevurdering(
 enum class HistoriskInfotrygdRevurderingStatus {
     OPPRETTET,
     BEREGNET,
+    SIMULERT,
     TIL_ATTESTERING,
     ATTESTERT,
     UNDERKJENT,
@@ -495,6 +517,7 @@ sealed interface KunneIkkeIverksetteHistoriskInfotrygdRevurdering {
 private val redigerbareStatuser = setOf(
     HistoriskInfotrygdRevurderingStatus.OPPRETTET,
     HistoriskInfotrygdRevurderingStatus.BEREGNET,
+    HistoriskInfotrygdRevurderingStatus.SIMULERT,
     HistoriskInfotrygdRevurderingStatus.UNDERKJENT,
 )
 
