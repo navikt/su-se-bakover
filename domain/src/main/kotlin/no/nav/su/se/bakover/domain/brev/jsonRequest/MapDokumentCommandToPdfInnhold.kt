@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.tilAvvistSøknadPdfInnhold
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.toPdfInnhold
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
@@ -84,8 +84,7 @@ fun fromBrevCommand(
     }
     return either {
         when (command) {
-            is IverksettSøknadsbehandlingDokumentCommand.Avslag -> AvslagSøknadsbehandlingPdfInnhold.fromBrevCommand(
-                command = command,
+            is IverksettSøknadsbehandlingDokumentCommand.Avslag -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
@@ -154,8 +153,7 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
-            is TrukketSøknadDokumentCommand -> TrukketSøknadPdfInnhold.fromBrevCommand(
-                command = command,
+            is TrukketSøknadDokumentCommand -> command.toPdfInnhold(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )

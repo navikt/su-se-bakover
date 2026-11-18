@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlageVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistSøknadVedtakPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistSøknadVedtakVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
@@ -20,7 +22,13 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnot
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.søknadTrukketPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.søknadTrukketVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakAvslagPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakAvslagVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelsePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelseVerdier
 import no.nav.su.se.bakover.service.brev.tilPdfBestilling
@@ -50,15 +58,16 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
     DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
     DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
-    // DokumentMal.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
-    // DokumentMal.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
-    // DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
+    DokumentMal.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
+    DokumentMal.Skattegrunnlag() to Pair(skattegrunnlagPdf, skattegrunnlagVerdier),
+    DokumentMal.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
+    DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
     // DokumentMal.AvvistSøknadFritekst to Pair(avvistSøknadFritekstPdf, avvistSøknadFritekstVerdier),
     // DokumentMal.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
     // DokumentMal.ForhåndsvarselTilbakekrevingsbehandling to Pair(forhåndsvarselTilbakekrevingsbehandlingPdf, forhåndsvarselTilbakekrevingsbehandlingVerdier),
-    // DokumentMal.VedtaksbrevTilbakekrevingsbehandling to Pair(vedtaksbrevTilbakekrevingsbehandlingPdf, vedtaksbrevTilbakekrevingsbehandlingVerdier),
+    // DokumentMal.Tilbakekreving.Vedtaksbrev to Pair(vedtaksbrevTilbakekrevingsbehandlingPdf, vedtaksbrevTilbakekrevingsbehandlingVerdier),
     // DokumentMal.ForhåndsvarselTilbakekrevingsbehandlingDødsbo to Pair(forhåndsvarselTilbakekrevingsbehandlingDødsboPdf, forhåndsvarselTilbakekrevingsbehandlingDødsboVerdier),
-    // DokumentMal.VedtaksbrevTilbakekrevingsbehandlingDødsbo to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
+    // DokumentMal.Tilbakekreving.VedtaksbrevDødsbo to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
     // DokumentMal.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
     // DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),
     // DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),

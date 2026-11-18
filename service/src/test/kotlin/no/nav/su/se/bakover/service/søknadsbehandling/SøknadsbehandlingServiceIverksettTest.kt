@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.domain.Stønadsbehandling
 import dokument.domain.Brevtype
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
@@ -60,27 +62,33 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.ikkeSendBrev
+import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.test.søknad.boforhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -734,14 +742,34 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = [false, true])
-        fun `forsøker EPS67-oppgave via V2 og fullfører iverksettelse også ved oppgavefeil`(oppgaveFeiler: Boolean) {
-            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
-            val epsFnr = requireNotNull(
-                behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+        @CsvSource(
+            "1954-06-16, false, true",
+            "1954-06-16, true, true",
+            "1954-06-15, false, true",
+            "1954-06-15, true, true",
+            "1954-06-14, false, true",
+            "1954-06-14, true, true",
+            "1954-01-01, false, true",
+            "1954-12-31, false, true",
+            "1953-12-31, false, false",
+            "1955-01-01, false, false",
+        )
+        fun `forsøker EPS67-oppgave bare innenfor stønadsperioden og fullfører også ved oppgavefeil`(
+            fødselsdatoString: String,
+            oppgaveFeiler: Boolean,
+            skalOppretteOppgave: Boolean,
+        ) {
+            val iverksettingsdato = LocalDate.of(2021, 6, 15)
+            val clock = Clock.fixed(iverksettingsdato.atStartOfDay(fixedClock.zone).toInstant(), fixedClock.zone)
+            val bosituasjon = bosituasjonEpsUnder67()
+            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget(
+                clock = clock,
+                customGrunnlag = listOf(bosituasjon),
+                customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
             )
-            val fødselsdato = LocalDate.of(1954, 6, 15)
-            val bursdagEPS = LocalDate.of(2021, 6, 15)
+            val epsFnr = bosituasjon.fnr
+            val fødselsdato = LocalDate.parse(fødselsdatoString)
+            val bursdagEPS = fødselsdato.plusYears(67)
             val fritekstServiceMock = mock<FritekstService> {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = behandling.id.value,
@@ -751,8 +779,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             }
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, behandling),
+                clock = clock,
                 fritekstService = fritekstServiceMock,
-                eps67OppgaveAktivert = true,
             )
             whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
                 .thenReturn(
@@ -769,23 +797,27 @@ internal class SøknadsbehandlingServiceIverksettTest {
             serviceAndMocks.service.iverksett(
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = behandling.id,
-                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    attestering = Attestering.Iverksatt(attestant, Tidspunkt.now(clock)),
                 ),
             ).shouldBeRight()
 
-            val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
-                saksnummer = sak.saksnummer,
-                bursdagEps = bursdagEPS,
-                fnr = sak.fnr,
-                clock = fixedClock,
-                sakstype = sak.type,
-                journalpostId = behandling.søknad.journalpostId,
-            )
-            verify(serviceAndMocks.oppgaveV2Service).opprettOppgave(
-                config = oppgaveConfig,
-                representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
-                idempotencyKey = behandling.id.value,
-            )
+            if (skalOppretteOppgave) {
+                val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
+                    saksnummer = sak.saksnummer,
+                    bursdagEps = bursdagEPS,
+                    fnr = sak.fnr,
+                    clock = clock,
+                    sakstype = sak.type,
+                    journalpostId = behandling.søknad.journalpostId,
+                )
+                verify(serviceAndMocks.oppgaveV2Service).opprettOppgave(
+                    config = oppgaveConfig,
+                    representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
+                    idempotencyKey = behandling.id.value,
+                )
+            } else {
+                org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
+            }
             verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
                 sakId = sak.id,
                 referanseId = behandling.id.value,
@@ -793,13 +825,37 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
         }
 
-        @Test
-        fun `deaktivert EPS67-funksjon hopper over personoppslag og oppgave men journalfører vedtaksnotat`() {
-            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
-            val epsFnr = requireNotNull(
-                behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+        @ParameterizedTest
+        @CsvSource(
+            "false, true",
+            "true, true",
+            "true, false",
+        )
+        fun `EPS67-oppgaven følger lagt til endret eller fjernet EPS i vurdert bosituasjon`(
+            søknadHarEps: Boolean,
+            vurdertBosituasjonHarEps: Boolean,
+        ) {
+            val opprinneligEpsFnr = Fnr.generer()
+            val vurdertEpsFnr = Fnr.generer()
+            val bosituasjonMedEps = bosituasjonEpsUnder67(fnr = vurdertEpsFnr)
+            val søknadsboforhold = if (søknadHarEps) {
+                boforhold(epsFnr = opprinneligEpsFnr)
+            } else {
+                boforhold(delerBolig = false, delerBoligMed = null, ektefellePartnerSamboer = null)
+            }
+            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget(
+                sakOgSøknad = nySakUføre(
+                    søknadsInnhold = søknadinnholdUføre(boforhold = søknadsboforhold),
+                ),
+                customGrunnlag = listOf(
+                    if (vurdertBosituasjonHarEps) bosituasjonMedEps else bosituasjongrunnlagEnslig(),
+                ),
+                customVilkår = if (vurdertBosituasjonHarEps) {
+                    listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjonMedEps)))
+                } else {
+                    emptyList()
+                },
             )
-            val fødselsdato = LocalDate.of(1954, 6, 15)
             val fritekstServiceMock = mock<FritekstService> {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = behandling.id.value,
@@ -811,10 +867,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakOgSøknadsbehandling = Pair(sak, behandling),
                 fritekstService = fritekstServiceMock,
             )
-            whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
+            whenever(serviceAndMocks.personService.hentPerson(vurdertEpsFnr, sak.type))
                 .thenReturn(
-                    personMedAdresse(fnr = epsFnr).copy(
-                        fødsel = Person.Fødsel.MedFødselsdato(fødselsdato),
+                    personMedAdresse(fnr = vurdertEpsFnr).copy(
+                        fødsel = Person.Fødsel.MedFødselsdato(LocalDate.of(1954, 6, 15)),
                     ).right(),
                 )
 
@@ -825,13 +881,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ).shouldBeRight()
 
-            verify(serviceAndMocks.personService, never()).hentPerson(eq(epsFnr), any())
-            org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
-            verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
-                sakId = sak.id,
-                referanseId = behandling.id.value,
-                referanseType = ReferanseType.SØKNADSBEHANDLING,
-            )
+            verify(serviceAndMocks.personService, never()).hentPerson(eq(opprinneligEpsFnr), any())
+            if (vurdertBosituasjonHarEps) {
+                verify(serviceAndMocks.personService).hentPerson(vurdertEpsFnr, sak.type)
+                verify(serviceAndMocks.oppgaveV2Service).opprettOppgave(any(), any(), eq(behandling.id.value))
+            } else {
+                verify(serviceAndMocks.personService, never()).hentPerson(eq(vurdertEpsFnr), any())
+                org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
+            }
         }
 
         @Test
@@ -1244,7 +1301,6 @@ private data class ServiceAndMocks(
     val personService: PersonService = mock {
         on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
     },
-    val eps67OppgaveAktivert: Boolean = false,
 ) {
 
     val oppgaveV2Service = mock<OppgaveV2Service> {
@@ -1270,7 +1326,6 @@ private data class ServiceAndMocks(
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         personService = personService,
         oppgaveV2Service = oppgaveV2Service,
-        eps67OppgaveAktivert = eps67OppgaveAktivert,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

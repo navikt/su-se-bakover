@@ -53,15 +53,15 @@ internal class PersonTest {
     }
 
     @Test
-    fun `bare fødselsår gir ukjent resultat`() {
+    fun `bare fødselsår gir false`() {
         val fødsel = Person.Fødsel.MedFødselsår(Year.of(fødselsårFor67IPerioden))
 
-        personMedFødsel(fødsel).fyller67ILøpetAvPeriode(periode) shouldBe null
+        personMedFødsel(fødsel).fyller67ILøpetAvPeriode(periode) shouldBe false
     }
 
     @Test
-    fun `manglende fødselsopplysninger gir ukjent resultat`() {
-        personMedFødsel(null).fyller67ILøpetAvPeriode(periode) shouldBe null
+    fun `manglende fødselsopplysninger gir false`() {
+        personMedFødsel(null).fyller67ILøpetAvPeriode(periode) shouldBe false
     }
 
     private fun personMedFødsel(fødsel: Person.Fødsel?) = Person(
