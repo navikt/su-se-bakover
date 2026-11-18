@@ -1,5 +1,94 @@
 # Feilsøking
 
+## Debugging i Nais med distroless
+
+App-imaget har ikke shell. Bruk `kubectl debug` til å starte en midlertidig
+debug-container i samme pod, uten å restarte appen eller endre app-imaget.
+Dette krever tilgang til clusteret og rettighet til å legge til slike containere.
+Se [Kubernetes-oppsettet](drift.md#kubernetes) hvis du mangler tilkobling.
+
+Velg `dev-gcp` for utvikling eller `prod-gcp` for produksjon. Eksemplet velger
+`dev-gcp`. Kontroller aktiv kontekst og namespace etter miljøbyttet:
+
+```bash
+kubectl config use-context dev-gcp
+kubectl config current-context
+kubectl config view --minify -o jsonpath='{.contexts[0].context.namespace}{"\n"}'
+```
+
+Namespace for denne appen er alltid `supstonad`. Tomt namespace betyr at
+Kubernetes bruker `default`. Hvis namespace ikke er `supstonad`, sett det og
+kontroller på nytt:
+
+```bash
+kubectl config set-context --current --namespace=supstonad
+kubectl config view --minify -o jsonpath='{.contexts[0].context.namespace}{"\n"}'
+```
+
+Kommandoene under bruker aktiv kontekst og standard-namespace. Kontroller dem
+på nytt hvis du bytter miljø underveis. Når du skal teste et nytt image, vent
+til deployment til valgt miljø er ferdig og den nye app-poden er `Ready`.
+Finn deretter den nye poden:
+
+```bash
+kubectl get pods -l app=su-se-bakover
+```
+
+Sett `POD` til podnavnet fra listen, og finn navnene på containerne:
+
+```bash
+POD=sett-inn-podnavn
+kubectl get pod "$POD" \
+  -o jsonpath='{.spec.containers[*].name}{"\n"}'
+```
+
+Sett `APP_CONTAINER` til app-containeren, ikke en sidecar. Kjør deretter følgende
+i Bash eller Zsh. Kommandoen monterer appens skrivbare `/tmp`-volum også i
+debug-containeren:
+
+```bash
+APP_CONTAINER=sett-inn-appcontainer
+kubectl debug -it "$POD" \
+  --target="$APP_CONTAINER" \
+  --image=europe-north1-docker.pkg.dev/nais-io/nais/images/debug:latest \
+  --profile=restricted \
+  --custom=<(printf '%s\n' '{"volumeMounts":[{"mountPath":"/tmp","name":"writable-tmp"}]}')
+```
+
+### Hva kan undersøkes?
+
+| Område | Muligheter og begrensninger |
+|--------|----------------------------|
+| Nettverk | Undersøk navneoppslag og forbindelser fra samme podnettverk. Appens miljøvariabler og sertifikatoppsett følger ikke automatisk med. |
+| Prosessor | Undersøk arkitektur og tilgjengelige prosessorfunksjoner, se eksemplet under. |
+| Prosesser | `--target` ber om tilgang til app-containerens prosessnavnerom. Det krever støtte i container-runtime og gir ikke automatisk ekstra rettigheter. |
+| Filer | `/tmp` deles i eksemplet. Resten av app-containerens filsystem deles ikke automatisk. Endringer i delt `/tmp` påvirker også appen. |
+| Java | Tråddumper og minneanalyse krever egnede Java-verktøy og tilgang til den kjørende Java-prosessen. Ikke forutsett at debug-imaget inneholder disse verktøyene. |
+
+Eksempel inne i debug-containeren:
+
+```sh
+uname -m
+grep -m1 -E '^(flags|Features)[[:space:]]*:' /proc/cpuinfo
+```
+
+For Java-verktøy som `jcmd` kreves blant annet samme effektive bruker og gruppe
+som Java-prosessen og tilgang til prosessens tilkoblingsmekanisme.
+En prosess som allerede har krasjet, kan ikke undersøkes som en kjørende
+prosess. Minnedumper kan inneholde personopplysninger, token og hemmeligheter og
+krever avtalt sikker håndtering.
+
+Avslutt shellet med `exit` når du er ferdig. Debug-containeren stopper, men
+oppføringen blir stående til poden erstattes. `kubectl cp` krever `tar` i
+containeren det kopieres fra og fungerer derfor ikke nødvendigvis direkte mot
+appens distroless-container.
+
+Kilder:
+
+- https://docs.nais.io/workloads/how-to/debugging/#kubectl-debug
+- https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/#ephemeral-container
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+
 ## Colima og Testcontainers på macOS
 
 Ved `no match for platform in manifest`, sjekk serveren og miljøvariablene:
