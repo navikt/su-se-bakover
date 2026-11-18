@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
+import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdAttestering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregning
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
@@ -29,6 +31,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedta
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskeVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.historisk.revurdering.IverksatteMånedsresultater
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 class HistoriskInfotrygdRevurderingPostgresRepo(
@@ -103,7 +106,8 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                     vedtaksbrev_fritekst = :vedtaksbrev_fritekst,
                     forhandsvarsel = CAST(:forhandsvarsel AS JSONB),
                     beregning = CAST(:historisk_beregning_json AS JSONB),
-                    attesteringer = CAST(:attesteringer AS JSONB)
+                    attesteringer = CAST(:attesteringer AS JSONB),
+                    simulering = CAST(:simulering AS JSONB)
                 WHERE id = :id
                 """.trimIndent().oppdatering(
                     mapOf(
@@ -119,6 +123,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                             HistoriskInfotrygdBeregningDbJson.fromDomain(it).serialize()
                         },
                         "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
+                        "simulering" to revurdering.simulering.serializeNullableSimulering(),
                     ),
                     tx,
                 )
@@ -234,13 +239,13 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 id, sak_id, projeksjon_id, fra_og_med, til_og_med, status, saksbehandler,
                 opprettet, oppdatert, vedtak_som_revurderes_maanedsvis,
                 beregning, attesteringer, vedtaksbrevvalg, vedtaksbrev_fritekst,
-                forhandsvarsel
+                forhandsvarsel, simulering
             ) VALUES (
                 :id, :sak_id, :projeksjon_id, :fra_og_med, :til_og_med, :status, :saksbehandler,
                 :opprettet, :oppdatert,
                 CAST(:vedtak_som_revurderes_maanedsvis AS JSONB), CAST(:historisk_beregning_json AS JSONB),
                 CAST(:attesteringer AS JSONB), :vedtaksbrevvalg, :vedtaksbrev_fritekst,
-                CAST(:forhandsvarsel AS JSONB)
+                CAST(:forhandsvarsel AS JSONB), CAST(:simulering AS JSONB)
             )
         """.trimIndent().insert(
             mapOf(
@@ -264,6 +269,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 "vedtaksbrevvalg" to revurdering.vedtaksbrevvalg.tilDbverdi(),
                 "vedtaksbrev_fritekst" to revurdering.vedtaksbrevFritekst,
                 "forhandsvarsel" to revurdering.forhåndsvarsel.serializeForhåndsvarsel(),
+                "simulering" to revurdering.simulering.serializeNullableSimulering(),
             ),
             session,
         )
@@ -321,6 +327,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         beregning = stringOrNull("beregning")?.let(HistoriskInfotrygdBeregningDbJson::deserialize),
         attesteringer = string("attesteringer").deserializeAttesteringer(),
         forhåndsvarsel = string("forhandsvarsel").deserializeForhåndsvarsel(),
+        simulering = stringOrNull("simulering").deserializeNullableSimulering(),
     )
 
     private data class BehandlingRad(
@@ -339,6 +346,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         val beregning: HistoriskInfotrygdBeregning?,
         val attesteringer: List<HistoriskInfotrygdAttestering>,
         val forhåndsvarsel: no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel,
+        val simulering: Simulering?,
     ) {
         fun toDomain() =
             HistoriskInfotrygdRevurdering(
@@ -357,6 +365,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 beregning = beregning,
                 attesteringer = attesteringer,
                 forhåndsvarsel = forhåndsvarsel,
+                simulering = simulering,
             )
     }
 }
