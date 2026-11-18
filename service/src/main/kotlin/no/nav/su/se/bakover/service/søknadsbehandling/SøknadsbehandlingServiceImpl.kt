@@ -213,7 +213,7 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             saksbehandler = saksbehandler,
         ).map { (sak, uavklartSøknadsbehandling) ->
-            val kode6Vurdering = sakStatistikkService.vurderForBruker(uavklartSøknadsbehandling)
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(uavklartSøknadsbehandling)
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler)
@@ -297,7 +297,7 @@ class SøknadsbehandlingServiceImpl(
                     søknadsbehandling::class,
                 ).left()
 
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(søknadsbehandling)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(søknadsbehandling)
         return sendTilAttestering(
             søknadsbehandling = søknadsbehandlingSomKanSendesTilAttestering,
             saksbehandler = request.saksbehandler,
@@ -500,7 +500,7 @@ class SøknadsbehandlingServiceImpl(
                 it::class,
             ).left()
         }
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(søknadsbehandling)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(søknadsbehandling)
         return søknadsbehandling.tilUnderkjent(request.attestering).map { underkjent ->
             oppgaveService.oppdaterOppgave(
                 underkjent.oppgaveId,

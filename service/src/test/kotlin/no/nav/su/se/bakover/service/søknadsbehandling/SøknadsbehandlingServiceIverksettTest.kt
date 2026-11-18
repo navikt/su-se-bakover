@@ -1292,7 +1292,7 @@ private data class ServiceAndMocks(
     val skattDokumentService: SkattDokumentService = mock {},
     val fritekstService: FritekstService = mock {},
     val sakStatistikkService: SakStatistikkService = mock {
-        on { vurderForBruker(any<Stønadsbehandling>()) } doReturn Kode6Vurdering(false)
+        on { vurderKode6ForStønadsbehandling(any<Stønadsbehandling>()) } doReturn Kode6Vurdering(false)
     },
     val mottakerService: MottakerService = mock {
         on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()

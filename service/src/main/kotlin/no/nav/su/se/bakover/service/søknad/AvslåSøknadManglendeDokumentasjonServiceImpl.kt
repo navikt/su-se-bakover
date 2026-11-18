@@ -52,7 +52,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
             throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}")
         }
         val søknad = sak.søknader.single { it.id == command.søknadId }
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(søknad.søknadInnhold)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForSøknad(søknad.søknadInnhold)
         return lagAvslag(command, sak).map {
             iverksettSøknadsbehandlingService.iverksett(it, kode6Vurdering)
             it.sak

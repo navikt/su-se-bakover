@@ -1,18 +1,35 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.Dokumenttilstand
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurdering
+import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.kravgrunnlag.grunnlagsperiode
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
+import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -31,9 +48,15 @@ import org.mockito.kotlin.whenever
 import person.domain.Adressebeskyttelse
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonOppslag
+import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.Tilbakekrevingsbehandlinger
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.vedtak.VedtakTilbakekrevingsbehandling
 import toBehandlingsstatistikkOverordnet
 import java.math.BigInteger
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class SakStatistikkServiceTest {
@@ -55,7 +78,7 @@ internal class SakStatistikkServiceTest {
         ordinærePersoner()
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
-        val vurdering = service.vurderForBruker(behandling)
+        val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
         service.lagreForBrukerflyt(hendelse, vurdering, null)
 
         val rad = lagretRad()
@@ -77,7 +100,7 @@ internal class SakStatistikkServiceTest {
         ordinærePersoner()
         whenever(personOppslag.person(annenPerson, vedtak.behandling.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
-        val vurdering = service.vurderForBruker(vedtak.behandling)
+        val vurdering = service.vurderKode6ForStønadsbehandling(vedtak.behandling)
         service.lagreForBrukerflyt(iverksatt, vurdering, null)
 
         val rad = lagretRad()
@@ -93,7 +116,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(any(), any()))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
         val ordinærStatistikk = hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
-        val vurdering = service.vurderForBruker(behandling)
+        val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
         service.lagreForBrukerflyt(hendelse, vurdering, null)
 
         lagretRad() shouldBe ordinærStatistikk
@@ -109,7 +132,7 @@ internal class SakStatistikkServiceTest {
         val personMedFeil = if (feilHosSøker) behandling.fnr else eps
         whenever(personOppslag.person(personMedFeil, behandling.sakstype)).thenReturn(KunneIkkeHentePerson.Ukjent.left())
         shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
-            val vurdering = service.vurderForBruker(behandling)
+            val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
             service.lagreForBrukerflyt(hendelse, vurdering, null)
         }
 
@@ -140,7 +163,7 @@ internal class SakStatistikkServiceTest {
         val kode6Person = if (kode6HosSøker) klage.fnr else eps
         whenever(personOppslag.person(kode6Person, klage.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
-        val vurdering = service.vurderForBruker(klage, sak)
+        val vurdering = service.vurderKode6ForKlage(klage, sak)
         service.lagreForBrukerflyt(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
 
         val rad = lagretRad()
@@ -156,9 +179,156 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(revurdering.fnr, revurdering.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
 
-        service.vurderForRelatertBehandling(sak, revurdering.id.value).harKode6 shouldBe true
+        service.vurderKode6ForRelatertBehandling(sak, revurdering.id.value).harKode6 shouldBe true
 
         verifyNoInteractions(repo, sakRepo)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `klage på avvist klage følger vedtakskjeden til EPS i stønadsbehandlingen`(viaVedtak: Boolean) {
+        val (sakMedStønadsvedtak, stønadsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+        val (sakMedKlagevedtak, tidligereKlage) = iverksattAvvistKlage(
+            sakId = sakMedStønadsvedtak.id,
+            sakMedVedtak = sakMedStønadsvedtak,
+            vedtakId = stønadsvedtak.id,
+            clock = fixedClock,
+        )
+        val klagevedtak = sakMedKlagevedtak.vedtakListe.single { it.behandling.id == tidligereKlage.id }
+        val (sak, klage) = oversendtKlage(
+            sakId = sakMedKlagevedtak.id,
+            sakMedVedtak = sakMedKlagevedtak,
+            vedtakId = klagevedtak.id,
+            opprettet = tidligereKlage.opprettet.plus(1, ChronoUnit.DAYS),
+            clock = fixedClock,
+        )
+        val eps = requireNotNull(stønadsvedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
+        ordinærePersoner()
+        whenever(personOppslag.person(eps, sak.type))
+            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+
+        val vurdering = if (viaVedtak) {
+            service.vurderKode6ForKlage(klage, sak)
+        } else {
+            service.vurderKode6ForRelatertBehandling(sak, tidligereKlage.id.value)
+        }
+
+        vurdering.harKode6 shouldBe true
+        verify(personOppslag).person(eps, sak.type)
+        verifyNoInteractions(repo, sakRepo)
+    }
+
+    @Test
+    fun `klage uten valgt vedtak følger relatert klage fra den første statistikklinjen`() {
+        val (sakMedStønadsvedtak, stønadsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+        val (sakMedKlagevedtak, tidligereKlage) = iverksattAvvistKlage(
+            sakId = sakMedStønadsvedtak.id,
+            sakMedVedtak = sakMedStønadsvedtak,
+            vedtakId = stønadsvedtak.id,
+            clock = fixedClock,
+        )
+        val (sak, klage) = opprettetKlage(
+            sakId = sakMedKlagevedtak.id,
+            sakMedVedtak = sakMedKlagevedtak,
+            opprettet = tidligereKlage.opprettet.plus(1, ChronoUnit.DAYS),
+        )
+        val førsteLinje = StatistikkEvent.Behandling.Klage.Opprettet(klage, tidligereKlage.id.value, null)
+            .toBehandlingsstatistikkOverordnet(fixedClock)
+        whenever(repo.hentInitiellBehandlingsstatistikk(klage.id, null)).thenReturn(førsteLinje)
+        ordinærePersoner()
+        val eps = requireNotNull(stønadsvedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
+        whenever(personOppslag.person(eps, sak.type))
+            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND.name).right())
+
+        service.vurderKode6ForKlage(klage, sak).harKode6 shouldBe true
+
+        verify(personOppslag).person(eps, sak.type)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `klage på tilbakekreving vurderer bare EPS i de faktiske kravgrunnlagsperiodene`(viaVedtak: Boolean) {
+        val januar = januar(2021)
+        val februar = februar(2021)
+        val mars = mars(2021)
+        val epsIJanuar = Fnr.generer()
+        val epsIFebruar = Fnr.generer()
+        val epsIMars = Fnr.generer()
+        val (sakMedStønadsvedtak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = fixedClock,
+            stønadsperiode = Stønadsperiode.create(januar..mars),
+            customGrunnlag = listOf(
+                bosituasjonEpsUnder67(periode = januar, fnr = epsIJanuar),
+                bosituasjonEpsUnder67(periode = februar, fnr = epsIFebruar),
+                bosituasjonEpsUnder67(periode = mars, fnr = epsIMars),
+            ),
+        )
+        val (sakMedTilbakekrevingsvedtak, tilbakekrevingsvedtak) = sakMedTilbakekrevingsvedtak(
+            sakMedStønadsvedtak,
+            kravgrunnlag(
+                grunnlagsperioder = nonEmptyListOf(grunnlagsperiode(periode = januar), grunnlagsperiode(periode = mars)),
+            ),
+        )
+        val (sak, klage) = oversendtKlage(
+            sakId = sakMedTilbakekrevingsvedtak.id,
+            sakMedVedtak = sakMedTilbakekrevingsvedtak,
+            vedtakId = tilbakekrevingsvedtak.id,
+            clock = fixedClock,
+        )
+        ordinærePersoner()
+        whenever(personOppslag.person(epsIFebruar, sak.type))
+            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+
+        val vurdering = if (viaVedtak) {
+            service.vurderKode6ForKlage(klage, sak)
+        } else {
+            service.vurderKode6ForRelatertBehandling(sak, tilbakekrevingsvedtak.behandling.id.value)
+        }
+
+        vurdering.harKode6 shouldBe false
+        verify(personOppslag).person(sak.fnr, sak.type)
+        verify(personOppslag).person(epsIJanuar, sak.type)
+        verify(personOppslag).person(epsIMars, sak.type)
+        org.mockito.kotlin.verifyNoMoreInteractions(personOppslag)
+        verifyNoInteractions(repo, sakRepo)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `klage på tilbakekreving avbryter ved feilet oppslag på søker eller EPS`(feilHosSøker: Boolean) {
+        val (sakMedStønadsvedtak, stønadsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+        val (sakMedVedtak, tilbakekrevingsvedtak) = sakMedTilbakekrevingsvedtak(sakMedStønadsvedtak, kravgrunnlag())
+        val (sak, klage) = oversendtKlage(
+            sakId = sakMedVedtak.id,
+            sakMedVedtak = sakMedVedtak,
+            vedtakId = tilbakekrevingsvedtak.id,
+            clock = fixedClock,
+        )
+        val eps = requireNotNull(stønadsvedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
+        val personMedFeil = if (feilHosSøker) sak.fnr else eps
+        ordinærePersoner()
+        whenever(personOppslag.person(personMedFeil, sak.type)).thenReturn(KunneIkkeHentePerson.Ukjent.left())
+
+        shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
+            val vurdering = service.vurderKode6ForKlage(klage, sak)
+            service.lagreForBrukerflyt(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
+        }
+
+        verifyNoInteractions(repo)
+    }
+
+    @Test
+    fun `sirkulær klagereferanse avbryter uten personoppslag`() {
+        val (sak, klage) = opprettetKlage()
+        val førsteLinje = StatistikkEvent.Behandling.Klage.Opprettet(klage, klage.id.value, null)
+            .toBehandlingsstatistikkOverordnet(fixedClock)
+        whenever(repo.hentInitiellBehandlingsstatistikk(klage.id, null)).thenReturn(førsteLinje)
+
+        shouldThrow<IllegalStateException> {
+            service.vurderKode6ForKlage(klage, sak)
+        }
+
+        verifyNoInteractions(personOppslag, sakRepo)
     }
 
     @Test
@@ -166,7 +336,7 @@ internal class SakStatistikkServiceTest {
         val sak = nySøknadsbehandlingUtenStønadsperiode().first
 
         shouldThrow<IllegalStateException> {
-            service.vurderForRelatertBehandling(sak, UUID.randomUUID())
+            service.vurderKode6ForRelatertBehandling(sak, UUID.randomUUID())
         }
 
         verifyNoInteractions(personOppslag, repo)
@@ -177,7 +347,7 @@ internal class SakStatistikkServiceTest {
         ordinærePersoner()
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
-        val vurdering = service.vurderForBruker(behandling)
+        val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
         service.lagreForBrukerflyt(hendelse, vurdering, null)
         val sekvensId = 1L
         val sekvensIder = listOf(sekvensId)
@@ -203,6 +373,31 @@ internal class SakStatistikkServiceTest {
             "",
             vikafossen,
         )
+    }
+
+    private fun sakMedTilbakekrevingsvedtak(
+        sak: Sak,
+        kravgrunnlag: Kravgrunnlag,
+    ): Pair<Sak, VedtakTilbakekrevingsbehandling> {
+        val tilbakekreving = mock<IverksattTilbakekrevingsbehandling>()
+        whenever(tilbakekreving.id).thenReturn(TilbakekrevingsbehandlingId.generer())
+        whenever(tilbakekreving.sakId).thenReturn(sak.id)
+        whenever(tilbakekreving.kravgrunnlag).thenReturn(kravgrunnlag)
+        whenever(tilbakekreving.versjon).thenReturn(Hendelsesversjon.ny())
+        val vedtak = VedtakTilbakekrevingsbehandling(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            saksbehandler = fiktivSaksbehandler,
+            attestant = attestant,
+            dokumenttilstand = Dokumenttilstand.GENERERT,
+            behandling = tilbakekreving,
+        )
+        return sak.copy(
+            vedtakListe = sak.vedtakListe + vedtak,
+            behandlinger = sak.behandlinger.copy(
+                tilbakekrevinger = Tilbakekrevingsbehandlinger(sak.id, listOf(tilbakekreving)),
+            ),
+        ) to vedtak
     }
 
     private fun ordinærePersoner() {

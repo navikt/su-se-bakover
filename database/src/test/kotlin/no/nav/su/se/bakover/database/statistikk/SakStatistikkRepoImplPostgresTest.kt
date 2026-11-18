@@ -53,7 +53,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
         val kode6Person = if (kode6HosSøker) sak.fnr else epsFnr
         whenever(personOppslag.person(kode6Person, sak.type))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
-        val vurdering = service.vurderForBruker(behandling)
+        val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
 
         testDataHelper.sessionFactory.withTransactionContext { tx ->
             service.lagreForBrukerflyt(StatistikkEvent.Behandling.Søknad.Opprettet(behandling, fiktivSaksbehandler), vurdering, tx)
@@ -73,7 +73,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
         )
         whenever(personOppslag.person(any(), any()))
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.UGRADERT.name).right())
-        val ordinærVurdering = service.vurderForBruker(ordinærBehandling)
+        val ordinærVurdering = service.vurderKode6ForStønadsbehandling(ordinærBehandling)
         testDataHelper.sessionFactory.withTransactionContext { tx ->
             service.lagreForBrukerflyt(
                 StatistikkEvent.Behandling.Søknad.Opprettet(ordinærBehandling, ordinærSaksbehandler),

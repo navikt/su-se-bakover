@@ -51,7 +51,7 @@ class LukkSøknadServiceImpl(
             throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
         }
         val lukketSøknadOgBehandling = sak.lukkSøknadOgSøknadsbehandling(command)
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(lukketSøknadOgBehandling.søknadsbehandling)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(lukketSøknadOgBehandling.søknadsbehandling)
         return sessionFactory.withTransactionContext { tx ->
             lukketSøknadOgBehandling.let { søknadswrapper ->
                 søknadswrapper.lagBrevRequest.onRight { lagBrevRequest ->

@@ -127,7 +127,7 @@ class SøknadServiceImpl(
         }
         val fnr = person.ident.fnr
         val søknadsinnholdMedNyesteFødselsnummer = søknadInnhold.oppdaterFnr(fnr)
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(søknadsinnholdMedNyesteFødselsnummer)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForSøknad(søknadsinnholdMedNyesteFødselsnummer)
 
         if (fnr != innsendtFødselsnummer) {
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")

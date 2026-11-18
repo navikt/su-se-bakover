@@ -226,7 +226,7 @@ class ReguleringManuellServiceImpl(
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         if (regulering !is ReguleringUnderBehandling.BeregnetRegulering) return KunneIkkeRegulereManuelt.FeilTilstandForAttestering.left()
-        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
+        val kode6Vurdering = statistikkService.vurderKode6ForStønadsbehandling(regulering)
 
         val oppgaveId: OppgaveId = regulering.oppgaveId?.also {
             oppgaveService.hentOppgave(it).getOrElse {
@@ -276,7 +276,7 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForIverksettelse.left()
         if (regulering.saksbehandler.navIdent == attestant.navIdent) return KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere.left()
-        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
+        val kode6Vurdering = statistikkService.vurderKode6ForStønadsbehandling(regulering)
         val sak = sakService.hentSak(sakId = regulering.sakId)
             .getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         val sakinfo = sak.info()
@@ -342,7 +342,7 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse.left()
         if (regulering.saksbehandler.navIdent == attestant.navIdent) return KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere.left()
-        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
+        val kode6Vurdering = statistikkService.vurderKode6ForStønadsbehandling(regulering)
         val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(underkjentRegulering, tx)
@@ -388,7 +388,7 @@ class ReguleringManuellServiceImpl(
         begrunnelse: String,
     ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
-        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
+        val kode6Vurdering = statistikkService.vurderKode6ForStønadsbehandling(regulering)
 
         if (regulering is ReguleringUnderBehandling && regulering.oppgaveId != null) {
             avsluttOppgave(

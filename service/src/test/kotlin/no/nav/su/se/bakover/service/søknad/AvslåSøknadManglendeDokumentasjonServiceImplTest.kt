@@ -452,7 +452,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
         },
         val sakStatistikkService: SakStatistikkService = mock {
-            on { vurderForBruker(any<SøknadInnhold>()) } doReturn ordinærKode6Vurdering
+            on { vurderKode6ForSøknad(any<SøknadInnhold>()) } doReturn ordinærKode6Vurdering
         },
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(

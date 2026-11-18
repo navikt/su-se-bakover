@@ -92,7 +92,7 @@ internal class StansAvYtelseServiceTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             sakStatistikkService = mock {
-                on { vurderForBruker(any<Sak>(), any()) } doThrow feil
+                on { vurderKode6ForVedtaksdata(any<Sak>(), any()) } doThrow feil
             },
             sessionFactory = sessionFactory,
             clock = clock,
@@ -101,7 +101,7 @@ internal class StansAvYtelseServiceTest {
         mocks.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe
             KunneIkkeStanseYtelse.UkjentFeil(feil.message.toString()).left()
 
-        verify(mocks.sakStatistikkService).vurderForBruker(eq(sak), any())
+        verify(mocks.sakStatistikkService).vurderKode6ForVedtaksdata(eq(sak), any())
         verifyNoInteractions(sessionFactory, mocks.utbetalingService, mocks.revurderingRepo, mocks.vedtakService, mocks.observer)
     }
 
@@ -198,7 +198,7 @@ internal class StansAvYtelseServiceTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakStatistikkService = mock {
-                on { vurderForBruker(any<Sak>(), any()) } doReturn kode6Vurdering
+                on { vurderKode6ForVedtaksdata(any<Sak>(), any()) } doReturn kode6Vurdering
             },
             clock = clock,
         ).also { serviceAndMocks ->
@@ -234,7 +234,7 @@ internal class StansAvYtelseServiceTest {
             if (automatisk) {
                 verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, tx)
             } else {
-                verify(serviceAndMocks.sakStatistikkService).vurderForBruker(eq(sak), any())
+                verify(serviceAndMocks.sakStatistikkService).vurderKode6ForVedtaksdata(eq(sak), any())
                 verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
             }
             verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
@@ -334,7 +334,7 @@ internal class StansAvYtelseServiceTest {
                 doNothing().whenever(it).lagreITransaksjon(any(), any())
             },
             sakStatistikkService = mock {
-                on { vurderForBruker(any<Stønadsbehandling>()) } doReturn kode6Vurdering
+                on { vurderKode6ForStønadsbehandling(any<Stønadsbehandling>()) } doReturn kode6Vurdering
             },
             clock = tikkendeKlokke,
         )
@@ -390,7 +390,7 @@ internal class StansAvYtelseServiceTest {
         if (automatisk) {
             verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, tx)
         } else {
-            verify(serviceAndMocks.sakStatistikkService).vurderForBruker(simulertStans)
+            verify(serviceAndMocks.sakStatistikkService).vurderKode6ForStønadsbehandling(simulertStans)
             verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
         }
         verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
@@ -514,8 +514,8 @@ internal class StansAvYtelseServiceTest {
         val clock: Clock = fixedClock,
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val sakStatistikkService: SakStatistikkService = mock {
-            on { vurderForBruker(any<Sak>(), any()) } doReturn ordinærKode6Vurdering
-            on { vurderForBruker(any<Stønadsbehandling>()) } doReturn ordinærKode6Vurdering
+            on { vurderKode6ForVedtaksdata(any<Sak>(), any()) } doReturn ordinærKode6Vurdering
+            on { vurderKode6ForStønadsbehandling(any<Stønadsbehandling>()) } doReturn ordinærKode6Vurdering
         },
         val observer: StatistikkEventObserver = mock(),
     ) {

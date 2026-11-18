@@ -36,7 +36,7 @@ internal data class SøknadServiceOgMocks(
     val clock: Clock = fixedClock,
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val sakStatistikkService: SakStatistikkService = mock {
-        on { vurderForBruker(any<SøknadInnhold>()) } doReturn Kode6Vurdering(false)
+        on { vurderKode6ForSøknad(any<SøknadInnhold>()) } doReturn Kode6Vurdering(false)
     },
     val forstesideGeneratorService: ForstesideGeneratorService = mock(),
 ) {

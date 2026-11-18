@@ -147,7 +147,7 @@ class GjenopptaYtelseServiceImpl(
                 }
             }
 
-            val kode6Vurdering = sakStatistikkService.vurderForBruker(simulertRevurdering.first)
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(simulertRevurdering.first)
             sessionFactory.withTransactionContext { tx ->
                 revurderingRepo.lagre(simulertRevurdering.first, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering.first)
@@ -189,7 +189,7 @@ class GjenopptaYtelseServiceImpl(
 
         val revurdering = sak.hentRevurdering(revurderingId)
             .getOrElse { return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.FantIkkeRevurdering.left() }
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(revurdering)
 
         return when (revurdering) {
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {

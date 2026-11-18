@@ -78,7 +78,7 @@ class IverksettSøknadsbehandlingServiceImpl(
         val sak = sakService.hentSakForSøknadsbehandling(command.behandlingId)
 
         val søknadsbehandling = sak.hentSøknadsbehandlingEllerKast(command).getOrElse { return it.left() }
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(søknadsbehandling)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(søknadsbehandling)
         if (søknadsbehandling.skalSendeVedtaksbrev()) {
             val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
                 return KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()

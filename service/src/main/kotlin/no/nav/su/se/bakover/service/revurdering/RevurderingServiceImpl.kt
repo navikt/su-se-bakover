@@ -176,7 +176,7 @@ class RevurderingServiceImpl(
             cmd = command,
             clock = clock,
         ).map { opprettresult ->
-            val kode6Vurdering = sakStatistikkService.vurderForBruker(sak, opprettresult.gjeldendeVedtaksdata)
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForVedtaksdata(sak, opprettresult.gjeldendeVedtaksdata)
             val tidspunkt = Tidspunkt.now(clock)
             val oppgaveResponse = oppgaveService.opprettOppgave(
                 OppgaveConfig.Revurderingsbehandling(
@@ -929,7 +929,7 @@ class RevurderingServiceImpl(
             ).left()
         }
 
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(revurdering)
         // best effort for å oppdatere oppgave
         oppgaveService.oppdaterOppgave(
             oppgaveId = tilAttestering.oppgaveId,
@@ -1045,7 +1045,7 @@ class RevurderingServiceImpl(
             return it.left()
         }
 
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(revurdering)
         if (revurdering.skalSendeVedtaksbrev()) {
             val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
                 return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Fant ikke bruker i PDL").left()
@@ -1121,7 +1121,7 @@ class RevurderingServiceImpl(
             return KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(revurdering)
         val underkjent = revurdering.underkjenn(attestering)
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(underkjent, tx)
@@ -1173,7 +1173,7 @@ class RevurderingServiceImpl(
                 begrunnelse = begrunnelse,
                 brevvalg = brevvalg,
                 saksbehandler = saksbehandler,
-                kode6Vurdering = sakStatistikkService.vurderForBruker(it),
+                kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(it),
             )
         } ?: return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
     }

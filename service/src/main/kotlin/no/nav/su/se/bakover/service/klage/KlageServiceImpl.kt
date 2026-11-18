@@ -130,7 +130,7 @@ class KlageServiceImpl(
                 },
             )
         }
-        val kode6Vurdering = sakStatistikkService.vurderForRelatertBehandling(
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForRelatertBehandling(
             sak,
             request.relatertBehandlingId,
         )
@@ -304,7 +304,7 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage.left()
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(klage)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage)
         val ferdigstiltTidspunkt = Tidspunkt.now(clock)
         // BekreftetBehandlesIVedtaksinstans er eneste implementerende type ellers kastes KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand
         return klage.ferdigstillOmgjøring(saksbehandler, ferdigstiltTidspunkt).onRight {
@@ -367,7 +367,7 @@ class KlageServiceImpl(
             ).let {
             (it as? KlageTilAttestering.Vurdert) ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class).left()
         }
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(klage, sak)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage, sak)
         val eksternSak = klage.infotrygdSakId != null
         val vedtakId = klage.vilkårsvurderinger.vedtakId
 
@@ -484,7 +484,7 @@ class KlageServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(klage)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage)
 
         if (klage !is KlageTilAttestering.Avvist) {
             return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(
@@ -656,7 +656,7 @@ class KlageServiceImpl(
         begrunnelse: String,
     ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeAvslutteKlage.FantIkkeKlage.left()
-        val kode6Vurdering = sakStatistikkService.vurderForBruker(klage)
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage)
 
         return klage.avslutt(
             saksbehandler = saksbehandler,

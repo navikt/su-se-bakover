@@ -185,7 +185,7 @@ class StansYtelseServiceImpl(
                 .getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
             val vedtaksdata = kopierGjeldendeVedtaksdata(sak, request.fraOgMed)
                 .getOrElse { throw it.exception() }
-            val kode6Vurdering = sakStatistikkService.vurderForBruker(sak, vedtaksdata)
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForVedtaksdata(sak, vedtaksdata)
             sessionFactory.withTransactionContext { tx ->
                 stansAvYtelseITransaksjon(
                     request = request,
@@ -217,7 +217,7 @@ class StansYtelseServiceImpl(
             val sak = sakService.hentSakForRevurdering(revurderingId)
             val revurdering = sak.hentRevurdering(revurderingId)
                 .getOrElse { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
-            val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(revurdering)
             sessionFactory.withTransactionContext { tx ->
                 iverksettStansAvYtelseITransaksjon(
                     revurderingId = revurderingId,
