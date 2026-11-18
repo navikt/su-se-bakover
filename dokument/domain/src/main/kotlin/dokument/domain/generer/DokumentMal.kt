@@ -144,44 +144,46 @@ sealed interface DokumentMal {
             forhåndsvarsel(tittel, innhold)
     }
 
-    data object ForhåndsvarselTilbakekrevingsbehandling : DokumentMal {
-        override val navn = "forhåndsvarselTilbakekrevingsbehandling"
-        override val tittel = "Varsel om mulig tilbakekreving"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+    sealed interface Tilbakekreving {
+        data object Forhåndsvarsel : DokumentMal {
+            override val navn = "forhåndsvarselTilbakekrevingsbehandling"
+            override val tittel = "Varsel om mulig tilbakekreving"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
-    }
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
+        }
 
-    data object VedtaksbrevTilbakekrevingsbehandling : DokumentMal {
-        override val navn = "vedtaksbrevTilbakekrevingsbehandling"
-        override val tittel = "Tilbakekreving av Supplerende stønad"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+        data object ForhåndsvarseDødsbo : DokumentMal {
+            override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
+            override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
-    }
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                forhåndsvarselTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+        }
 
-    data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : DokumentMal {
-        override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
-        override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+        data object Vedtaksbrev : DokumentMal {
+            override val navn = "vedtaksbrevTilbakekrevingsbehandling"
+            override val tittel = "Tilbakekreving av Supplerende stønad"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            forhåndsvarselTilbakekrevingsbehandlingDødsbo(tittel, innhold)
-    }
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
+        }
 
-    data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : DokumentMal {
-        override val navn = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
-        override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
-        override val pdfByggerDev: Boolean = false
-        override val pdfByggerProd: Boolean = false
+        data object VedtaksbrevDødsbo : DokumentMal {
+            override val navn = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
+            override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
+            override val pdfByggerDev: Boolean = false
+            override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-            vedtaksbrevTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                vedtaksbrevTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+        }
     }
 
     data object InnkallingTilKontrollsamtale : DokumentMal {

@@ -1,15 +1,21 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
+import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
@@ -51,6 +57,11 @@ data class SimuleringErrorDto(
     val code: SimuleringErrorCode,
 )
 
+internal class HistoriskSimuleringsrespons(
+    val respons: SimulerBeregningResponse,
+    val råRespons: String,
+)
+
 class SimuleringProxyClientGcp(
     private val config: SuProxyConfig,
     private val azureAd: AzureAd,
@@ -70,6 +81,48 @@ class SimuleringProxyClientGcp(
 
     override fun simulerUtbetaling(utbetalingForSimulering: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Simulering> {
         val soapRequest = buildXmlRequestBody(utbetalingForSimulering)
+        return sendSimuleringsforespørsel(soapRequest, utbetalingForSimulering.saksnummer).flatMap { soapResponse ->
+            mapSimuleringResponse(
+                saksnummer = utbetalingForSimulering.saksnummer,
+                fnr = utbetalingForSimulering.fnr,
+                simuleringsperiode = utbetalingForSimulering.periode,
+                soapRequest = soapRequest,
+                soapResponse = soapResponse,
+                clock = clock,
+            )
+        }
+    }
+
+    // TODO(HISTORISK_SIMULERING): Koble til historisk service gjennom en avklart klientkontrakt.
+    // Behold OppdragRequest og XML i klientmodulen; ikke eksponer denne interne metoden direkte.
+    internal fun simulerHistoriskUtbetaling(
+        request: UtbetalingRequest.OppdragRequest,
+        simuleringsperiode: Periode,
+    ): Either<SimuleringFeilet, HistoriskSimuleringsrespons> {
+        val soapRequest = buildXmlRequestBody(simuleringsperiode, request)
+        val saksnummer = request.saksnummer()
+        return sendSimuleringsforespørsel(soapRequest, saksnummer).flatMap { soapResponse ->
+            Either.catch {
+                HistoriskSimuleringsrespons(
+                    respons = xmlMapper.readValue<Envelope>(soapResponse).body.simulerBeregningResponse,
+                    råRespons = soapResponse,
+                )
+            }.mapLeft { throwable ->
+                log.error("Kunne ikke lese historisk simuleringsrespons for saksnummer $saksnummer. Se sikkerlogg for context.")
+                sikkerLogg.error(
+                    "Kunne ikke lese historisk simuleringsrespons for saksnummer $saksnummer. " +
+                        "Response: $soapResponse, SoapRequest: $soapRequest",
+                    throwable,
+                )
+                SimuleringFeilet.TekniskFeil
+            }
+        }
+    }
+
+    private fun sendSimuleringsforespørsel(
+        soapRequest: String,
+        saksnummer: Saksnummer,
+    ): Either<SimuleringFeilet, String> {
         val token = bearerToken()
         val (_, response, result) =
             "${config.url}/simulerberegning"
@@ -81,16 +134,7 @@ class SimuleringProxyClientGcp(
                 .responseString()
 
         return result.fold(
-            success = { soapResponse ->
-                mapSimuleringResponse(
-                    saksnummer = utbetalingForSimulering.saksnummer,
-                    fnr = utbetalingForSimulering.fnr,
-                    simuleringsperiode = utbetalingForSimulering.periode,
-                    soapRequest = soapRequest,
-                    soapResponse = soapResponse,
-                    clock = clock,
-                )
-            },
+            success = { soapResponse -> Either.Right(soapResponse) },
             failure = {
                 val feil = when (response.statusCode) {
                     500 -> {
@@ -100,10 +144,10 @@ class SimuleringProxyClientGcp(
                             val mappetFeil = mapError(dto.code)
                             when (mappetFeil) {
                                 SimuleringFeilet.UtenforÅpningstid -> {
-                                    log.warn("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
+                                    log.warn("500: Feil ved simulering saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
                                 }
                                 else -> {
-                                    log.error("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
+                                    log.error("500: Feil ved simulering saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
                                 }
                             }
                             mappetFeil
@@ -117,12 +161,12 @@ class SimuleringProxyClientGcp(
                     }
                     else -> {
                         log.error(
-                            "Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: " +
+                            "Feil ved simulering saksnummer $saksnummer: " +
                                 "statusCode=${response.statusCode} responseMessage=${response.responseMessage}. " +
                                 "Se sikkerlogg for response body. Merk dette skal ikke skje, sjekk hvorfor.",
                         )
                         sikkerLogg.error(
-                            "Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: " +
+                            "Feil ved simulering saksnummer $saksnummer: " +
                                 "statusCode=${response.statusCode} responseBody=${response.data.toString(Charsets.UTF_8)}",
                         )
                         SimuleringFeilet.TekniskFeil

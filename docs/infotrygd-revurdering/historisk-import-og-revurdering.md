@@ -15,6 +15,11 @@ Sammenligningen er:
 At et gammelt beløp finnes er dermed nok til å bevare perioden. Det er ikke nok til å avgjøre en endring i en måned
 som revurderes. Måneden må beregnes på nytt for å finne korrekt differanse.
 
+Avklarte krav, arbeidsforutsetninger og teknisk utkast for Oppdrag er samlet i
+[Utbetaling ved historisk revurdering](historisk-utbetaling-spesifikasjon.md).
+Denne spesifikasjonen erstatter tidligere designforutsetninger her om at gamle Infotrygd-linjereferanser
+må hentes før første korrigering.
+
 ## Faglig status for historisk revurdering
 
 Statusen beskriver løsningen per 20. oktober 2026. «Implementert» betyr at flyten finnes i kode. «Planlagt»
@@ -65,6 +70,11 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Én historisk revurdering skal bare omfatte måneder med samme gjeldende kildetype: enten Infotrygd eller
   tidligere historiske revurderingsvedtak fra SU-appen. En periode med begge kildetyper skal avvises og
   behandles i separate revurderinger. Vedtakene kan ha ulike ID-er så lenge kildetypen er den samme.
+- Bare revurdering med Infotrygd som gjeldende kilde trenger det særskilte opphøret mot Infotrygd.
+  Utkastet sender dette sammen med eventuelle erstatningslinjer med `kodeEndringLinje = ENDR` og fullt
+  korrekt månedsbeløp. Når vårt iverksatte vedtak har overtatt månedene, skal senere revurdering korrigere
+  vår egen utbetaling uten å gjenta det innledende Infotrygd-opphøret. Oppdrags aksept av meldingsformatet
+  er fortsatt ikke verifisert.
 - Behandlingen lagrer hvilket vedtak som gjaldt for hver måned da behandlingen ble opprettet. Før iverksettelse
   bygges vedtaksdataene på nytt. Behandlingen stoppes hvis et annet historisk vedtak senere har overtatt en av
   månedene.
@@ -118,8 +128,9 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Selve tilbakekrevingsbehandlingen kan bruke den felles tilbakekrevingsmodulen. Kravgrunnlagets `utbetalingId`
   skal peke på den historiske revurderingens vedtak og gir dermed koblingen til Infotrygd-kanalen. Periodene i
   kravgrunnlaget brukes til å kontrollere hvilke måneder tilbakekrevingen gjelder.
-- Hvis en historisk stønad med positiv ytelse mangler Oppdrag-ID, skal systemet sperre simulering og iverksettelse
-  og forklare saksbehandleren at utbetalingslinjene ikke kan identifiseres.
+- Manglende gammel Oppdrag-ID skal ikke alene sperre historisk korrigering. Arbeidsforutsetningen er at
+  Oppdrag finner gammel Infotrygd-utbetaling gjennom person og konfigurert fagområde. Akseptert meldingsformat
+  og faktisk periodeeffekt må prøves før iverksettelse åpnes.
 - Ordinære krav til attestering og habilitet gjelder også for historiske revurderinger.
 - En avsluttet behandling sperrer ikke perioden. En senere endring behandles som en ny revurdering.
 - Historiske revurderinger gjenbruker PDF-malene for ordinær revurdering av inntekt og opphør. Brevet fyller inn
@@ -857,16 +868,16 @@ oversendingsfeltene fra `T_BESLUT` persisteres i oppslagsprojeksjonen.
 - En kontroll av den aktive, fullførte projeksjonen fant to stønader uten Oppdrag-ID. Én har ingen vedtak med
   positiv ytelse eller registrert opphørsvedtak. Den andre har ett vedtak med positiv ytelse.
 - Historiske revurderinger skal bruke SU-appens saksnummer som fagsystem-ID og nye ID-er for nye linjer, som
-  ordinære revurderinger. Før den første korrigeringen kan sendes, må vi likevel finne de gamle
-  utbetalingslinjene i Oppdrag. Oppdrag trenger dem for å sammenligne tidligere utbetalt beløp med det nye
-  korrekte månedsbeløpet.
+  ordinære revurderinger. Den tidligere forutsetningen om at vi først må hente gamle utbetalingslinjer, er
+  erstattet: Vi legger til grunn opphør gjennom Oppdrags oppsett for person og fagområde.
 - Uttrekket har `T_STONAD.OPPDRAG_ID` for de fleste stønadene og `T_DELYTELSE.LINJE_ID` på månedsbeløpene, men vi
-  har ikke bekreftet at disse identifiserer Oppdrag-linjene som skal endres. Løsningen må avklare hvordan linjene
-  hentes fra Oppdrag, og hvordan stønaden med positiv ytelse uten Oppdrag-ID håndteres.
-- Et annet migreringsløp har skissert følgende mønster: Opphør gamle transaksjoner, send hele det nye vedtaket på
-  nytt fagområde og bruk justeringskonto mellom gammelt og nytt oppdrag. Økning utbetales på det nye fagområdet.
-  Reduksjon gir feilkonto og kravgrunnlag på det gamle fagområdet. Vi må avklare om Oppdrag støtter samme mønster
-  fra Infotrygd SU til `SUALDER`.
+  har ikke bekreftet at disse identifiserer Oppdrag-linjene som skal endres. De er ikke påkrevde referanser i det
+  foreslåtte opphøret gjennom person og fagområde.
+- Et annet migreringsløp har skissert følgende mønster, som ikke er verifisert for SU: Opphør gamle
+  transaksjoner, send hele det nye vedtaket på nytt fagområde og bruk justeringskonto mellom gammelt og nytt
+  oppdrag. Økning utbetales på det nye fagområdet.
+  Reduksjon gir feilkonto og kravgrunnlag på det gamle fagområdet. Vi legger til grunn at oppsettet mellom
+  Infotrygd SU og `SUALDER` finnes, men må prøve den konkrete meldingen og returflyten.
 - Dagens kravgrunnlagskonsument tolker `fagsystemId` som SU-appens saksnummer og slår opp saken med dette nummeret.
   Hvis kravgrunnlaget for en historisk reduksjon kommer med Infotrygds gamle Oppdrag-ID, kan det ikke behandles av
   dagens flyt uten en mapping til SU-saken eller en endring i meldingsflyten.
@@ -888,8 +899,8 @@ oversendingsfeltene fra `T_BESLUT` persisteres i oppslagsprojeksjonen.
   koblingen mellom dem. Importens skjemabeskrivelse inneholder bare `T_DELYTELSE.LINJE_ID`,
   `T_DELYTELSE.TYPE_DELYTELSE`, `T_MAP_DELYTELSE.TYPE_DELYTELSE` og `T_STONAD.OPPDRAG_ID`; den har ingen
   `delytelseId` eller `beslutningslinjeId`. Domenet har foreløpig ingen egen type for den importerte OS-ID-en.
-  Før en historisk Oppdrag-mapper kan bygges, må vi hente Infotrygds opprinnelige `delytelseId` fra en
-  annen kilde eller få bekreftet en OS-kontrakt for å endre eller opphøre linja med OS-identifikatorene.
+  Den tidligere planen om å hente opprinnelig `delytelseId` eller bruke OS-identifikatorene er ikke et krav
+  for det foreslåtte opphøret gjennom person og fagområde. Eksakt opphørsformat er fortsatt uverifisert.
 - Oppdragssystemet og UR utgjorde betalingskjeden: Infotrygd sendte vedtaks-/oppdragsdata til Oppdrag, Oppdrag
   simulerte og dannet utbetalingstransaksjoner, og beløpet ble utbetalt gjennom UR. Uttrekket inneholder
   `OPPDRAG_ID` og metadata om oversending og svar fra OS, men ikke «utbetalt t.o.m.» fra UR eller en komplett

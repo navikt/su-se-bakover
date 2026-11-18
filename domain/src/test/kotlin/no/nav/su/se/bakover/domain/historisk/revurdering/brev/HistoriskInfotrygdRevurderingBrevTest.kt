@@ -169,6 +169,7 @@ internal class HistoriskInfotrygdRevurderingBrevTest {
             månedsresultater = mapOf(måned to resultat),
         ),
         attesteringer = emptyList(),
+        simulering = null,
     )
 
     private data class Tilfelle(
