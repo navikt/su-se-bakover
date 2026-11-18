@@ -4,6 +4,7 @@
 
 App-imaget har ikke shell. Bruk `kubectl debug` til å starte en midlertidig
 debug-container i samme pod, uten å restarte appen eller endre app-imaget.
+Eksemplene krever ikke endringer i Dockerfile eller Javas oppstartsflagg.
 Dette krever tilgang til clusteret og rettighet til å legge til slike containere.
 Se [Kubernetes-oppsettet](drift.md#kubernetes) hvis du mangler tilkobling.
 
@@ -59,35 +60,111 @@ kubectl debug -it "$POD" \
 
 | Område | Muligheter og begrensninger |
 |--------|----------------------------|
-| Nettverk | Undersøk navneoppslag og forbindelser fra samme podnettverk. Appens miljøvariabler og sertifikatoppsett følger ikke automatisk med. |
-| Prosessor | Undersøk arkitektur og tilgjengelige prosessorfunksjoner, se eksemplet under. |
-| Prosesser | `--target` ber om tilgang til app-containerens prosessnavnerom. Det krever støtte i container-runtime og gir ikke automatisk ekstra rettigheter. |
-| Filer | `/tmp` deles i eksemplet. Resten av app-containerens filsystem deles ikke automatisk. Endringer i delt `/tmp` påvirker også appen. |
-| Java | Tråddumper og minneanalyse krever egnede Java-verktøy og tilgang til den kjørende Java-prosessen. Ikke forutsett at debug-imaget inneholder disse verktøyene. |
+| Logger | Les ordinær app-logg med `kubectl logs`, også fra forrige kjøring etter en restart. Ingen debug-container trengs. |
+| Filer | Undersøk delt `/tmp`, ledig plass og eventuelle feildumper fra debug-containeren. |
+| Nettverk | Test navneoppslag og forbindelser fra samme podnettverk. |
+| Java-krasj | Se avslutningsårsak, avslutningskode og loggen fra forrige kjøring. |
+| Minne og tråder | Se Nais-veiledningen i seksjonen «Minne og tråder i Java». |
 
-Eksempel inne i debug-containeren:
+### Logger og krasjstatus
+
+Kjør fra den lokale terminalen, ikke inne i debug-containeren. Kommandoene gjelder
+ordinær app-logg, ikke sikkerlogger:
+
+```sh
+kubectl logs "$POD" -c "$APP_CONTAINER" --tail=100
+```
+
+Hvis app-containeren har restartet, hent loggen fra forrige kjøring:
+
+```sh
+kubectl logs "$POD" -c "$APP_CONTAINER" --previous --tail=100
+```
+
+Se antall restarter og siste avslutningsårsak:
+
+```sh
+kubectl get pod "$POD" \
+  -o jsonpath='{range .status.containerStatuses[*]}{.name}{": restarter="}{.restartCount}{", sist="}{.lastState.terminated.reason}{", exit="}{.lastState.terminated.exitCode}{"\n"}{end}'
+```
+
+Ved `OOMKilled` har containeren blitt drept på grunn av minnebruk. Java rekker
+ikke nødvendigvis å skrive en minnedump før dette skjer. Dette er noe annet enn
+at Java selv rapporterer `OutOfMemoryError`. En avslutningskode alene fastslår
+ikke årsaken.
+
+### Filer og nettverk
+
+Kjør inne i debug-containeren. `/tmp` deles bare hvis den ble montert som i
+oppstartseksemplet:
+
+```sh
+ls -lh /tmp
+df -h /tmp
+```
+
+Resten av app-containerens filsystem deles ikke automatisk. Endringer i delt
+`/tmp` påvirker også appen.
+
+`kubectl cp` krever `tar` i containeren det kopieres fra. Ved godkjent
+filuthenting fra delt `/tmp`, bruk en debug-container med `tar`, ikke appens
+distroless-container.
+
+Med `curl` tilgjengelig i debug-imaget kan du sjekke appens helse fra samme pod:
+
+```sh
+curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/isalive
+curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/isready
+```
+
+Debug-containeren deler podens nettverk, men arver ikke automatisk appens
+miljøvariabler, sertifikater eller autentisering. Et vellykket nettverkskall
+bekrefter derfor ikke at Java-klientens konfigurasjon er riktig.
+
+### Minne og tråder i Java
+
+Se Nais-veiledningen:
+
+https://docs.nais.io/workloads/how-to/debugging/#kubectl-debug
+
+### Eksempel: prosessorkravene til Java4Shell
+
+En debug-container kan brukes til å undersøke prosessorfunksjonene noden gjør
+tilgjengelige. Java4Shell krever x86-64 og alle fire funksjonene nedenfor.
+Kjør inne i debug-containeren:
 
 ```sh
 uname -m
-grep -m1 -E '^(flags|Features)[[:space:]]*:' /proc/cpuinfo
+grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' \
+  | grep -E '^(avx512f|avx512bw|avx512vbmi|bmi2)$'
 ```
 
-For Java-verktøy som `jcmd` kreves blant annet samme effektive bruker og gruppe
-som Java-prosessen og tilgang til prosessens tilkoblingsmekanisme.
-En prosess som allerede har krasjet, kan ikke undersøkes som en kjørende
-prosess. Minnedumper kan inneholde personopplysninger, token og hemmeligheter og
-krever avtalt sikker håndtering.
+Eksempel på resultat:
 
-Avslutt shellet med `exit` når du er ferdig. Debug-containeren stopper, men
-oppføringen blir stående til poden erstattes. `kubectl cp` krever `tar` i
-containeren det kopieres fra og fungerer derfor ikke nødvendigvis direkte mot
-appens distroless-container.
+```text
+x86_64
+bmi2
+```
+
+Denne noden oppfyller ikke prosessorkravene: Den viser bare `bmi2`, ikke de
+nødvendige `avx512f`, `avx512bw` og `avx512vbmi`. Resultatet gjelder noden
+poden kjører på nå, ikke automatisk andre noder eller produksjon. Poden kan
+også flyttes til en annen node senere.
+
+Java-flagget `-XX:-UseBASE64Intrinsics` endrer ikke resultatet i `/proc/cpuinfo`.
+Det slår av Javas optimaliserte Base64-implementasjon, ikke prosessorfunksjonene.
+Behold flagget til Java-builden er bekreftet rettet. At alle fire
+prosessorfunksjonene finnes, er heller ikke alene bevis på at appen er utnyttbar.
+
+Avslutt debug-shellet med `exit` når du er ferdig. Debug-containeren stopper,
+mens appen fortsetter å kjøre. Containeroppføringen blir stående til poden
+erstattes.
 
 Kilder:
 
 - https://docs.nais.io/workloads/how-to/debugging/#kubectl-debug
 - https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/#ephemeral-container
-- https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+- https://calif.io/java4shell
 
 ## Colima og Testcontainers på macOS
 
