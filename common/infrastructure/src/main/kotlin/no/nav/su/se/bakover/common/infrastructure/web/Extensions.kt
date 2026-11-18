@@ -71,6 +71,9 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
 /**
  * Lokalt er tokenet signert av appen selv når kallet kommer fra dev-rutene (testhjelpere med [AuthStubCommonConfig]).
  * Da bruker vi ident og navn fra tokenet, slik at saksbehandler og attestant kan være ulike personer.
+ *
+ * Lokalt binder verifiseringen stub-issueren til stub-nøkkelen (se `lokalVerifier` i web), så et verifisert token med
+ * denne issueren er alltid signert av appen selv.
  */
 fun erLokaltStubToken(applicationConfig: ApplicationConfig, payload: Payload?): Boolean =
     applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local &&

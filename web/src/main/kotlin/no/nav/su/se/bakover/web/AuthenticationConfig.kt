@@ -1,7 +1,13 @@
 package no.nav.su.se.bakover.web
 
+import com.auth0.jwk.JwkException
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
+import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
+import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -19,11 +25,16 @@ import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
+import java.security.interfaces.RSAPublicKey
 import java.util.concurrent.TimeUnit
 
+/**
+ * @param azureJwkProvider Nøklene til Azure (mock-oauth2 lokalt). Kan overstyres i tester av lokal autentisering.
+ */
 internal fun Application.configureAuthentication(
     azureAd: AzureAd,
     applicationConfig: ApplicationConfig,
+    azureJwkProvider: () -> JwkProvider = { azureJwkProvider(azureAd) },
 ) {
     val log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.configureAuthentication()")
 
@@ -33,24 +44,14 @@ internal fun Application.configureAuthentication(
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
             JwkProviderStub
         } else {
-            val azureJwkProvider = JwkProviderBuilder(
-                URI(azureAd.jwksUri).toURL(),
-            )
-                .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
-                .rateLimited(
-                    10,
-                    1,
-                    TimeUnit.MINUTES,
-                ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
-                .build()
-            if (erLokalt) lokalJwkProvider(azureJwkProvider) else azureJwkProvider
+            azureJwkProvider()
         }
 
     install(Authentication) {
         jwt("jwt") {
             if (erLokalt) {
                 // Lokalt godtar vi også tokens som appen selv signerer (dev-rutene i LocalTestDataRoutes).
-                verifier(jwkProvider) { withIssuer(azureAd.issuer, AuthStubCommonConfig.ISSUER) }
+                verifier { authHeader -> lokalVerifier(authHeader, jwkProvider, azureAd.issuer) }
             } else {
                 verifier(jwkProvider, azureAd.issuer)
             }
@@ -117,10 +118,48 @@ fun JWTCredential.getRoles(): List<String> {
     return this.payload.getClaim("roles")?.asList(String::class.java) ?: emptyList()
 }
 
+private fun azureJwkProvider(azureAd: AzureAd): JwkProvider =
+    JwkProviderBuilder(
+        URI(azureAd.jwksUri).toURL(),
+    )
+        .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
+        .rateLimited(
+            10,
+            1,
+            TimeUnit.MINUTES,
+        ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
+        .build()
+
 /**
  * Lokalt kommer tokens fra mock-oauth2 (frontend) og fra appen selv (dev-rutene bruker testhjelpere som signerer med
- * [AuthStubCommonConfig]). Nøkkelen genereres i samme JVM, så bare den lokale appen kan lage slike tokens.
+ * [AuthStubCommonConfig]). Stub-nøkkelen genereres i samme JVM, så bare den lokale appen kan lage slike tokens.
+ *
+ * Verifisereren velges ut fra nøkkel-id, slik at issuer er bundet til nøkkelen: stub-nøkkelen godtar bare
+ * stub-issueren, og mock-oauth2-nøklene godtar bare mock-oauth2-issueren. Et token med stub-issuer er dermed alltid
+ * signert med stub-nøkkelen.
  */
-private fun lokalJwkProvider(azureJwkProvider: JwkProvider) = JwkProvider { keyId ->
-    if (keyId == AuthStubCommonConfig.KEY_ID) JwkProviderStub.get(keyId) else azureJwkProvider.get(keyId)
+private fun lokalVerifier(authHeader: HttpAuthHeader, azureJwkProvider: JwkProvider, azureIssuer: String): JWTVerifier? {
+    val token = (authHeader as? HttpAuthHeader.Single)
+        ?.takeIf { it.authScheme.equals("Bearer", ignoreCase = true) }
+        ?.blob
+        ?: return null
+    val keyId = try {
+        JWT.decode(token).keyId
+    } catch (_: JWTDecodeException) {
+        return null
+    }
+    return if (keyId == AuthStubCommonConfig.KEY_ID) {
+        JWT.require(Algorithm.RSA256(AuthStubCommonConfig.public, null))
+            .withIssuer(AuthStubCommonConfig.ISSUER)
+            .build()
+    } else {
+        val nøkkel = try {
+            azureJwkProvider.get(keyId).publicKey as? RSAPublicKey
+        } catch (_: JwkException) {
+            null
+        } ?: return null
+        JWT.require(Algorithm.RSA256(nøkkel, null))
+            .withIssuer(azureIssuer)
+            .build()
+    }
 }
