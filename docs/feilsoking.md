@@ -1,5 +1,169 @@
 # Feilsøking
 
+## Debugging i Nais med distroless
+
+App-imaget har ikke shell. Bruk `kubectl debug` til å starte en midlertidig
+debug-container i samme pod, uten å restarte appen eller endre app-imaget.
+Eksemplene krever ikke endringer i Dockerfile eller Javas oppstartsflagg.
+Dette krever tilgang til clusteret og rettighet til å legge til slike containere.
+Se [Kubernetes-oppsettet](drift.md#kubernetes) hvis du mangler tilkobling.
+
+Velg `dev-gcp` for utvikling eller `prod-gcp` for produksjon. Eksemplet velger
+`dev-gcp`. Kontroller aktiv kontekst og namespace etter miljøbyttet:
+
+```bash
+kubectl config use-context dev-gcp
+kubectl config current-context
+kubectl config view --minify -o jsonpath='{.contexts[0].context.namespace}{"\n"}'
+```
+
+Namespace for denne appen er alltid `supstonad`. Tomt namespace betyr at
+Kubernetes bruker `default`. Hvis namespace ikke er `supstonad`, sett det og
+kontroller på nytt:
+
+```bash
+kubectl config set-context --current --namespace=supstonad
+kubectl config view --minify -o jsonpath='{.contexts[0].context.namespace}{"\n"}'
+```
+
+Kommandoene under bruker aktiv kontekst og standard-namespace. Kontroller dem
+på nytt hvis du bytter miljø underveis. Når du skal teste et nytt image, vent
+til deployment til valgt miljø er ferdig og den nye app-poden er `Ready`.
+Finn deretter den nye poden:
+
+```bash
+kubectl get pods -l app=su-se-bakover
+```
+
+Sett `POD` til podnavnet fra listen, og finn navnene på containerne:
+
+```bash
+POD=sett-inn-podnavn
+kubectl get pod "$POD" \
+  -o jsonpath='{.spec.containers[*].name}{"\n"}'
+```
+
+Sett `APP_CONTAINER` til app-containeren, ikke en sidecar. Start deretter
+debug-containeren:
+
+```bash
+APP_CONTAINER=sett-inn-appcontainer
+kubectl debug -it "$POD" \
+  --target="$APP_CONTAINER" \
+  --image=europe-north1-docker.pkg.dev/nais-io/nais/images/debug:latest \
+  --profile=restricted
+```
+
+### Hva kan undersøkes?
+
+| Område | Muligheter og begrensninger |
+|--------|----------------------------|
+| Logger | Les ordinær app-logg med `kubectl logs`, også fra forrige kjøring etter en restart. Ingen debug-container trengs. |
+| Filer | Debug-containerens filsystem er separat fra appens. Volum-montering er blokkert i clusteret. |
+| Nettverk | Test navneoppslag og forbindelser fra samme podnettverk. |
+| Java-krasj | Se avslutningsårsak, avslutningskode og loggen fra forrige kjøring. |
+| Minne og tråder | Vi undersøker hvordan dette kan gjøres i Nais. |
+
+### Logger og krasjstatus
+
+Kjør fra den lokale terminalen, ikke inne i debug-containeren. Kommandoene gjelder
+ordinær app-logg, ikke sikkerlogger:
+
+```sh
+kubectl logs "$POD" -c "$APP_CONTAINER" --tail=100
+```
+
+Hvis app-containeren har restartet, hent loggen fra forrige kjøring:
+
+```sh
+kubectl logs "$POD" -c "$APP_CONTAINER" --previous --tail=100
+```
+
+Se antall restarter og siste avslutningsårsak:
+
+```sh
+kubectl get pod "$POD" \
+  -o jsonpath='{range .status.containerStatuses[*]}{.name}{": restarter="}{.restartCount}{", sist="}{.lastState.terminated.reason}{", exit="}{.lastState.terminated.exitCode}{"\n"}{end}'
+```
+
+Ved `OOMKilled` har containeren blitt drept på grunn av minnebruk. Java rekker
+ikke nødvendigvis å skrive en minnedump før dette skjer. Dette er noe annet enn
+at Java selv rapporterer `OutOfMemoryError`. En avslutningskode alene fastslår
+ikke årsaken.
+
+### Filer og nettverk
+
+Debug-containeren har sitt eget filsystem, inkludert `/tmp`.
+
+`jcmd` og `jmap` trenger tilgang til tilkoblingsfilene Java bruker i appens
+`/tmp` for å sende diagnosekommandoer til den kjørende Java-prosessen.
+Ved å montere appens eksisterende volum `writable-tmp` som `/tmp` også i
+debug-containeren ville begge sett de samme filene. `writable-tmp` er navnet
+på volumet i Nais-oppsettet, ikke et Java-flagg.
+
+I første forsøk i `dev-gcp` var `/tmp` i debug-containeren eid av root uten
+skrivetilgang for debug-brukeren. Tilgang via `/proc/1/root/tmp` ble også
+avvist. Java-verktøyene fikk derfor ikke opprettet filen for tilkoblingen
+og feilet med `Permission denied`. Verktøyene var installert; problemet var
+filtilgang.
+
+Neste forsøk skulle starte en ny debug-container med delt `writable-tmp`.
+Clusterets sikkerhetsregel `deny-ephemeral-volumemounts` avviste dette fordi
+volumer kan inneholde hemmeligheter. Den nye debug-containeren ble derfor
+ikke opprettet. Vi undersøker en støttet fremgangsmåte for minne- og
+trådanalyse uten å omgå denne regelen.
+
+Kjør inne i debug-containeren. Med `curl` tilgjengelig i debug-imaget kan du
+sjekke appens helse fra samme pod:
+
+```sh
+curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/isalive
+curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/isready
+```
+
+Debug-containeren deler podens nettverk, men arver ikke automatisk appens
+miljøvariabler, sertifikater eller autentisering. Et vellykket nettverkskall
+bekrefter derfor ikke at Java-klientens konfigurasjon er riktig.
+
+### Eksempel: prosessorkravene til Java4Shell
+
+En debug-container kan brukes til å undersøke prosessorfunksjonene noden gjør
+tilgjengelige. Java4Shell krever x86-64 og alle fire funksjonene nedenfor.
+Kjør inne i debug-containeren:
+
+```sh
+uname -m
+grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' \
+  | grep -E '^(avx512f|avx512bw|avx512vbmi|bmi2)$'
+```
+
+Eksempel på resultat:
+
+```text
+x86_64
+bmi2
+```
+
+Denne noden oppfyller ikke prosessorkravene: Den viser bare `bmi2`, ikke de
+nødvendige `avx512f`, `avx512bw` og `avx512vbmi`. Resultatet gjelder noden
+poden kjører på nå, ikke automatisk andre noder eller produksjon. Poden kan
+også flyttes til en annen node senere.
+
+Java-flagget `-XX:-UseBASE64Intrinsics` endrer ikke resultatet i `/proc/cpuinfo`.
+Det slår av Javas optimaliserte Base64-implementasjon, ikke prosessorfunksjonene.
+Behold flagget til Java-builden er bekreftet rettet. At alle fire
+prosessorfunksjonene finnes, er heller ikke alene bevis på at appen er utnyttbar.
+
+Avslutt debug-shellet med `exit` når du er ferdig. Debug-containeren stopper,
+mens appen fortsetter å kjøre. Containeroppføringen blir stående til poden
+erstattes.
+
+Kilder:
+
+- https://docs.nais.io/workloads/how-to/debugging/#kubectl-debug
+- https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/#ephemeral-container
+- https://calif.io/java4shell
+
 ## Colima og Testcontainers på macOS
 
 Ved `no match for platform in manifest`, sjekk serveren og miljøvariablene:

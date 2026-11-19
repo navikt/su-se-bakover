@@ -1,0 +1,2 @@
+alter table historisk_infotrygd_revurdering
+add column simulering JSONB;

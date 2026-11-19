@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.extensions.toUUID
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
+import no.nav.su.se.bakover.common.infrastructure.auth.AuthStubCommonConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -67,8 +68,22 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
     }
 }
 
+/**
+ * Lokalt er tokenet signert av appen selv når kallet kommer fra dev-rutene (testhjelpere med [AuthStubCommonConfig]).
+ * Da bruker vi ident og navn fra tokenet, slik at saksbehandler og attestant kan være ulike personer.
+ *
+ * Lokalt binder verifiseringen stub-issueren til stub-nøkkelen (se `lokalVerifier` i web), så et verifisert token med
+ * denne issueren er alltid signert av appen selv.
+ */
+fun erLokaltStubToken(applicationConfig: ApplicationConfig, payload: Payload?): Boolean =
+    applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local &&
+        payload?.issuer == AuthStubCommonConfig.ISSUER
+
 fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: JWTPrincipal?): String {
-    return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+    return if (
+        applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local &&
+        !erLokaltStubToken(applicationConfig, principal?.payload)
+    ) {
         "Z9999991"
     } else {
         principal!!.payload.getClaim("NAVident").asString()
@@ -76,7 +91,10 @@ fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: JWTPrinc
 }
 
 fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: JWTPrincipal?): String {
-    return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+    return if (
+        applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local &&
+        !erLokaltStubToken(applicationConfig, principal?.payload)
+    ) {
         "Ulrik Utvikler"
     } else {
         principal!!.payload.getClaim("name").asString()

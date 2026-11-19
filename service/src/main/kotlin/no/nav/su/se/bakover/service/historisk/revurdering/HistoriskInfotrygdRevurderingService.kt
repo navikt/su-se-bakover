@@ -222,6 +222,7 @@ class HistoriskInfotrygdRevurderingService(
                 beregning.lagResultat(gjeldende).mapLeft {
                     KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it)
                 }.flatMap { beregningsresultat ->
+                    // TODO(HISTORISK_SIMULERING): Ugyldiggjør tidligere simulering når beregningsgrunnlaget endres.
                     eksisterende.oppdaterGrunnlag(
                         beregning = beregning,
                         saksbehandler = saksbehandler,
@@ -246,12 +247,26 @@ class HistoriskInfotrygdRevurderingService(
         }
     }
 
+    // TODO(HISTORISK_SIMULERING): Legg til simuler(...) etter beregning, med fersk kilde- og vedtaksvalidering.
+    // Bygg oppdragsgrunnlaget og kall klientkontrakten utenfor database-session/transaksjon.
+    // Knytt resultatet til beregningsgrunnlaget, og krev gyldig simulering før sending til attestering.
     fun sendTilAttestering(
         id: HistoriskInfotrygdRevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
         sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.sendTilAttestering(
+                saksbehandler = saksbehandler,
+                tidspunkt = Tidspunkt.now(clock),
+            ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
+        }
+
+    fun simuler(
+        id: HistoriskInfotrygdRevurderingId,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
+            eksisterende.simuler(
                 saksbehandler = saksbehandler,
                 tidspunkt = Tidspunkt.now(clock),
             ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
