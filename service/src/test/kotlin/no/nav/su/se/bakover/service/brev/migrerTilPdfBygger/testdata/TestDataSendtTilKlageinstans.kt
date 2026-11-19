@@ -2,7 +2,12 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
+import java.time.LocalDate
 
 val sendtTilKlageinstansPdf = KlagePdfInnhold.Oppretthold(
     sakstype = Sakstype.ALDER,
@@ -227,3 +232,15 @@ val sendtTilKlageinstansVerdier = listOf(
     "Norge",
     "Norway",
 )
+val sendtTilKlageinstansCommand =
+    KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
+        fødselsnummer = Fnr("12345678901"),
+        saksnummer = Saksnummer(2021L),
+        sakstype = Sakstype.ALDER,
+        saksbehandler = NavIdentBruker.Saksbehandler("Malenia, blade of Miquella"),
+        attestant = null,
+        fritekst = "Her kommer det en lang fritekst om hvorfor saken din er sendt til klageinstansen.",
+        klageDato = LocalDate.of(2021, 12, 20),
+        vedtaksbrevDato = LocalDate.of(2021, 12, 1),
+        dødsbo = false,
+    )
