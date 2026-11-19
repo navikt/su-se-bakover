@@ -1,4 +1,5 @@
 import arrow.core.getOrElse
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -8,8 +9,6 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.fromBrevCommand
 import no.nav.su.se.bakover.service.brev.PdfByggerExtension
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.PdfTekst
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
 import no.nav.su.se.bakover.service.brev.tilPdfBestilling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,7 +19,14 @@ import kotlin.test.assertFalse
 @ExtendWith(PdfByggerExtension::class)
 internal class KlagePdfTest(private val klient: PdfByggerKlientImpl) {
 
-    val sendtTilKlageinstansCommand =
+    private val personalia = PersonaliaPdfInnhold(
+        dato = "01.01.2020",
+        fødselsnummer = "12345678901",
+        fornavn = "Leeroy",
+        etternavn = "Jenkins",
+        saksnummer = 2021L,
+    )
+    private val sendtTilKlageinstansCommand =
         KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
             fødselsnummer = Fnr("12345678901"),
             saksnummer = Saksnummer(2021L),
@@ -33,7 +39,7 @@ internal class KlagePdfTest(private val klient: PdfByggerKlientImpl) {
             dødsbo = false,
         )
 
-    val avvistKlageCommand = KlageDokumentCommand.Avvist(
+    private val avvistKlageCommand = KlageDokumentCommand.Avvist(
         fødselsnummer = Fnr("12345678901"),
         saksnummer = Saksnummer(2021L),
         sakstype = Sakstype.ALDER,
@@ -79,7 +85,7 @@ internal class KlagePdfTest(private val klient: PdfByggerKlientImpl) {
         val pdfInnhold = sendtTilKlageinstansCommand
             .copy(dødsbo = dødsbo)
             .fromBrevCommand(
-                personalia = sendtTilKlageinstansPdf.personalia,
+                personalia = personalia,
                 saksbehandlerNavn = "Malenia, blade of Miquella",
                 attestantNavn = "James Eugene Raynor",
             )
@@ -106,7 +112,7 @@ internal class KlagePdfTest(private val klient: PdfByggerKlientImpl) {
         val pdfInnhold = avvistKlageCommand
             .copy(dødsbo = dødsbo)
             .fromBrevCommand(
-                personalia = avvistKlagePdf.personalia,
+                personalia = personalia,
                 saksbehandlerNavn = "Malenia, blade of Miquella",
                 attestantNavn = "James Eugene Raynor",
             )
