@@ -136,10 +136,7 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is PåminnelseNyStønadsperiodeDokumentCommand -> PåminnelseNyStønadsperiodePdfInnhold.fromBrevCommand(
-                command = command,
-                personalia = personalia().bind(),
-            )
+            is PåminnelseNyStønadsperiodeDokumentCommand -> command.fromBrevCommand(personalia().bind())
 
             is IverksettRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold.fromBrevCommand(
                 command = command,
