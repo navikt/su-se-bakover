@@ -1,5 +1,6 @@
 package dokument.domain.generer.bygger
 
+import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.brev.brevbaker.markup.dsl.ContentBuilder
 import no.nav.brev.brevbaker.markup.dsl.TableBuilder
@@ -30,6 +31,7 @@ class UgyldigInput(melding: String) : IllegalArgumentException(melding)
 fun GenerellData.ellers(annen: GenerellData): GenerellData = if (finnes) this else annen
 
 fun telefonnummer(sakstype: GenerellData): String = if (sakstype.er("ALDER")) "55 55 33 34" else "55 55 33 33"
+fun telefonnummer(pdfInnhold: PdfInnhold): String = telefonnummer(pdfInnhold.sakstype)
 fun telefonnummer(sakstype: Sakstype): String = if (sakstype == Sakstype.ALDER) "55 55 33 34" else "55 55 33 33"
 
 fun personaliaNavn(data: GenerellData): String =
