@@ -6,6 +6,7 @@ import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
@@ -17,8 +18,7 @@ import dokument.domain.generer.bygger.maler.avvistKlage
 import dokument.domain.generer.bygger.maler.avvistSøknadFritekst
 import dokument.domain.generer.bygger.maler.avvistSøknadVedtak
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
-import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekrevingsbehandling
-import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekrevingsbehandlingDødsbo
+import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekreving
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
@@ -146,24 +146,17 @@ sealed interface DokumentMal {
     }
 
     sealed interface Tilbakekreving {
-        data object Forhåndsvarsel : DokumentMal {
-            override val navn = "forhåndsvarselTilbakekrevingsbehandling"
-            override val tittel = "Varsel om mulig tilbakekreving"
-            override val pdfByggerDev: Boolean = false
+        data class Forhåndsvarsel(
+            val dødsbo: Boolean,
+        ) : DokumentMal {
+            // TODO PdfBygger ryddejobb - trenger ikke to navn etter su-pdfgen
+            override val navn = if (dødsbo) "forhåndsvarselTilbakekrevingsbehandlingDødsbo" else "forhåndsvarselTilbakekrevingsbehandling"
+            override val tittel = if (dødsbo) "Varsel om mulig tilbakekreving til dødsbo" else "Varsel om mulig tilbakekreving"
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-                forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
-        }
-
-        data object ForhåndsvarseDødsbo : DokumentMal {
-            override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
-            override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
-            override val pdfByggerDev: Boolean = false
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-                forhåndsvarselTilbakekrevingsbehandlingDødsbo(tittel, innhold)
+            fun lagBestilling(innhold: ForhåndsvarselTilbakekrevingPdfInnhold): PdfBestilling =
+                forhåndsvarselTilbakekreving(tittel, innhold)
         }
 
         data object Vedtaksbrev : DokumentMal {
@@ -243,7 +236,7 @@ sealed interface DokumentMal {
         data object Oppretthold : Klage {
             override val navn = "sendtTilKlageinstans"
             override val tittel = "Oversendelsesbrev til klager"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
             fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =

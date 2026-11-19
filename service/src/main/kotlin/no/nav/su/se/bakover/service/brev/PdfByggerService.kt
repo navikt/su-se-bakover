@@ -16,6 +16,7 @@ import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
@@ -124,11 +125,11 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
+    is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
+    // is ForhåndsvarselTilbakekrevingDødsboPdfInnhold -> dokumentMal.lagBestilling(this) TODO fjern
     // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     // is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold.Vanlig -> dokumentMal.lagBestilling(this)
-    // is ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold.Dødsbo -> dokumentMal.lagBestilling(this)
     // is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
     // is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
     // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
