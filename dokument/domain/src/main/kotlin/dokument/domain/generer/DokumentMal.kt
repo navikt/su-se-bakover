@@ -194,7 +194,7 @@ sealed interface DokumentMal {
     data object PåminnelseNyStønadsperiode : DokumentMal {
         override val navn = "påminnelseOmNyStønadsperiode"
         override val tittel = "Påminnelse om ny stønadsperiode"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
         fun lagBestilling(innhold: PåminnelseNyStønadsperiodePdfInnhold): PdfBestilling =
