@@ -1,5 +1,4 @@
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -7,51 +6,19 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.fromBrevCommand
+import no.nav.su.se.bakover.service.brev.PdfByggerExtension
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.PdfTekst
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
 import no.nav.su.se.bakover.service.brev.tilPdfBestilling
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
-import org.testcontainers.images.PullPolicy
-import org.testcontainers.utility.DockerImageName
-import java.time.Duration
+import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDate
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class KlagePdfTest {
-    private val pdfBygger = GenericContainer(
-        // Bruker versjon i tag publisert 6 november 2026:
-        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1518344620?tag=main
-        // Main er bakoveerkompatibel
-        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:main"),
-    )
-        .withImagePullPolicy(PullPolicy.alwaysPull())
-        .withExposedPorts(8080)
-        .withCreateContainerCmdModifier { it.withPlatform("linux/amd64") }
-        .withEnv("JAVA_TOOL_OPTIONS", "-Dio.ktor.development=true")
-        .withEnv("PDF_BYGGER_COMPILE_TMP_DIR", "/tmp")
-        .withEnv("PDF_COMPILE_TIMEOUT_SECONDS", "200")
-        .waitingFor(Wait.forHttp("/isReady").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
-
-    private lateinit var klient: PdfByggerKlientImpl
-
-    @BeforeAll
-    fun start() {
-        pdfBygger.start()
-        klient = PdfByggerKlientImpl("http://${pdfBygger.host}:${pdfBygger.getMappedPort(8080)}/", AzureClientStub, "")
-    }
-
-    @AfterAll
-    fun stopp() {
-        pdfBygger.stop()
-    }
+@ExtendWith(PdfByggerExtension::class)
+internal class KlagePdfTest(private val klient: PdfByggerKlientImpl) {
 
     val sendtTilKlageinstansCommand =
         KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
