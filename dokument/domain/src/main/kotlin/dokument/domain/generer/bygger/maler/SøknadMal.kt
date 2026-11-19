@@ -1,5 +1,7 @@
 package dokument.domain.generer.bygger.maler
 
+import dokument.domain.generer.DokumentMal
+import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.Innhold
 import dokument.domain.generer.bygger.Kontekst
@@ -12,6 +14,28 @@ import no.nav.brev.brevbaker.markup.dsl.header
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.row
 import no.nav.brev.brevbaker.markup.dsl.table
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import person.domain.Person
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.UUID
+
+data class øknadPdfInnhold private constructor(
+    override val sakstype: Sakstype,
+    val saksnummer: Saksnummer,
+    val søknadsId: UUID,
+    val navn: Person.Navn,
+    private val clock: Clock,
+    val dagensDatoOgTidspunkt: String = LocalDateTime.now(clock)
+        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+    val søknadOpprettet: String,
+    val søknadInnhold: SøknadInnhold,
+) : PdfInnhold {
+    override val dokumentMal = DokumentMal.Søknad
+}
 
 val soknad = { data: GenerellData ->
     val rot = Kontekst.rot(data)
