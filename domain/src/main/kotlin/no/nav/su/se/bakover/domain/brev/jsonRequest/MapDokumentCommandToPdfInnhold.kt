@@ -3,16 +3,10 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.right
-import behandling.revurdering.domain.Opphørsgrunn
-import behandling.revurdering.domain.getDistinkteParagrafer
-import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
-import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
-import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -28,7 +22,6 @@ import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDoku
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.tilAvvistSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.toPdfInnhold
-import no.nav.su.se.bakover.domain.brev.toBrev
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
@@ -183,33 +176,11 @@ fun fromBrevCommand(
                 satsoversikt = command.satsoversikt,
             )
 
-            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> {
-                val beregningsperioder = if (
-                    command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
-                    command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-                ) {
-                    command.beregningsperioder
-                } else {
-                    emptyList()
-                }
-
-                OpphørsvedtakPdfInnhold(
-                    sakstype = command.sakstype,
-                    personalia = personalia().bind(),
-                    opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
-                    avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
-                    harEktefelle = command.harEktefelle,
-                    beregningsperioder = beregningsperioder,
-                    harFradrag = beregningsperioder.harFradrag(),
-                    saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                    attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-                    fritekst = command.fritekst,
-                    forventetInntektStørreEnn0 = false,
-                    halvGrunnbeløp = command.halvtGrunnbeløp,
-                    opphørsperiode = command.opphørsperiode.tilBrevperiode(),
-                    satsoversikt = command.satsoversikt.toBrev(),
-                )
-            }
+            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> command.fromBrevCommand(
+                personalia = personalia().bind(),
+                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
+            )
 
             is VedtaksbrevVedReguleringCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),

@@ -11,6 +11,7 @@ import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.toBrev
+import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 
 fun IverksettRevurderingDokumentCommand.Opphør.fromBrevCommand(
     personalia: PersonaliaPdfInnhold,
@@ -42,6 +43,40 @@ fun IverksettRevurderingDokumentCommand.Opphør.fromBrevCommand(
         attestantNavn = attestantNavn,
         fritekst = command.fritekst,
         forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
+        halvGrunnbeløp = command.halvtGrunnbeløp,
+        opphørsperiode = command.opphørsperiode.tilBrevperiode(),
+        satsoversikt = command.satsoversikt.toBrev(),
+    )
+}
+
+fun HistoriskInfotrygdRevurderingDokumentCommand.Opphør.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+): OpphørsvedtakPdfInnhold {
+    val command = this
+
+    val beregningsperioder = if (
+        command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
+        command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+    ) {
+        command.beregningsperioder
+    } else {
+        emptyList()
+    }
+
+    return OpphørsvedtakPdfInnhold(
+        sakstype = command.sakstype,
+        personalia = personalia,
+        opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
+        avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
+        harEktefelle = command.harEktefelle,
+        beregningsperioder = beregningsperioder,
+        harFradrag = beregningsperioder.harFradrag(),
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        fritekst = command.fritekst,
+        forventetInntektStørreEnn0 = false,
         halvGrunnbeløp = command.halvtGrunnbeløp,
         opphørsperiode = command.opphørsperiode.tilBrevperiode(),
         satsoversikt = command.satsoversikt.toBrev(),
