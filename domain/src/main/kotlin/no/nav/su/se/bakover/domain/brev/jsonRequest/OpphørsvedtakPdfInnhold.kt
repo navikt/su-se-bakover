@@ -4,6 +4,7 @@ import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.getDistinkteParagrafer
 import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.tilBrevperiode
@@ -18,6 +19,15 @@ fun IverksettRevurderingDokumentCommand.Opphør.fromBrevCommand(
 ): OpphørsvedtakPdfInnhold {
     val command = this
 
+    val beregningsperioder = if (
+        command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
+        command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+    ) {
+        LagBrevinnholdForBeregning(command.beregning).brevInnhold
+    } else {
+        emptyList()
+    }
+
     return OpphørsvedtakPdfInnhold(
 
         sakstype = command.sakstype,
@@ -26,14 +36,8 @@ fun IverksettRevurderingDokumentCommand.Opphør.fromBrevCommand(
         opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
         avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
         harEktefelle = command.harEktefelle,
-        beregningsperioder = if (
-            command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
-            command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-        ) {
-            LagBrevinnholdForBeregning(command.beregning).brevInnhold
-        } else {
-            emptyList()
-        },
+        beregningsperioder = beregningsperioder,
+        harFradrag = beregningsperioder.harFradrag(),
         saksbehandlerNavn = saksbehandlerNavn,
         attestantNavn = attestantNavn,
         fritekst = command.fritekst,

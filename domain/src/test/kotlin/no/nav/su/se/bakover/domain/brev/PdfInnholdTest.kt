@@ -246,6 +246,7 @@ internal class PdfInnholdTest {
             opphørsgrunner = listOf(OpphørsgrunnBrev.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
             harEktefelle = true,
+            harFradrag = false,
             beregningsperioder = listOf(
                 BeregningsperiodeBrev(
                     periode = BrevPeriode("januar 2021", "desember 2021"),

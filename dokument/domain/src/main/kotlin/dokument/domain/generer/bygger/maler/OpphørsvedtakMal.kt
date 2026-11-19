@@ -1,6 +1,5 @@
 package dokument.domain.generer.bygger.maler
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
@@ -14,7 +13,6 @@ import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
-import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.hilsen
 import dokument.domain.generer.bygger.punktliste
 import no.nav.brev.brevbaker.markup.dsl.paragraph
@@ -50,12 +48,9 @@ data class OpphørsvedtakPdfInnhold(
     val halvGrunnbeløp: Int,
     val opphørsperiode: BrevPeriode,
     val satsoversikt: SatsoversiktBrev,
+    val harFradrag: Boolean,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Opphørsvedtak
-
-    @Suppress("unused")
-    @JsonInclude
-    val harFradrag: Boolean = beregningsperioder.harFradrag()
 }
 
 val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnhold ->

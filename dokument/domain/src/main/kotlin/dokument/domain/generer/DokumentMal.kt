@@ -132,7 +132,7 @@ sealed interface DokumentMal {
     data object Opphørsvedtak : DokumentMal {
         override val navn = "opphørsvedtak"
         override val tittel = "Vedtak om opphør av supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
         fun lagBestilling(innhold: OpphørsvedtakPdfInnhold): PdfBestilling =

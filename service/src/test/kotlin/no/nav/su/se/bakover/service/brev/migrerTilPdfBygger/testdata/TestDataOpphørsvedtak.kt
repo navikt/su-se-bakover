@@ -19,6 +19,7 @@ val opphørsvedtakPdf = OpphørsvedtakPdfInnhold(
     opphørsgrunner = listOf(OpphørsgrunnBrev.MANGLENDE_DOKUMENTASJON),
     avslagsparagrafer = listOf(18),
     harEktefelle = true,
+    harFradrag = true,
     beregningsperioder = listOf(
         BeregningsperiodeBrev(
             periode = dokument.domain.generer.bygger.BrevPeriode(
@@ -390,4 +391,14 @@ val opphørsvedtakVerdier = listOf(
     "OSLO",
     "Norge",
     "Norway",
+    "Vi",
+    "har",
+    "redusert",
+    "stønaden",
+    "din",
+    "med",
+    "inntekt",
+    "og",
+    "andre",
+    "fradrag",
 )

@@ -9,6 +9,7 @@ import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegren
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.tilBrevperiode
@@ -182,28 +183,33 @@ fun fromBrevCommand(
                 satsoversikt = command.satsoversikt,
             )
 
-            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> OpphørsvedtakPdfInnhold(
-                sakstype = command.sakstype,
-                personalia = personalia().bind(),
-                opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
-                avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
-                harEktefelle = command.harEktefelle,
-                beregningsperioder = if (
+            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> {
+                val beregningsperioder = if (
                     command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
                     command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
                 ) {
                     command.beregningsperioder
                 } else {
                     emptyList()
-                },
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-                fritekst = command.fritekst,
-                forventetInntektStørreEnn0 = false,
-                halvGrunnbeløp = command.halvtGrunnbeløp,
-                opphørsperiode = command.opphørsperiode.tilBrevperiode(),
-                satsoversikt = command.satsoversikt.toBrev(),
-            )
+                }
+
+                OpphørsvedtakPdfInnhold(
+                    sakstype = command.sakstype,
+                    personalia = personalia().bind(),
+                    opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense().map { opphørsgrunn -> opphørsgrunn.tilBrev() },
+                    avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
+                    harEktefelle = command.harEktefelle,
+                    beregningsperioder = beregningsperioder,
+                    harFradrag = beregningsperioder.harFradrag(),
+                    saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                    attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
+                    fritekst = command.fritekst,
+                    forventetInntektStørreEnn0 = false,
+                    halvGrunnbeløp = command.halvtGrunnbeløp,
+                    opphørsperiode = command.opphørsperiode.tilBrevperiode(),
+                    satsoversikt = command.satsoversikt.toBrev(),
+                )
+            }
 
             is VedtaksbrevVedReguleringCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),
