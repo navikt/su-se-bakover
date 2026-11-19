@@ -3,9 +3,9 @@ package tilbakekreving.domain.forhåndsvarsel
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.BeregningFeilutbetaltBeløp
-import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingDødsboPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
-import dokument.domain.generer.bygger.maler.KravgrunnlagData
+import dokument.domain.generer.bygger.maler.KravgrunnlagBrev
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
@@ -17,31 +17,25 @@ fun ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand.fromBrevCommand(
     saksbehandlerNavn: String,
     clock: Clock,
 ): PdfInnhold {
-    return if (dødsbo) {
-        val kravgrunnlagPeriode = kravgrunnlag?.periode ?: throw IllegalStateException("Kan ikke forhåndsvarsle tilbakekreving dødsbo uten kravgrunnlag.")
-        ForhåndsvarselTilbakekrevingDødsboPdfInnhold(
-            personalia = personalia,
-            saksbehandlerNavn = saksbehandlerNavn,
-            fritekst = fritekst,
-            dato = LocalDate.now(clock).toBrevformat(),
-            kravgrunnlag = kravgrunnlag.toBrev(),
-            sakstype = sakstype,
-            fraOgMed = kravgrunnlagPeriode.fraOgMed.toString(),
-            tilOgMed = kravgrunnlagPeriode.tilOgMed.toString(),
-        )
-    } else {
-        ForhåndsvarselTilbakekrevingPdfInnhold(
-            personalia = personalia,
-            saksbehandlerNavn = saksbehandlerNavn,
-            fritekst = fritekst,
-            dato = LocalDate.now(clock).toBrevformat(),
-            kravgrunnlag = kravgrunnlag?.toBrev(),
-            sakstype = sakstype,
-        )
+    if (dødsbo) {
+        kravgrunnlag?.periode
+            ?: throw IllegalStateException("Kan ikke forhåndsvarsle tilbakekreving dødsbo uten kravgrunnlag.")
     }
+    return ForhåndsvarselTilbakekrevingPdfInnhold(
+        personalia = personalia,
+        saksbehandlerNavn = saksbehandlerNavn,
+        fritekst = fritekst,
+        dato = LocalDate.now(clock).toBrevformat(),
+        kravgrunnlag = kravgrunnlag?.toBrev(),
+        sakstype = sakstype,
+        dødsbo = dødsbo,
+        // TODO kan fjernes med su-pdfgen
+        fraOgMed = kravgrunnlag?.periode?.fraOgMed?.toString(),
+        tilOgMed = kravgrunnlag?.periode?.tilOgMed?.toString(),
+    )
 }
 
-private fun Kravgrunnlag.toBrev() = KravgrunnlagData(
+private fun Kravgrunnlag.toBrev() = KravgrunnlagBrev(
     sumBruttoSkalTilbakekreve = summertBruttoFeilutbetaling,
     beregningFeilutbetaltBeløp = grunnlagsperioder.map {
         BeregningFeilutbetaltBeløp(
@@ -49,4 +43,5 @@ private fun Kravgrunnlag.toBrev() = KravgrunnlagData(
             bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
         )
     },
+    periode = periode,
 )

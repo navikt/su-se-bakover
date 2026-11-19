@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.BeregningFeilutbetaltBeløp
-import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingDødsboPdfInnhold
-import dokument.domain.generer.bygger.maler.KravgrunnlagData
+import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
+import dokument.domain.generer.bygger.maler.KravgrunnlagBrev
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import java.time.LocalDate
 
-val forhåndsvarselTilbakekrevingDødsboPdf = ForhåndsvarselTilbakekrevingDødsboPdfInnhold(
+val forhåndsvarselTilbakekrevingDødsboPdf = ForhåndsvarselTilbakekrevingPdfInnhold(
     personalia = PersonaliaPdfInnhold(
         dato = "01.01.2020",
         fødselsnummer = "12345678901",
@@ -17,9 +19,7 @@ val forhåndsvarselTilbakekrevingDødsboPdf = ForhåndsvarselTilbakekrevingDøds
     saksbehandlerNavn = "Malenia, blade of Miquella",
     fritekst = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
     dato = "01.01.2020",
-    fraOgMed = "01.02.2023",
-    tilOgMed = "31.12.2023",
-    kravgrunnlag = KravgrunnlagData(
+    kravgrunnlag = KravgrunnlagBrev(
         sumBruttoSkalTilbakekreve = 5000,
         beregningFeilutbetaltBeløp = listOf(
             BeregningFeilutbetaltBeløp(
@@ -31,8 +31,13 @@ val forhåndsvarselTilbakekrevingDødsboPdf = ForhåndsvarselTilbakekrevingDøds
                 bruttoSkalTilbakekreve = 3000,
             ),
         ),
+        periode = DatoIntervall(
+            fraOgMed = LocalDate.of(2023, 2, 1),
+            tilOgMed = LocalDate.of(2023, 12, 31),
+        ),
     ),
     sakstype = Sakstype.UFØRE,
+    dødsbo = true,
 )
 
 val forhåndsvarselTilbakekrevingDødsboVerdier = listOf(

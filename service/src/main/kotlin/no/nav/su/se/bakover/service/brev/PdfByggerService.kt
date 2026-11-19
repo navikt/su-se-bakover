@@ -14,7 +14,6 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
-import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingDødsboPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
@@ -123,7 +122,7 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
-    is ForhåndsvarselTilbakekrevingDødsboPdfInnhold -> dokumentMal.lagBestilling(this)
+    // is ForhåndsvarselTilbakekrevingDødsboPdfInnhold -> dokumentMal.lagBestilling(this) TODO fjern
     // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadFritekstPdfInnhold -> dokumentMal.lagBestilling(this)

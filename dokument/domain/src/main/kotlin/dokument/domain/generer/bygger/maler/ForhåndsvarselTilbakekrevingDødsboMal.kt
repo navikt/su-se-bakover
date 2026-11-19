@@ -19,10 +19,10 @@ data class ForhåndsvarselTilbakekrevingDødsboPdfInnhold(
     val dato: String,
     val fraOgMed: String,
     val tilOgMed: String,
-    val kravgrunnlag: KravgrunnlagData,
+    val kravgrunnlag: KravgrunnlagBrev,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Tilbakekreving.ForhåndsvarseDødsbo
+    override val dokumentMal = DokumentMal.Tilbakekreving.Forhåndsvarsel(true)
 }
 
 val forhåndsvarselTilbakekrevingsbehandlingDødsbo = { _: String, pdfInnhold: ForhåndsvarselTilbakekrevingDødsboPdfInnhold ->
