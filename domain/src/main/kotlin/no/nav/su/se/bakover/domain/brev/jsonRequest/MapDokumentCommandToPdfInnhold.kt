@@ -204,8 +204,7 @@ fun fromBrevCommand(
                 satsoversikt = command.satsoversikt,
             )
 
-            is VedtaksbrevVedReguleringCommand -> VedtakVedReguleringPdfInnhold.fromBrevCommand(
-                command = command,
+            is VedtaksbrevVedReguleringCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
