@@ -26,10 +26,10 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingK
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.påminnelseOmNyStønadsperiodePdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.påminnelseOmNyStønadsperiodeVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.opphørsvedtakPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.opphørsvedtakVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.påminnelseOmNyStønadsperiodePdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.påminnelseOmNyStønadsperiodeVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagPdf
