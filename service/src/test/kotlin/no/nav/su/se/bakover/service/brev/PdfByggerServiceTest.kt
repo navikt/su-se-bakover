@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
@@ -78,7 +78,7 @@ internal class PdfByggerServiceTest {
 
     @Test
     fun `velger søknadsbygger for konkret søknadsinnhold`() {
-        val innhold = SøknadPdfInnhold.create(
+        val innhold = lagSøknadPdfInnhold(
             saksnummer = Saksnummer(2021),
             sakstype = Sakstype.UFØRE,
             søknadsId = UUID.randomUUID(),

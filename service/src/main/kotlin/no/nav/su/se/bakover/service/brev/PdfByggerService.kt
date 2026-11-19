@@ -10,7 +10,6 @@ import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.SammenslåPdf
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
@@ -23,6 +22,7 @@ import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhol
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
 import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Runti
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Local
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -125,7 +124,8 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is AvvistSøknadFritekstPdfInnhold -> dokumentMal.lagBestilling(this)
     is SkattegrunnlagsPdfInnhold -> dokumentMal.lagBestilling(this)
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
-    is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
+    // is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
+    is SøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
     is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)

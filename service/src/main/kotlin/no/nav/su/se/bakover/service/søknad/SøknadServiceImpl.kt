@@ -30,8 +30,8 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -263,7 +263,7 @@ class SøknadServiceImpl(
         person: Person,
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
         val søknadPdf = pdfGenerator.genererPdf(
-            SøknadPdfInnhold.create(
+            lagSøknadPdfInnhold(
                 saksnummer = sakInfo.saksnummer,
                 sakstype = sakInfo.type,
                 søknadsId = søknad.id,
@@ -364,7 +364,7 @@ class SøknadServiceImpl(
                         return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
                     }.flatMap { person ->
                         pdfGenerator.genererPdf(
-                            SøknadPdfInnhold.create(
+                            lagSøknadPdfInnhold(
                                 saksnummer = sak.saksnummer,
                                 sakstype = sak.type,
                                 søknadsId = søknad.id,
