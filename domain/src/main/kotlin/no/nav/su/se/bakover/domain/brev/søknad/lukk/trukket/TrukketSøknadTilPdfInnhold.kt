@@ -10,7 +10,7 @@ fun TrukketSøknadDokumentCommand.toPdfInnhold(
     saksbehandlerNavn: String,
 ) = TrukketSøknadPdfInnhold(
     personalia = personalia,
-    // TODO: Gi datoSøknadOpprettet nytt navn, datoSøknadMottatt, når PDFGen er faset ut (feltet er kontrakt mot søknadTrukket.hbs)
+    // TODO PdfBygger ryddejobb: Gi datoSøknadOpprettet nytt navn, datoSøknadMottatt, når PDFGen er faset ut (feltet er kontrakt mot søknadTrukket.hbs)
     datoSøknadOpprettet = søknadMottatt.ddMMyyyy(),
     trukketDato = trukketDato.ddMMyyyy(),
     saksbehandlerNavn = saksbehandlerNavn,
