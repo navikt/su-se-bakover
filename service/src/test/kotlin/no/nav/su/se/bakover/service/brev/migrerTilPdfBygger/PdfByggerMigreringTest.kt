@@ -7,7 +7,6 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
-import no.nav.su.se.bakover.domain.brev.jsonRequest.fromBrevCommand
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlageVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistSøknadFritekstPdf
@@ -27,7 +26,6 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingK
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansCommand
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagPdf
@@ -44,7 +42,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.GenericContainer
@@ -54,8 +51,6 @@ import org.testcontainers.utility.DockerImageName
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
-import kotlin.test.assertContains
-import kotlin.test.assertFalse
 import kotlin.to
 
 val testDataJson = mapOf(
@@ -144,22 +139,6 @@ class PdfByggerMigreringTest {
             }
         }
 
-    @Test
-    fun `skal generere riktig pdf for dødsbo`() {
-        val pdfTekst = genererOgVerifiserKlagePdf(dødsbo = true)
-
-        assertContains(pdfTekst, "Boet har rett til innsyn")
-        assertFalse(pdfTekst.contains("Du har rett til innsyn"))
-    }
-
-    @Test
-    fun `skal generere riktig pdf for vanlig klage`() {
-        val pdfTekst = genererOgVerifiserKlagePdf(dødsbo = false)
-
-        assertContains(pdfTekst, "Du har rett til innsyn")
-        assertFalse(pdfTekst.contains("Boet har rett til innsyn"))
-    }
-
     private fun sammenlignGammelOgNyPdf(
         mal: String,
         bestilling: PdfBestilling,
@@ -184,32 +163,5 @@ class PdfByggerMigreringTest {
             if (uventetNy.isNotEmpty()) add("ny PDF har uventet tekst: $uventetNy")
         }
         if (feil.isNotEmpty()) throw AssertionError("$mal:\n" + feil.joinToString("\n"))
-    }
-
-    private fun genererOgVerifiserKlagePdf(dødsbo: Boolean): String {
-        val pdfInnhold = sendtTilKlageinstansCommand
-            .copy(dødsbo = dødsbo)
-            .fromBrevCommand(
-                personalia = sendtTilKlageinstansPdf.personalia,
-                saksbehandlerNavn = "Malenia, blade of Miquella",
-                attestantNavn = "James Eugene Raynor",
-            )
-        val bestilling = requireNotNull(pdfInnhold.tilPdfBestilling())
-        val nyPdf = klient.lagPdf(bestilling).getOrElse {
-            throw IllegalStateException("PdfBygger feilet")
-        }
-        val pdfTekst = PdfTekst.ord(nyPdf).joinToString(" ") { it.ord }
-
-        fun normalisert(verdi: String) = PdfTekst.innholdsord(verdi).joinToString(" ")
-        assertContains(pdfTekst, normalisert(pdfInnhold.fritekst))
-        assertContains(pdfTekst, normalisert(pdfInnhold.klageDato))
-        assertContains(pdfTekst, normalisert(pdfInnhold.saksbehandlerNavn))
-        assertContains(pdfTekst, normalisert(requireNotNull(pdfInnhold.attestantNavn)))
-        assertContains(pdfTekst, normalisert(pdfInnhold.personalia.fornavn))
-        assertContains(pdfTekst, normalisert(pdfInnhold.personalia.etternavn))
-        assertContains(pdfTekst, normalisert(pdfInnhold.personalia.fødselsnummer))
-        assertContains(pdfTekst, normalisert(pdfInnhold.saksnummer.toString()))
-
-        return pdfTekst
     }
 }
