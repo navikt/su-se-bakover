@@ -28,7 +28,7 @@ class SakStatistikkService(
     private val personOppslag: PersonOppslag,
     private val sakRepo: SakRepo,
 ) {
-    fun vurderKode6ForPersoner(
+    private fun vurderKode6ForPersoner(
         personer: PersonerOgSakstype,
     ): Kode6Vurdering {
         require(personer.fnr.isNotEmpty()) { "Sakstatistikk krever minst én person" }
