@@ -18,6 +18,8 @@ import java.time.Duration
 @Execution(value = ExecutionMode.SAME_THREAD)
 class ApplicationConfigTest {
 
+    private val statistikkgruppe = "statistikk"
+
     private val sslConfig = mapOf(
         "ssl.endpoint.identification.algorithm" to "",
         "ssl.truststore.type" to "jks",
@@ -61,6 +63,7 @@ class ApplicationConfigTest {
                 saksbehandler = "saksbehandler",
                 veileder = "veileder",
                 drift = "drift",
+                statistikk = statistikkgruppe,
             ),
         ),
         oppdrag = ApplicationConfig.OppdragConfig(
@@ -182,6 +185,7 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
+                "AZURE_GROUP_STATISTIKK" to statistikkgruppe,
                 "MQ_QUEUE_MANAGER" to "oppdragMqQueueManager",
                 "MQ_PORT" to "77665",
                 "MQ_HOSTNAME" to "mqHostname",
@@ -256,6 +260,7 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
+                "AZURE_GROUP_STATISTIKK" to statistikkgruppe,
             ),
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(

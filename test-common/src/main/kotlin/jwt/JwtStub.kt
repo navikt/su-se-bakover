@@ -79,6 +79,7 @@ class JwtStub(
             Brukerrolle.Saksbehandler -> azureConfig.groups.saksbehandler
             Brukerrolle.Veileder -> azureConfig.groups.veileder
             Brukerrolle.Drift -> azureConfig.groups.drift
+            Brukerrolle.Statistikk -> azureConfig.groups.statistikk
         }
 }
 

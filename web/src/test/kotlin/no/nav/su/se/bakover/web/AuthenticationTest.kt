@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.time.Instant
 import java.util.Date
 
@@ -66,14 +68,18 @@ internal class AuthenticationTest {
         }
     }
 
-    @Test
-    fun `forespørsel uten påkrevet audience skal svare med 401`() {
+    @ParameterizedTest
+    @EnumSource(value = Brukerrolle::class, names = ["Veileder", "Statistikk"])
+    fun `forespørsel uten påkrevet audience skal svare med 401`(rolle: Brukerrolle) {
         testApplication {
             application {
                 testSusebakoverWithMockedDb()
             }
             client.get(SECURE_ENDPOINT) {
-                header(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
+                header(
+                    Authorization,
+                    jwtStub.createJwtToken(audience = "wrong_audience", roller = listOf(rolle)).asBearerToken(),
+                )
             }.apply {
                 status shouldBe Unauthorized
             }
@@ -112,14 +118,18 @@ internal class AuthenticationTest {
         }
     }
 
-    @Test
-    fun `forespørsel med feil issuer skal svare med 401`() {
+    @ParameterizedTest
+    @EnumSource(value = Brukerrolle::class, names = ["Veileder", "Statistikk"])
+    fun `forespørsel med feil issuer skal svare med 401`(rolle: Brukerrolle) {
         testApplication {
             application {
                 testSusebakoverWithMockedDb()
             }
             client.get(SECURE_ENDPOINT) {
-                header(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
+                header(
+                    Authorization,
+                    jwtStub.createJwtToken(issuer = "wrong_issuer", roller = listOf(rolle)).asBearerToken(),
+                )
             }.apply {
                 status shouldBe Unauthorized
             }

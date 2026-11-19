@@ -63,4 +63,12 @@ sealed class NavIdentBruker : Comparable<NavIdentBruker> {
 
         override fun toString(): String = navIdent
     }
+
+    data class Statistikk(override val navIdent: String) : NavIdentBruker() {
+        init {
+            validate()
+        }
+
+        override fun toString(): String = navIdent
+    }
 }

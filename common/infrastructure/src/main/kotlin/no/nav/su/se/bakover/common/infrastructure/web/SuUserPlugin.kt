@@ -52,6 +52,7 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
             roller.contains(Brukerrolle.Saksbehandler) -> saksbehandler
             roller.contains(Brukerrolle.Drift) -> NavIdentBruker.Drift(navIdent)
             roller.contains(Brukerrolle.Veileder) -> NavIdentBruker.Veileder(navIdent)
+            roller.contains(Brukerrolle.Statistikk) -> NavIdentBruker.Statistikk(navIdent)
             else -> throw IllegalArgumentException("Brukerrolle var tom eller hadde ukjente roller: $roller")
         }
     }
