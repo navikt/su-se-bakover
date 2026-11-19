@@ -248,7 +248,7 @@ sealed interface DokumentMal {
         data object Avvist : Klage {
             override val navn = "avvistKlage"
             override val tittel = "Avvist klage"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
             fun lagBestiling(innhold: KlagePdfInnhold.Avvist): PdfBestilling = avvistKlage(tittel, innhold)
