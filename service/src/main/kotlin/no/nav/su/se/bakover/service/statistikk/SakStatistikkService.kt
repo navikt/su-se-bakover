@@ -174,7 +174,6 @@ class SakStatistikkService(
                     opprettetAv = SKJERMET,
                     ansvarligBeslutter = it.ansvarligBeslutter?.let { SKJERMET },
                     ansvarligEnhet = VIKAFOSSEN_ENHET,
-                    saksbehandler = it.saksbehandler?.let { SKJERMET },
                 )
             } else {
                 it

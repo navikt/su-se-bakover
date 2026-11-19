@@ -31,8 +31,10 @@ import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -55,6 +57,8 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vedtak.VedtakTilbakekrevingsbehandling
 import toBehandlingsstatistikkOverordnet
 import java.math.BigInteger
+import java.time.Clock
+import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -77,7 +81,7 @@ internal class SakStatistikkServiceTest {
     ) {
         ordinærePersoner()
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = gradering.name).right())
         val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
         service.lagreForBrukerflyt(hendelse, vurdering, null)
 
@@ -99,7 +103,7 @@ internal class SakStatistikkServiceTest {
         val annenPerson = requireNotNull(vedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         ordinærePersoner()
         whenever(personOppslag.person(annenPerson, vedtak.behandling.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = gradering.name).right())
         val vurdering = service.vurderKode6ForStønadsbehandling(vedtak.behandling)
         service.lagreForBrukerflyt(iverksatt, vurdering, null)
 
@@ -127,7 +131,7 @@ internal class SakStatistikkServiceTest {
     fun `feilet oppslag på søker eller EPS avbryter før statistikk lagres`(feilHosSøker: Boolean) {
         ordinærePersoner()
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val eps = requireNotNull(behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         val personMedFeil = if (feilHosSøker) behandling.fnr else eps
         whenever(personOppslag.person(personMedFeil, behandling.sakstype)).thenReturn(KunneIkkeHentePerson.Ukjent.left())
@@ -162,7 +166,7 @@ internal class SakStatistikkServiceTest {
         val eps = requireNotNull(sak.søknadsbehandlinger.single().søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         val kode6Person = if (kode6HosSøker) klage.fnr else eps
         whenever(personOppslag.person(kode6Person, klage.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val vurdering = service.vurderKode6ForKlage(klage, sak)
         service.lagreForBrukerflyt(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
 
@@ -177,7 +181,7 @@ internal class SakStatistikkServiceTest {
         val (sak, revurdering) = beregnetRevurdering()
         ordinærePersoner()
         whenever(personOppslag.person(revurdering.fnr, revurdering.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
 
         service.vurderKode6ForRelatertBehandling(sak, revurdering.id.value).harKode6 shouldBe true
 
@@ -205,7 +209,7 @@ internal class SakStatistikkServiceTest {
         val eps = requireNotNull(stønadsvedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         ordinærePersoner()
         whenever(personOppslag.person(eps, sak.type))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
 
         val vurdering = if (viaVedtak) {
             service.vurderKode6ForKlage(klage, sak)
@@ -238,7 +242,7 @@ internal class SakStatistikkServiceTest {
         ordinærePersoner()
         val eps = requireNotNull(stønadsvedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         whenever(personOppslag.person(eps, sak.type))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND.name).right())
 
         service.vurderKode6ForKlage(klage, sak).harKode6 shouldBe true
 
@@ -254,13 +258,23 @@ internal class SakStatistikkServiceTest {
         val epsIJanuar = Fnr.generer()
         val epsIFebruar = Fnr.generer()
         val epsIMars = Fnr.generer()
-        val (sakMedStønadsvedtak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-            clock = fixedClock,
-            stønadsperiode = Stønadsperiode.create(januar..mars),
-            customGrunnlag = listOf(
-                bosituasjonEpsUnder67(periode = januar, fnr = epsIJanuar),
-                bosituasjonEpsUnder67(periode = februar, fnr = epsIFebruar),
-                bosituasjonEpsUnder67(periode = mars, fnr = epsIMars),
+        val månedsperioder = listOf(januar to epsIJanuar, februar to epsIFebruar, mars to epsIMars)
+        val månedsvedtak = månedsperioder.mapIndexed { indeks, (måned, eps) ->
+            val bosituasjon = bosituasjonEpsUnder67(periode = måned, fnr = eps)
+            vedtakSøknadsbehandlingIverksattInnvilget(
+                clock = Clock.offset(fixedClock, Duration.ofDays((indeks - månedsperioder.size).toLong())),
+                stønadsperiode = Stønadsperiode.create(måned),
+                customGrunnlag = listOf(bosituasjon),
+                customVilkår = listOf(
+                    formuevilkårMedEps0Innvilget(periode = måned, bosituasjon = nonEmptyListOf(bosituasjon)),
+                ),
+            )
+        }
+        val førsteSak = månedsvedtak.first().first
+        val sakMedStønadsvedtak = førsteSak.copy(
+            vedtakListe = månedsvedtak.map { it.second },
+            behandlinger = førsteSak.behandlinger.copy(
+                søknadsbehandlinger = månedsvedtak.map { it.second.behandling },
             ),
         )
         val (sakMedTilbakekrevingsvedtak, tilbakekrevingsvedtak) = sakMedTilbakekrevingsvedtak(
@@ -277,7 +291,7 @@ internal class SakStatistikkServiceTest {
         )
         ordinærePersoner()
         whenever(personOppslag.person(epsIFebruar, sak.type))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
 
         val vurdering = if (viaVedtak) {
             service.vurderKode6ForKlage(klage, sak)
@@ -296,7 +310,13 @@ internal class SakStatistikkServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `klage på tilbakekreving avbryter ved feilet oppslag på søker eller EPS`(feilHosSøker: Boolean) {
-        val (sakMedStønadsvedtak, stønadsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+        val eps = Fnr.generer()
+        val bosituasjon = bosituasjonEpsUnder67(fnr = eps)
+        val (sakMedStønadsvedtak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = fixedClock,
+            customGrunnlag = listOf(bosituasjon),
+            customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
+        )
         val (sakMedVedtak, tilbakekrevingsvedtak) = sakMedTilbakekrevingsvedtak(sakMedStønadsvedtak, kravgrunnlag())
         val (sak, klage) = oversendtKlage(
             sakId = sakMedVedtak.id,
@@ -304,7 +324,6 @@ internal class SakStatistikkServiceTest {
             vedtakId = tilbakekrevingsvedtak.id,
             clock = fixedClock,
         )
-        val eps = requireNotNull(stønadsvedtak.behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         val personMedFeil = if (feilHosSøker) sak.fnr else eps
         ordinærePersoner()
         whenever(personOppslag.person(personMedFeil, sak.type)).thenReturn(KunneIkkeHentePerson.Ukjent.left())
@@ -346,7 +365,7 @@ internal class SakStatistikkServiceTest {
     fun `BigQuery og erstatning sender kode 6-raden uten brukerkontekst`() = runBlocking<Unit> {
         ordinærePersoner()
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
-            .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
         service.lagreForBrukerflyt(hendelse, vurdering, null)
         val sekvensId = 1L
