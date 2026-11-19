@@ -30,8 +30,8 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygd
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
-import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.forhåndsvarsel.fromBrevCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import java.time.Clock
@@ -136,10 +136,7 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is PåminnelseNyStønadsperiodeDokumentCommand -> PåminnelseNyStønadsperiodePdfInnhold.fromBrevCommand(
-                command = command,
-                personalia = personalia().bind(),
-            )
+            is PåminnelseNyStønadsperiodeDokumentCommand -> command.fromBrevCommand(personalia().bind())
 
             is IverksettRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold.fromBrevCommand(
                 command = command,
@@ -158,8 +155,7 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
-            is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand -> ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
-                command = command,
+            is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 clock = clock,
@@ -208,8 +204,7 @@ fun fromBrevCommand(
                 satsoversikt = command.satsoversikt,
             )
 
-            is VedtaksbrevVedReguleringCommand -> VedtakVedReguleringPdfInnhold.fromBrevCommand(
-                command = command,
+            is VedtaksbrevVedReguleringCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),

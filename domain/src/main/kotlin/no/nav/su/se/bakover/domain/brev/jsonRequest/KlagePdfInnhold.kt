@@ -25,14 +25,12 @@ fun KlageDokumentCommand.Avvist.fromBrevCommand(
     personalia: PersonaliaPdfInnhold,
     saksbehandlerNavn: String,
     attestantNavn: String,
-): KlagePdfInnhold {
-    return KlagePdfInnhold.Avvist(
-        sakstype = sakstype,
-        personalia = personalia,
-        saksbehandlerNavn = saksbehandlerNavn,
-        attestantNavn = attestantNavn,
-        fritekst = fritekst,
-        saksnummer = saksnummer.nummer,
-        dødsbo = dødsbo,
-    )
-}
+) = KlagePdfInnhold.Avvist(
+    sakstype = sakstype,
+    personalia = personalia,
+    saksbehandlerNavn = saksbehandlerNavn,
+    attestantNavn = attestantNavn,
+    fritekst = fritekst,
+    saksnummer = saksnummer.nummer,
+    dødsbo = dødsbo,
+)
