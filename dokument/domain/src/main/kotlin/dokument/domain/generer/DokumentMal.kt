@@ -3,6 +3,7 @@ package dokument.domain.generer
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
@@ -117,10 +118,10 @@ sealed interface DokumentMal {
     data object AvvistSøknadFritekst : DokumentMal {
         override val navn = "avvistSøknadFritekst"
         override val tittel = "Søknaden din om supplerende stønad er avvist"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: AvvistSøknadFritekstPdfInnhold): PdfBestilling =
             avvistSøknadFritekst(tittel, innhold)
     }
 

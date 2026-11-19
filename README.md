@@ -19,7 +19,7 @@ Backend for saksbehandling av supplerende stønad (SU). Frontend er
 | [Lokal utvikling](docs/lokal-utvikling.md) | Colima, git hooks, sjekkliste, oppstart og lokal database |
 | [Autentisering lokalt](docs/autentisering-lokalt.md) | mock-oauth, bytte av saksbehandlerident, Azure og STS |
 | [Database](docs/database.md) | tilkobling til dev/prod, kopi fra dev, backup/import og PDF fra databasen |
-| [Feilsøking](docs/feilsoking.md) | Colima/Testcontainers og embedded Postgres |
+| [Feilsøking](docs/feilsoking.md) | debugging av distroless i Nais, Colima/Testcontainers og embedded Postgres |
 | [Kodestil](docs/kodestil.md) | Spotless og ktlint |
 | [Drift](docs/drift.md) | Kubernetes, metrikker, alerts og IBM MQ |
 | [Vedlikehold](docs/vedlikehold.md) | Dependabot og oppgradering av Gradle, Kotlin og Java |
