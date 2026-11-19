@@ -12,6 +12,7 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
@@ -193,10 +194,10 @@ sealed interface DokumentMal {
     data object PåminnelseNyStønadsperiode : DokumentMal {
         override val navn = "påminnelseOmNyStønadsperiode"
         override val tittel = "Påminnelse om ny stønadsperiode"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: PåminnelseNyStønadsperiodePdfInnhold): PdfBestilling =
             påminnelseOmNyStønadsperiode(tittel, innhold)
     }
 
