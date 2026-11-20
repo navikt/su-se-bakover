@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import vedtak.domain.Stønadsvedtak
 
@@ -17,5 +18,5 @@ interface IverksettSøknadsbehandlingService {
      * Kaster dersom noe kritisk går galt; logger ellers (oppgave + statistikk)
      * Tiltenkt å kalles fra andre servicer.
      */
-    fun iverksett(iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>)
+    fun iverksett(iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>, kode6Vurdering: Kode6Vurdering)
 }

@@ -157,11 +157,13 @@ internal class UtførAutomatiskBehandlingRegulering(
         if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
         }
+        val kode6Vurdering = statistikkService.vurderKode6ForStønadsbehandlingMedSystembruker(regulering)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(regulering, tx)
             val relatertId = reguleringService.hentRelatertId(sakId, tx)
             statistikkService.lagre(
                 StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
+                kode6Vurdering,
                 tx,
             )
         }
