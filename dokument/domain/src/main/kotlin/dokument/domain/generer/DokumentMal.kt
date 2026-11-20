@@ -2,6 +2,7 @@ package dokument.domain.generer
 
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -11,6 +12,7 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
 import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
@@ -130,10 +132,10 @@ sealed interface DokumentMal {
     data object Opphørsvedtak : DokumentMal {
         override val navn = "opphørsvedtak"
         override val tittel = "Vedtak om opphør av supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: OpphørsvedtakPdfInnhold): PdfBestilling =
             opphørsvedtak(tittel, innhold)
     }
 
@@ -216,10 +218,10 @@ sealed interface DokumentMal {
         data object Avslutt : Revurdering {
             override val navn = "avsluttRevurdering"
             override val tittel = "Ikke grunnlag for revurdering"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            fun lagBestilling(innhold: AvsluttRevurderingPdfInnhold): PdfBestilling =
                 avsluttRevurdering(tittel, innhold)
         }
     }
