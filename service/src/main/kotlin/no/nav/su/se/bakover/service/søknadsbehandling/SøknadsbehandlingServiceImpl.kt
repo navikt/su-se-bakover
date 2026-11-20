@@ -213,12 +213,13 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             saksbehandler = saksbehandler,
         ).map { (sak, uavklartSøknadsbehandling) ->
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(uavklartSøknadsbehandling)
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler)
 
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
             }
             Pair(sak, uavklartSøknadsbehandling)
         }
@@ -296,6 +297,7 @@ class SøknadsbehandlingServiceImpl(
                     søknadsbehandling::class,
                 ).left()
 
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(søknadsbehandling)
         return sendTilAttestering(
             søknadsbehandling = søknadsbehandlingSomKanSendesTilAttestering,
             saksbehandler = request.saksbehandler,
@@ -325,7 +327,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                     }
 
                     is SøknadsbehandlingTilAttestering.Innvilget -> {
@@ -334,7 +336,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                     }
 
                     else -> {
@@ -498,6 +500,7 @@ class SøknadsbehandlingServiceImpl(
                 it::class,
             ).left()
         }
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(søknadsbehandling)
         return søknadsbehandling.tilUnderkjent(request.attestering).map { underkjent ->
             oppgaveService.oppdaterOppgave(
                 underkjent.oppgaveId,
@@ -522,13 +525,13 @@ class SøknadsbehandlingServiceImpl(
                     is UnderkjentSøknadsbehandling.Avslag -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                     }
 
                     is UnderkjentSøknadsbehandling.Innvilget -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                     }
                 }
             }

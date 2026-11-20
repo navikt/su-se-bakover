@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.client.person
 
+import arrow.core.left
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
@@ -11,14 +13,74 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
+import person.domain.Adressebeskyttelse
+import person.domain.KunneIkkeHentePerson
 import person.domain.SivilstandTyper
+import java.util.stream.Stream
 
 class PdlClientWithCacheTest {
+    @ParameterizedTest
+    @MethodSource("graderinger")
+    fun `bevarer adressebeskyttelse i hver forespørsel også ved cache-treff`(
+        gradering: Adressebeskyttelse,
+        forventetKode6: Boolean,
+    ) = runBlocking<Unit> {
+        val fnr = expectedPdlDataTemplate.ident.fnr
+        val token = "test-token"
+        val brukerToken = JwtToken.BrukerToken(token)
+        val sakstype = Sakstype.UFØRE
+        val data = expectedPdlDataTemplate.copy(adressebeskyttelse = gradering.name)
+        val pdlClient = mock<PdlClient> {
+            on { person(fnr, brukerToken, sakstype) } doReturn data.right()
+        }
+        val client = PdlClientWithCache(pdlClient, mock())
+
+        repeat(2) {
+            val resultat = client.person(fnr, brukerToken, sakstype)
+            resultat shouldBe data.right()
+            Adressebeskyttelse.fraPdl(resultat.getOrNull()?.adressebeskyttelse).erKode6() shouldBe forventetKode6
+        }
+
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
+    }
+
+    @Test
+    fun `feilet personoppslag caches ikke`() = runBlocking<Unit> {
+        val fnr = expectedPdlDataTemplate.ident.fnr
+        val token = "test-token"
+        val brukerToken = JwtToken.BrukerToken(token)
+        val sakstype = Sakstype.UFØRE
+        val feil = KunneIkkeHentePerson.Ukjent.left()
+        val data = expectedPdlDataTemplate.copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name)
+        val pdlClient = mock<PdlClient>()
+        whenever(pdlClient.person(fnr, brukerToken, sakstype)).thenReturn(feil, data.right())
+        val client = PdlClientWithCache(pdlClient, mock())
+
+        client.person(fnr, brukerToken, sakstype) shouldBe feil
+        client.person(fnr, brukerToken, sakstype) shouldBe data.right()
+
+        verify(pdlClient, times(2)).person(fnr, brukerToken, sakstype)
+    }
+
+    companion object {
+        @JvmStatic
+        fun graderinger(): Stream<Arguments> = Stream.of(
+            Arguments.of(Adressebeskyttelse.STRENGT_FORTROLIG, true),
+            Arguments.of(Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND, true),
+            Arguments.of(Adressebeskyttelse.FORTROLIG, false),
+            Arguments.of(Adressebeskyttelse.UGRADERT, false),
+        )
+    }
+
     private fun cacheKey(
         fnr: Fnr,
         token: JwtToken,

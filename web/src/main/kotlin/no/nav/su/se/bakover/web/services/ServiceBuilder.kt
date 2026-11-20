@@ -326,6 +326,7 @@ data object ServiceBuilder {
                 brevService = kjerneTjenester.brevService,
                 oppgaveService = kjerneTjenester.oppgaveService,
                 personService = kjerneTjenester.personService,
+                sakStatistikkService = kjerneTjenester.sakStatistikkService,
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
@@ -480,7 +481,12 @@ data object ServiceBuilder {
             personOppslag = clients.personOppslag,
             personRepo = databaseRepos.person,
         )
-        val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
+        val sakStatistikkService = SakStatistikkService(
+            sakStatistikkRepo = sakStatistikkRepo,
+            clock = clock,
+            personOppslag = clients.personOppslag,
+            sakRepo = databaseRepos.sak,
+        )
         val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
             ApplicationConfig.RuntimeEnvironment.Dev,
             ApplicationConfig.RuntimeEnvironment.Prod,
