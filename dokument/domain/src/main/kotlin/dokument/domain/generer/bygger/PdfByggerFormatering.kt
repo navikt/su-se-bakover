@@ -39,7 +39,15 @@ fun GenerellData.isoTilDato(): String {
     }
 }
 
-fun List<String>.somOppramsing(): String = when (size) {
+fun avslagsparagrafer(paragrafer: List<Int>): String {
+    if (paragrafer.isEmpty()) return ""
+
+    val tekster = paragrafer.map { paragraf -> paragraf.toString() }
+    val prefiks = if (paragrafer.size > 1) "§§" else "§"
+    return "$prefiks ${tekster.somOppramsing()}"
+}
+
+private fun List<String>.somOppramsing(): String = when (size) {
     0 -> ""
     1 -> first()
     else -> dropLast(1).joinToString(", ") + " og " + last()

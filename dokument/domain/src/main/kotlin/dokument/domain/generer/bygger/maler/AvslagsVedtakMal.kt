@@ -6,6 +6,7 @@ import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.Innhold
 import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.avslagsparagrafer
 import dokument.domain.generer.bygger.beregning
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
@@ -110,12 +111,6 @@ val vedtakAvslag = { _: String, pdfInnhold: AvslagSøknadsbehandlingPdfInnhold -
         fellesKlageinfo(pdfInnhold.sakstype)
         hilsen(saksbehandler = pdfInnhold.saksbehandlerNavn, attestant = pdfInnhold.attestantNavn)
     }
-}
-
-private fun avslagsparagrafer(paragrafer: List<Int>): String = when (paragrafer.size) {
-    0 -> ""
-    1 -> "§ ${paragrafer.single()}"
-    else -> "§§ ${paragrafer.dropLast(1).joinToString(", ")} og ${paragrafer.last()}"
 }
 
 private fun List<AvslagsgrunnBrev>.tilPunktliste(

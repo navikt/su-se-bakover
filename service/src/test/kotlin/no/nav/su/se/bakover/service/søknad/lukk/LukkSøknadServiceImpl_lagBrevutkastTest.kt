@@ -258,7 +258,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                         saksnummer = sak.saksnummer,
                         saksbehandler = lukkSøknadCommand.saksbehandler,
                         trukketDato = lukkSøknadCommand.lukketTidspunkt.toLocalDate(zoneIdOslo),
-                        søknadOpprettet = søknad!!.opprettet,
+                        søknadMottatt = søknad!!.mottaksdato,
                     )
                 },
                 anyOrNull(),
