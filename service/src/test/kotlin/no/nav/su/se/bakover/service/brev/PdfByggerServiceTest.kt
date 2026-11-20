@@ -8,12 +8,11 @@ import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
-import dokument.domain.generer.bygger.maler.soknad
+import dokument.domain.generer.bygger.maler.soknadNy
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -96,7 +95,7 @@ internal class PdfByggerServiceTest {
 
         service.genererPdf(innhold) shouldBe pdf.right()
 
-        verify(klient).lagPdf(soknad(GenerellData.parse(innhold.toJson())))
+        verify(klient).lagPdf(soknadNy(innhold))
         verifyNoInteractions(gammelKlient)
     }
 

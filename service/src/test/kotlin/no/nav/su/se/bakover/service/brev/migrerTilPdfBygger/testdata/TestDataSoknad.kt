@@ -812,12 +812,6 @@ private val soknadSluttVerdier = listOf(
     "00",
 )
 
-/**
- * Alle ordene i den gamle PDF-en fra su-pdfgen. Den gamle testdataen blandet uføre og alder i samme søknad,
- * og uten fritekst for statsborgerskap i andre land.
- */
-val forventetSoknadInnnholdVerdier = soknadStartVerdier + soknadUføreVerdier + soknadAlderVerdier + soknadSluttVerdier
-
 val forventetSoknadUføreVerdier =
     soknadStartVerdier + soknadUføreVerdier + STATSBORGERSKAP_ANDRE_LAND + soknadSluttVerdier
 
