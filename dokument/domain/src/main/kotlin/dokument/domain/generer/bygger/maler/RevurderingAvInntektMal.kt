@@ -13,7 +13,7 @@ import dokument.domain.generer.bygger.fødselsnummerAvsnitt
 import dokument.domain.generer.bygger.hilsen
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
-data class RevurderingAvInntektPdfInnholdNy(
+data class RevurderingAvInntektPdfInnhold(
     override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
@@ -28,7 +28,7 @@ data class RevurderingAvInntektPdfInnholdNy(
     override val dokumentMal = DokumentMal.Revurdering.Inntekt
 }
 
-val revurderingAvInntekt = { tittel: String, pdfInnhold: RevurderingAvInntektPdfInnholdNy ->
+val revurderingAvInntekt = { tittel: String, pdfInnhold: RevurderingAvInntektPdfInnhold ->
     dokument(tittel, personalia = pdfInnhold.personalia) {
         fødselsnummerAvsnitt(pdfInnhold.personalia)
         pdfInnhold.fritekst?.let { fritekst(it) }

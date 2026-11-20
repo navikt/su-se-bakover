@@ -6,7 +6,7 @@ import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.MånedsfradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
-import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnholdNy
+import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
 private const val BREV_DATO = "01.01.2020"
@@ -16,7 +16,7 @@ private const val ARBEIDSINNTEKTSTYPE = "Arbeidsinntekt"
 private const val ARBEIDSINNTEKT = 1500
 
 // Syntetisk renderingstilfelle fra eksisterende testgrunnlag, inkludert datostrengen 31.04.2020.
-val revurderingAvInntektPdf = RevurderingAvInntektPdfInnholdNy(
+val revurderingAvInntektPdf = RevurderingAvInntektPdfInnhold(
     sakstype = Sakstype.UFØRE,
     personalia = PersonaliaPdfInnhold(
         dato = BREV_DATO,
