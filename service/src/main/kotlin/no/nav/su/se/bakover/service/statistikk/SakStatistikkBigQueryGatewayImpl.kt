@@ -193,7 +193,7 @@ class SakStatistikkBigQueryGatewayImpl : SakStatistikkBigQueryGateway {
 private fun Set<Long>.toBigQueryArray(): QueryParameterValue =
     QueryParameterValue.array(toTypedArray(), Long::class.javaObjectType)
 
-private fun List<SakStatistikk>.toCsv(): String = buildString {
+internal fun List<SakStatistikk>.toCsv(): String = buildString {
     for (sakStatistikk in this@toCsv) {
         appendLine(
             listOf(
