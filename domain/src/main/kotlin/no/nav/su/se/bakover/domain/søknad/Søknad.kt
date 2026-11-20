@@ -273,7 +273,9 @@ sealed interface Søknad {
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
                         return when (brevvalg) {
                             is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> KanIkkeLageBrevRequestForDenneTilstanden.left()
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev -> AvvistSøknadDokumentCommand(
+                            // Historiske avvisninger kan ha informasjonsbrev; malen er fjernet og nye kan ikke bestilles.
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> KanIkkeLageBrevRequestForDenneTilstanden.left()
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev -> AvvistSøknadDokumentCommand(
                                 fødselsnummer = fnr,
                                 saksnummer = sak.saksnummer,
                                 sakstype = sak.type,

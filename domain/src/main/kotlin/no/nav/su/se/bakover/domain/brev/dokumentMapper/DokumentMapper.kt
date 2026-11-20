@@ -106,13 +106,6 @@ fun PdfA.tilDokument(
         }
 
         is AvvistSøknadDokumentCommand -> when (command.brevvalg) {
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> informasjonAnnet(
-                id = id,
-                clock = clock,
-                pdfInnhold = pdfInnhold,
-                brevtype = Brevtype.AVVIST_SØKNAD,
-            )
-
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
                 id = id,
                 clock = clock,

@@ -14,6 +14,6 @@ data class AvvistSøknadDokumentCommand(
     override val sakstype: Sakstype,
     override val fødselsnummer: Fnr,
     override val saksnummer: Saksnummer,
-    val brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev,
+    val brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) : GenererDokumentCommand
