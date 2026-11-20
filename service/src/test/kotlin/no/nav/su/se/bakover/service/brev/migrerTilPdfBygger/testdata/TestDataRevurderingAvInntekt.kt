@@ -15,7 +15,7 @@ private const val HOY_SATSBELOP = 20637
 private const val ARBEIDSINNTEKTSTYPE = "Arbeidsinntekt"
 private const val ARBEIDSINNTEKT = 1500
 
-// Syntetisk renderingstilfelle fra eksisterende testgrunnlag, inkludert datostrengen 31.04.2020.
+// Syntetisk renderingstilfelle fra eksisterende testgrunnlag.
 val revurderingAvInntektPdf = RevurderingAvInntektPdfInnhold(
     sakstype = Sakstype.UFØRE,
     personalia = PersonaliaPdfInnhold(
@@ -36,8 +36,8 @@ val revurderingAvInntektPdf = RevurderingAvInntektPdfInnhold(
     beregningsperioder = listOf(
         BeregningsperiodeBrev(
             periode = BrevPeriode(
-                fraOgMed = "januar 2021",
-                tilOgMed = "desember 2021",
+                fraOgMed = "januar 2020",
+                tilOgMed = "desember 2020",
             ),
             ytelsePerMåned = 12000,
             satsbeløpPerMåned = HOY_SATSBELOP,
@@ -65,7 +65,7 @@ val revurderingAvInntektPdf = RevurderingAvInntektPdfInnhold(
         perioder = listOf(
             SatsoversiktBrev.Satsperiode(
                 fraOgMed = BREV_DATO,
-                tilOgMed = "31.04.2020",
+                tilOgMed = "30.04.2020",
                 sats = HOY_SATS,
                 satsBeløp = HOY_SATSBELOP,
                 satsGrunn = "ENSLIG",
@@ -222,7 +222,7 @@ val revurderingAvInntektVerdier = listOf(
     "01",
     "01",
     "2020",
-    "31",
+    "30",
     "04",
     "2020",
     "Deler",
@@ -272,10 +272,10 @@ val revurderingAvInntektVerdier = listOf(
     "andre",
     "fradrag",
     "Januar",
-    "2021",
+    "2020",
     "til",
     "desember",
-    "2021",
+    "2020",
     "Supplerende",
     "stønad",
     "høy",
