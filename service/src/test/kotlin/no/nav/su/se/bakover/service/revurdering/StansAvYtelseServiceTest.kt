@@ -204,7 +204,7 @@ internal class StansAvYtelseServiceTest {
         ).also { serviceAndMocks ->
             val request = defaultOpprettRequest()
             val response = if (automatisk) {
-                serviceAndMocks.stansYtelseService.stansAvYtelseITransaksjon(request, tx)
+                serviceAndMocks.stansYtelseService.stansAvYtelseITransaksjon(request, tx, kode6Vurdering)
             } else {
                 serviceAndMocks.stansYtelseService.stansAvYtelse(request).getOrFail()
             }
@@ -232,7 +232,7 @@ internal class StansAvYtelseServiceTest {
                 tx,
             )
             if (automatisk) {
-                verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, tx)
+                verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, kode6Vurdering, tx)
             } else {
                 verify(serviceAndMocks.sakStatistikkService).vurderKode6ForVedtaksdata(eq(sak), any())
                 verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
@@ -344,6 +344,7 @@ internal class StansAvYtelseServiceTest {
                 revurderingId = simulertStans.id,
                 attestant = attestant,
                 transactionContext = tx,
+                kode6Vurdering = kode6Vurdering,
             ).revurdering
         } else {
             serviceAndMocks.stansYtelseService.iverksettStansAvYtelse(
@@ -388,7 +389,7 @@ internal class StansAvYtelseServiceTest {
             it.revurdering shouldBe response
         }
         if (automatisk) {
-            verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, tx)
+            verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, kode6Vurdering, tx)
         } else {
             verify(serviceAndMocks.sakStatistikkService).vurderKode6ForStønadsbehandling(simulertStans)
             verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)

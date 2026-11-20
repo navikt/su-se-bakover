@@ -197,6 +197,8 @@ class SøknadServiceImpl(
             clock = clock,
             saksbehandler = null,
         ).map { (_, behandling) ->
+            val vurdering = kode6Vurdering
+                ?: sakStatistikkService.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(behandling, tx)
                 val event = StatistikkEvent.Behandling.Søknad.Opprettet(
@@ -204,7 +206,7 @@ class SøknadServiceImpl(
                     NavIdentBruker.Saksbehandler.systembruker(),
                 )
                 if (kode6Vurdering == null) {
-                    sakStatistikkService.lagreAutomatiskSystemflyt(event, tx)
+                    sakStatistikkService.lagreAutomatiskSystemflyt(event, vurdering, tx)
                 } else {
                     sakStatistikkService.lagreForBrukerflyt(event, kode6Vurdering, tx)
                 }

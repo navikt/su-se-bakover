@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.søknad
 
+import behandling.domain.Stønadsbehandling
 import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
@@ -36,7 +37,9 @@ internal data class SøknadServiceOgMocks(
     val clock: Clock = fixedClock,
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val sakStatistikkService: SakStatistikkService = mock {
-        on { vurderKode6ForSøknad(any<SøknadInnhold>()) } doReturn Kode6Vurdering(false)
+        val kode6Vurdering = Kode6Vurdering(false)
+        on { vurderKode6ForSøknad(any<SøknadInnhold>()) } doReturn kode6Vurdering
+        on { vurderKode6ForStønadsbehandlingMedSystembruker(any<Stønadsbehandling>()) } doReturn kode6Vurdering
     },
     val forstesideGeneratorService: ForstesideGeneratorService = mock(),
 ) {

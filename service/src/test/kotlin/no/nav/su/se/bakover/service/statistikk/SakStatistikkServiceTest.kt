@@ -143,12 +143,57 @@ internal class SakStatistikkServiceTest {
         verifyNoInteractions(repo)
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `automatisk behandling skjermes ved kode 6 hos søker eller EPS uten brukerkontekst`(kode6HosSøker: Boolean) {
+        val eps = requireNotNull(behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
+        val skjermetPerson = if (kode6HosSøker) behandling.fnr else eps
+        whenever(personOppslag.personMedSystembruker(any(), any())).thenReturn(person().right())
+        whenever(personOppslag.personMedSystembruker(skjermetPerson, behandling.sakstype))
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+
+        val vurdering = service.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
+        service.lagreAutomatiskSystemflyt(hendelse, vurdering, null)
+
+        val rad = lagretRad()
+        rad.opprettetAv shouldBe identForKode6
+        rad.saksbehandler shouldBe fiktivSaksbehandler.navIdent
+        rad.ansvarligBeslutter shouldBe null
+        rad.ansvarligEnhet shouldBe vikafossen
+        verify(personOppslag).personMedSystembruker(behandling.fnr, behandling.sakstype)
+        verify(personOppslag).personMedSystembruker(eps, behandling.sakstype)
+        org.mockito.kotlin.verifyNoMoreInteractions(personOppslag)
+        verifyNoInteractions(sakRepo)
+    }
+
     @Test
-    fun `automatisk behandling krever ikke personoppslag`() {
-        service.lagreAutomatiskSystemflyt(hendelse, null)
+    fun `automatisk behandling beholder ordinær statistikk når ingen har kode 6`() {
+        whenever(personOppslag.personMedSystembruker(any(), any())).thenReturn(person().right())
+
+        val vurdering = service.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
+        service.lagreAutomatiskSystemflyt(hendelse, vurdering, null)
 
         lagretRad() shouldBe hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
-        verifyNoInteractions(personOppslag, sakRepo)
+        verifyNoInteractions(sakRepo)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `automatisk behandling avbryter ved feilet systemoppslag på søker eller EPS`(feilHosSøker: Boolean) {
+        val eps = requireNotNull(behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
+        val personMedFeil = if (feilHosSøker) behandling.fnr else eps
+        whenever(personOppslag.personMedSystembruker(any(), any())).thenReturn(person().right())
+        whenever(personOppslag.personMedSystembruker(behandling.fnr, behandling.sakstype))
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+        whenever(personOppslag.personMedSystembruker(personMedFeil, behandling.sakstype))
+            .thenReturn(KunneIkkeHentePerson.Ukjent.left())
+
+        shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
+            val vurdering = service.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
+            service.lagreAutomatiskSystemflyt(hendelse, vurdering, null)
+        }
+
+        verifyNoInteractions(repo, sakRepo)
     }
 
     @ParameterizedTest

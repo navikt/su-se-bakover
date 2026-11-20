@@ -11,9 +11,11 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleJobRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
@@ -30,6 +32,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -43,6 +47,7 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
     fun `bruker første dag i neste måned som stansdato dersom person er død`() {
         val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
         val dødsdato = 10.januar(2021)
+        val kode6Vurdering = Kode6Vurdering(true)
         val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock = clock)
         val kontrollsamtale = innkaltKontrollsamtale(
             sakId = sak.id,
@@ -63,7 +68,8 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
                 on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
             },
             stansYtelseService = mock {
-                on { stansAvYtelseITransaksjon(any(), any()) } doReturn simulertStans
+                on { vurderKode6ForAutomatiskStans(any(), any()) } doReturn kode6Vurdering
+                on { stansAvYtelseITransaksjon(any(), any(), any()) } doReturn simulertStans
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -77,6 +83,7 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
         verify(services.stansYtelseService).stansAvYtelseITransaksjon(
             requestCaptor.capture(),
             any(),
+            eq(kode6Vurdering),
         )
         (requestCaptor.firstValue as StansYtelseRequest.Opprett).fraOgMed.dato shouldBe 1.februar(2021)
 
@@ -111,7 +118,8 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
                 on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
             },
             stansYtelseService = mock {
-                on { stansAvYtelseITransaksjon(any(), any()) } doThrow IllegalStateException("Stans feilet")
+                on { vurderKode6ForAutomatiskStans(any(), any()) } doReturn Kode6Vurdering(false)
+                on { stansAvYtelseITransaksjon(any(), any(), any()) } doThrow IllegalStateException("Stans feilet")
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -156,7 +164,8 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
                 on { lagre(any(), any()) } doThrow IllegalStateException("Lagring feilet")
             },
             stansYtelseService = mock {
-                on { stansAvYtelseITransaksjon(any(), any()) } doThrow IllegalStateException("Stans feilet")
+                on { vurderKode6ForAutomatiskStans(any(), any()) } doReturn Kode6Vurdering(false)
+                on { stansAvYtelseITransaksjon(any(), any(), any()) } doThrow IllegalStateException("Stans feilet")
             },
             oppgaveService = mock(),
             clock = clock,
@@ -197,7 +206,52 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
         services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
 
         verify(services.kontrollsamtaleService).lagre(any(), any())
-        verify(services.stansYtelseService, never()).stansAvYtelseITransaksjon(any(), any())
+        verify(services.stansYtelseService, never()).vurderKode6ForAutomatiskStans(any(), any())
+        verify(services.stansYtelseService, never()).stansAvYtelseITransaksjon(any(), any(), any())
+    }
+
+    @Test
+    fun `kode 6 vurderes før lagring og brukes både ved opprettelse og iverksettelse av automatisk stans`() {
+        val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
+        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock = clock)
+        val kontrollsamtale = innkaltKontrollsamtale(sakId = sak.id, frist = 14.januar(2021))
+        val kode6Vurdering = Kode6Vurdering(true)
+        val iverksettResponse = mock<IverksettStansAvYtelseITransaksjonResponse>()
+        val services = ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(sak.id) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(sak.fnr, sak.type) } doReturn person(fnr = sak.fnr).right()
+            },
+            kontrollsamtaleService = mock {
+                on { hentFristUtløptFørEllerPåDato(15.januar(2021)) } doReturn kontrollsamtale.frist
+                on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
+            },
+            queryJournalpostClient = mock {
+                on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
+            },
+            stansYtelseService = mock {
+                on { vurderKode6ForAutomatiskStans(any(), any()) } doReturn kode6Vurdering
+                on { stansAvYtelseITransaksjon(any(), any(), any()) } doReturn simulertStans
+                on { iverksettStansAvYtelseITransaksjon(any(), any(), any(), any()) } doReturn iverksettResponse
+            },
+            clock = clock,
+        )
+
+        services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
+
+        inOrder(services.stansYtelseService, services.kontrollsamtaleService) {
+            verify(services.stansYtelseService).vurderKode6ForAutomatiskStans(eq(sak), any())
+            verify(services.kontrollsamtaleService).lagre(any(), any())
+            verify(services.stansYtelseService).stansAvYtelseITransaksjon(any(), any(), eq(kode6Vurdering))
+            verify(services.stansYtelseService).iverksettStansAvYtelseITransaksjon(
+                eq(simulertStans.id),
+                any(),
+                any(),
+                eq(kode6Vurdering),
+            )
+        }
     }
 
     private data class ServiceOgMocks(

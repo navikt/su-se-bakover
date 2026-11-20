@@ -69,13 +69,24 @@ class StansYtelseServiceImpl(
         observers.add(eventObserver)
     }
 
+    override fun vurderKode6ForAutomatiskStans(
+        sak: Sak,
+        fraOgMed: FørsteDagIMåneden,
+    ): Kode6Vurdering {
+        val vedtaksdata = kopierGjeldendeVedtaksdata(sak, fraOgMed)
+            .getOrElse { throw it.exception() }
+        return sakStatistikkService.vurderKode6ForVedtaksdataMedSystembruker(sak, vedtaksdata)
+    }
+
     override fun stansAvYtelseITransaksjon(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
+        kode6Vurdering: Kode6Vurdering,
     ): StansAvYtelseRevurdering.SimulertStansAvYtelse = stansAvYtelseITransaksjon(
         request = request,
         transactionContext = transactionContext,
-        kode6Vurdering = null,
+        kode6Vurdering = kode6Vurdering,
+        automatisk = true,
         sak = sakService.hentSak(
             sakId = request.sakId,
             sessionContext = transactionContext,
@@ -85,8 +96,9 @@ class StansYtelseServiceImpl(
     private fun stansAvYtelseITransaksjon(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
-        kode6Vurdering: Kode6Vurdering?,
+        kode6Vurdering: Kode6Vurdering,
         sak: Sak,
+        automatisk: Boolean = false,
     ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
@@ -169,8 +181,8 @@ class StansYtelseServiceImpl(
 
         val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)
         observers.notify(sakStatistikkEvent, transactionContext)
-        if (kode6Vurdering == null) {
-            sakStatistikkService.lagreAutomatiskSystemflyt(sakStatistikkEvent, transactionContext)
+        if (automatisk) {
+            sakStatistikkService.lagreAutomatiskSystemflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
         } else {
             sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
         }
@@ -246,11 +258,13 @@ class StansYtelseServiceImpl(
         revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
         transactionContext: TransactionContext,
+        kode6Vurdering: Kode6Vurdering,
     ): IverksettStansAvYtelseITransaksjonResponse = iverksettStansAvYtelseITransaksjon(
         revurderingId = revurderingId,
         attestant = attestant,
         transactionContext = transactionContext,
-        kode6Vurdering = null,
+        kode6Vurdering = kode6Vurdering,
+        automatisk = true,
         sak = sakService.hentSakForRevurdering(
             revurderingId = revurderingId,
             sessionContext = transactionContext,
@@ -261,8 +275,9 @@ class StansYtelseServiceImpl(
         revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
         transactionContext: TransactionContext,
-        kode6Vurdering: Kode6Vurdering?,
+        kode6Vurdering: Kode6Vurdering,
         sak: Sak,
+        automatisk: Boolean = false,
     ): IverksettStansAvYtelseITransaksjonResponse {
         val revurdering = sak.hentRevurdering(revurderingId)
             .getOrElse { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
@@ -330,8 +345,8 @@ class StansYtelseServiceImpl(
 
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Iverksatt(vedtak)
                 observers.notify(sakStatistikkEvent, transactionContext)
-                if (kode6Vurdering == null) {
-                    sakStatistikkService.lagreAutomatiskSystemflyt(sakStatistikkEvent, transactionContext)
+                if (automatisk) {
+                    sakStatistikkService.lagreAutomatiskSystemflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
                 } else {
                     sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
                 }

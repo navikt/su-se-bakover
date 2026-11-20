@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -162,6 +163,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
     fun `oppretter manglende behandling og statistikk i samme transaksjon`() {
         val søknad = journalførtSøknad.medOppgave(oppgaveId)
         val observer = mock<StatistikkEventObserver>()
+        val kode6Vurdering = Kode6Vurdering(true)
         val serviceOgMocks = SøknadServiceOgMocks(
             søknadRepo = mock {
                 on { hentSøknaderUtenBehandling(opprettetFør) } doReturn listOf(søknad)
@@ -170,6 +172,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSak(sakId) } doReturn sak.right()
             },
             søknadsbehandlingRepo = mock(),
+            sakStatistikkService = mock {
+                on { vurderKode6ForStønadsbehandlingMedSystembruker(any()) } doReturn kode6Vurdering
+            },
         )
         serviceOgMocks.service.addObserver(observer)
 
@@ -184,8 +189,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         val transactionContext = argumentCaptor<TransactionContext>()
         inOrder(serviceOgMocks.søknadRepo, serviceOgMocks.søknadsbehandlingRepo, serviceOgMocks.sakStatistikkService, observer) {
             verify(serviceOgMocks.søknadsbehandlingRepo).hentForSøknad(søknad.id)
+            verify(serviceOgMocks.sakStatistikkService).vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
             verify(serviceOgMocks.søknadsbehandlingRepo).lagre(eq(behandling), transactionContext.capture())
-            verify(serviceOgMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, transactionContext.firstValue)
+            verify(serviceOgMocks.sakStatistikkService).lagreAutomatiskSystemflyt(
+                event,
+                kode6Vurdering,
+                transactionContext.firstValue,
+            )
             verify(observer).handle(event, transactionContext.firstValue)
         }
         verifyNoInteractions(serviceOgMocks.oppgaveService, serviceOgMocks.journalførSøknadClient)

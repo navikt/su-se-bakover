@@ -30,10 +30,16 @@ class SakStatistikkService(
 ) {
     private fun vurderKode6ForPersoner(
         personer: PersonerOgSakstype,
+        medSystembruker: Boolean = false,
     ): Kode6Vurdering {
         require(personer.fnr.isNotEmpty()) { "Sakstatistikk krever minst én person" }
         val harKode6 = personer.fnr.distinct().map { fnr ->
-            personOppslag.person(fnr, personer.sakstype).fold(
+            val person = if (medSystembruker) {
+                personOppslag.personMedSystembruker(fnr, personer.sakstype)
+            } else {
+                personOppslag.person(fnr, personer.sakstype)
+            }
+            person.fold(
                 { throw KunneIkkeVurdereKode6() },
                 { Adressebeskyttelse.fraPdl(it.adressebeskyttelse).erKode6() },
             )
@@ -41,7 +47,16 @@ class SakStatistikkService(
         return Kode6Vurdering(harKode6)
     }
 
-    fun vurderKode6ForStønadsbehandling(behandling: Stønadsbehandling): Kode6Vurdering {
+    fun vurderKode6ForStønadsbehandling(behandling: Stønadsbehandling): Kode6Vurdering =
+        vurderKode6ForStønadsbehandling(behandling, medSystembruker = false)
+
+    fun vurderKode6ForStønadsbehandlingMedSystembruker(behandling: Stønadsbehandling): Kode6Vurdering =
+        vurderKode6ForStønadsbehandling(behandling, medSystembruker = true)
+
+    private fun vurderKode6ForStønadsbehandling(
+        behandling: Stønadsbehandling,
+        medSystembruker: Boolean,
+    ): Kode6Vurdering {
         val epsFraSøknad = (behandling as? Søknadsbehandling)
             ?.søknad?.søknadInnhold?.boforhold?.ektefellePartnerSamboer?.fnr
         return vurderKode6ForPersoner(
@@ -49,6 +64,7 @@ class SakStatistikkService(
                 behandling.sakstype,
                 listOfNotNull(behandling.fnr, epsFraSøknad) + behandling.grunnlagsdata.bosituasjon.mapNotNull { it.eps },
             ),
+            medSystembruker = medSystembruker,
         )
     }
 
@@ -66,11 +82,22 @@ class SakStatistikkService(
         )
 
     fun vurderKode6ForVedtaksdata(sak: Sak, vedtaksdata: GjeldendeVedtaksdata): Kode6Vurdering =
+        vurderKode6ForVedtaksdata(sak, vedtaksdata, medSystembruker = false)
+
+    fun vurderKode6ForVedtaksdataMedSystembruker(sak: Sak, vedtaksdata: GjeldendeVedtaksdata): Kode6Vurdering =
+        vurderKode6ForVedtaksdata(sak, vedtaksdata, medSystembruker = true)
+
+    private fun vurderKode6ForVedtaksdata(
+        sak: Sak,
+        vedtaksdata: GjeldendeVedtaksdata,
+        medSystembruker: Boolean,
+    ): Kode6Vurdering =
         vurderKode6ForPersoner(
             PersonerOgSakstype(
                 sak.type,
                 listOf(sak.fnr) + vedtaksdata.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.mapNotNull { it.eps },
             ),
+            medSystembruker = medSystembruker,
         )
 
     fun vurderKode6ForRelatertBehandling(
@@ -150,8 +177,9 @@ class SakStatistikkService(
 
     fun lagreAutomatiskSystemflyt(
         hendelse: StatistikkEvent.Behandling,
+        vurdering: Kode6Vurdering,
         sessionContext: SessionContext?,
-    ) = lagre(hendelse, harKode6 = false, sessionContext = sessionContext)
+    ) = lagre(hendelse, harKode6 = vurdering.harKode6, sessionContext = sessionContext)
 
     private fun lagre(
         hendelse: StatistikkEvent.Behandling,
