@@ -119,7 +119,7 @@ internal class PdfByggerServiceTest {
 
     private val pdfInnhold = object : PdfInnhold {
         // Mal med både pdfByggerDev = false og pdfByggerProd = false
-        override val dokumentMal = DokumentMal.Tilbakekreving.Vedtaksbrev
+        override val dokumentMal = DokumentMal.VedtaksbrevReguleringAldersfradrag
         override val sakstype: Sakstype = Sakstype.UFØRE
     }
 
