@@ -3,6 +3,7 @@ package dokument.domain.generer
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -217,10 +218,10 @@ sealed interface DokumentMal {
         data object Avslutt : Revurdering {
             override val navn = "avsluttRevurdering"
             override val tittel = "Ikke grunnlag for revurdering"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            fun lagBestilling(innhold: AvsluttRevurderingPdfInnhold): PdfBestilling =
                 avsluttRevurdering(tittel, innhold)
         }
     }
