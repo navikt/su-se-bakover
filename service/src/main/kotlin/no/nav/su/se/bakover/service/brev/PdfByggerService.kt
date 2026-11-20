@@ -126,7 +126,6 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is AvvistSøknadFritekstPdfInnhold -> dokumentMal.lagBestilling(this)
     is SkattegrunnlagsPdfInnhold -> dokumentMal.lagBestilling(this)
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
     is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
