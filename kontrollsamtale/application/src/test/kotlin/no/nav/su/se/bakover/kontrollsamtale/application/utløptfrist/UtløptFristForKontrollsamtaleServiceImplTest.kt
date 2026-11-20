@@ -212,9 +212,19 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
 
     @Test
     fun `kode 6 vurderes før lagring og brukes både ved opprettelse og iverksettelse av automatisk stans`() {
-        val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
-        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock = clock)
-        val kontrollsamtale = innkaltKontrollsamtale(sakId = sak.id, frist = 14.januar(2021))
+        val kjøredato = 15.januar(2021)
+        val clock = TikkendeKlokke(fixedClockAt(kjøredato))
+        val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
+        val sak = sakOgVedtak.first
+        val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+            sakOgVedtakSomKanRevurderes = sakOgVedtak,
+        ).second
+        val kontrollsamtale = innkaltKontrollsamtale(
+            sakId = sak.id,
+            innkallingsdato = 1.januar(2021),
+            frist = 14.januar(2021),
+        )
         val kode6Vurdering = Kode6Vurdering(true)
         val iverksettResponse = mock<IverksettStansAvYtelseITransaksjonResponse>()
         val services = ServiceOgMocks(
@@ -225,7 +235,7 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(sak.fnr, sak.type) } doReturn person(fnr = sak.fnr).right()
             },
             kontrollsamtaleService = mock {
-                on { hentFristUtløptFørEllerPåDato(15.januar(2021)) } doReturn kontrollsamtale.frist
+                on { hentFristUtløptFørEllerPåDato(kjøredato) } doReturn kontrollsamtale.frist
                 on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
             },
             queryJournalpostClient = mock {
