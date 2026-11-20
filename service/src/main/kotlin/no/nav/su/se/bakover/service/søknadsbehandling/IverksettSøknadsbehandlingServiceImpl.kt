@@ -128,7 +128,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             },
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker, // TODO: Flytt denne ut.
             lagreSakstatistikk = { statistikk, tx ->
-                sakStatistikkService.lagreForBrukerflyt(statistikk, kode6Vurdering, tx)
+                sakStatistikkService.lagre(statistikk, kode6Vurdering, tx)
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
 

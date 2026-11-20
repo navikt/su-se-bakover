@@ -191,7 +191,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(serviceOgMocks.søknadsbehandlingRepo).hentForSøknad(søknad.id)
             verify(serviceOgMocks.sakStatistikkService).vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
             verify(serviceOgMocks.søknadsbehandlingRepo).lagre(eq(behandling), transactionContext.capture())
-            verify(serviceOgMocks.sakStatistikkService).lagreAutomatiskSystemflyt(
+            verify(serviceOgMocks.sakStatistikkService).lagre(
                 event,
                 kode6Vurdering,
                 transactionContext.firstValue,

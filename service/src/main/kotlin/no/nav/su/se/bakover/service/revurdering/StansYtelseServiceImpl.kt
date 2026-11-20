@@ -86,7 +86,6 @@ class StansYtelseServiceImpl(
         request = request,
         transactionContext = transactionContext,
         kode6Vurdering = kode6Vurdering,
-        automatisk = true,
         sak = sakService.hentSak(
             sakId = request.sakId,
             sessionContext = transactionContext,
@@ -98,7 +97,6 @@ class StansYtelseServiceImpl(
         transactionContext: TransactionContext,
         kode6Vurdering: Kode6Vurdering,
         sak: Sak,
-        automatisk: Boolean = false,
     ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
@@ -181,11 +179,7 @@ class StansYtelseServiceImpl(
 
         val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)
         observers.notify(sakStatistikkEvent, transactionContext)
-        if (automatisk) {
-            sakStatistikkService.lagreAutomatiskSystemflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
-        } else {
-            sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
-        }
+        sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, transactionContext)
         return simulertRevurdering
     }
 
@@ -264,7 +258,6 @@ class StansYtelseServiceImpl(
         attestant = attestant,
         transactionContext = transactionContext,
         kode6Vurdering = kode6Vurdering,
-        automatisk = true,
         sak = sakService.hentSakForRevurdering(
             revurderingId = revurderingId,
             sessionContext = transactionContext,
@@ -277,7 +270,6 @@ class StansYtelseServiceImpl(
         transactionContext: TransactionContext,
         kode6Vurdering: Kode6Vurdering,
         sak: Sak,
-        automatisk: Boolean = false,
     ): IverksettStansAvYtelseITransaksjonResponse {
         val revurdering = sak.hentRevurdering(revurderingId)
             .getOrElse { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
@@ -345,11 +337,7 @@ class StansYtelseServiceImpl(
 
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Iverksatt(vedtak)
                 observers.notify(sakStatistikkEvent, transactionContext)
-                if (automatisk) {
-                    sakStatistikkService.lagreAutomatiskSystemflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
-                } else {
-                    sakStatistikkService.lagreForBrukerflyt(sakStatistikkEvent, kode6Vurdering, transactionContext)
-                }
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, transactionContext)
                 val utbetalingsrequest = stansUtbetaling.sendUtbetaling().getOrElse {
                     throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                 }

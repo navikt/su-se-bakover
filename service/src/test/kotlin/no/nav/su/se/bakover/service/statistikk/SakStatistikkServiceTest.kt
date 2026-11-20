@@ -83,7 +83,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
             .thenReturn(person().copy(adressebeskyttelse = gradering.name).right())
         val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
-        service.lagreForBrukerflyt(hendelse, vurdering, null)
+        service.lagre(hendelse, vurdering, null)
 
         val rad = lagretRad()
         rad.opprettetAv shouldBe identForKode6
@@ -105,7 +105,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(annenPerson, vedtak.behandling.sakstype))
             .thenReturn(person().copy(adressebeskyttelse = gradering.name).right())
         val vurdering = service.vurderKode6ForStønadsbehandling(vedtak.behandling)
-        service.lagreForBrukerflyt(iverksatt, vurdering, null)
+        service.lagre(iverksatt, vurdering, null)
 
         val rad = lagretRad()
         rad.opprettetAv shouldBe identForKode6
@@ -121,7 +121,7 @@ internal class SakStatistikkServiceTest {
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = gradering.name).right())
         val ordinærStatistikk = hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
         val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
-        service.lagreForBrukerflyt(hendelse, vurdering, null)
+        service.lagre(hendelse, vurdering, null)
 
         lagretRad() shouldBe ordinærStatistikk
     }
@@ -137,7 +137,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(personMedFeil, behandling.sakstype)).thenReturn(KunneIkkeHentePerson.Ukjent.left())
         shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
             val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
-            service.lagreForBrukerflyt(hendelse, vurdering, null)
+            service.lagre(hendelse, vurdering, null)
         }
 
         verifyNoInteractions(repo)
@@ -153,7 +153,7 @@ internal class SakStatistikkServiceTest {
             .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
 
         val vurdering = service.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
-        service.lagreAutomatiskSystemflyt(hendelse, vurdering, null)
+        service.lagre(hendelse, vurdering, null)
 
         val rad = lagretRad()
         rad.opprettetAv shouldBe identForKode6
@@ -171,7 +171,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.personMedSystembruker(any(), any())).thenReturn(person().right())
 
         val vurdering = service.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
-        service.lagreAutomatiskSystemflyt(hendelse, vurdering, null)
+        service.lagre(hendelse, vurdering, null)
 
         lagretRad() shouldBe hendelse.toBehandlingsstatistikkOverordnet(fixedClock)
         verifyNoInteractions(sakRepo)
@@ -190,7 +190,7 @@ internal class SakStatistikkServiceTest {
 
         shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
             val vurdering = service.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
-            service.lagreAutomatiskSystemflyt(hendelse, vurdering, null)
+            service.lagre(hendelse, vurdering, null)
         }
 
         verifyNoInteractions(repo, sakRepo)
@@ -213,7 +213,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(kode6Person, klage.sakstype))
             .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val vurdering = service.vurderKode6ForKlage(klage, sak)
-        service.lagreForBrukerflyt(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
+        service.lagre(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
 
         val rad = lagretRad()
         rad.ansvarligEnhet shouldBe vikafossen
@@ -375,7 +375,7 @@ internal class SakStatistikkServiceTest {
 
         shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
             val vurdering = service.vurderKode6ForKlage(klage, sak)
-            service.lagreForBrukerflyt(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
+            service.lagre(StatistikkEvent.Behandling.Klage.Oversendt(klage), vurdering, null)
         }
 
         verifyNoInteractions(repo)
@@ -412,7 +412,7 @@ internal class SakStatistikkServiceTest {
         whenever(personOppslag.person(behandling.fnr, behandling.sakstype))
             .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
         val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
-        service.lagreForBrukerflyt(hendelse, vurdering, null)
+        service.lagre(hendelse, vurdering, null)
         val sekvensId = 1L
         val sekvensIder = listOf(sekvensId)
         val unikeSekvensIder = sekvensIder.toSet()

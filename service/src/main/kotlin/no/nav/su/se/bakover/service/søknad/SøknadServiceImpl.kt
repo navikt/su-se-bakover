@@ -205,11 +205,7 @@ class SøknadServiceImpl(
                     behandling,
                     NavIdentBruker.Saksbehandler.systembruker(),
                 )
-                if (kode6Vurdering == null) {
-                    sakStatistikkService.lagreAutomatiskSystemflyt(event, vurdering, tx)
-                } else {
-                    sakStatistikkService.lagreForBrukerflyt(event, kode6Vurdering, tx)
-                }
+                sakStatistikkService.lagre(event, vurdering, tx)
                 observers.notify(event, tx)
                 behandling
             }

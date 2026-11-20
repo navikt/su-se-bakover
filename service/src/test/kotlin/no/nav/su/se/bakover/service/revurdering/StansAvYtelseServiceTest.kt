@@ -173,7 +173,7 @@ internal class StansAvYtelseServiceTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `opprettelse skiller automatisk statistikk fra vurdert brukerflyt`(automatisk: Boolean) {
+    fun `opprettelse lagrer statistikk med kode 6-vurdering i både automatisk og manuell flyt`(automatisk: Boolean) {
         val clock = TikkendeKlokke(1.april(2021).fixedClock())
         val tx = TestSessionFactory.transactionContext
         val kode6Vurdering = Kode6Vurdering(true)
@@ -231,12 +231,10 @@ internal class StansAvYtelseServiceTest {
                 event,
                 tx,
             )
-            if (automatisk) {
-                verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, kode6Vurdering, tx)
-            } else {
+            if (!automatisk) {
                 verify(serviceAndMocks.sakStatistikkService).vurderKode6ForVedtaksdata(eq(sak), any())
-                verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
             }
+            verify(serviceAndMocks.sakStatistikkService).lagre(event, kode6Vurdering, tx)
             verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -293,7 +291,7 @@ internal class StansAvYtelseServiceTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `iverksettelse skiller automatisk statistikk fra vurdert brukerflyt`(automatisk: Boolean) {
+    fun `iverksettelse lagrer statistikk med kode 6-vurdering i både automatisk og manuell flyt`(automatisk: Boolean) {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
         val tx = TestSessionFactory.transactionContext
         val kode6Vurdering = Kode6Vurdering(true)
@@ -388,12 +386,10 @@ internal class StansAvYtelseServiceTest {
             it.vedtak.shouldBeType<VedtakStansAvYtelse>()
             it.revurdering shouldBe response
         }
-        if (automatisk) {
-            verify(serviceAndMocks.sakStatistikkService).lagreAutomatiskSystemflyt(event, kode6Vurdering, tx)
-        } else {
+        if (!automatisk) {
             verify(serviceAndMocks.sakStatistikkService).vurderKode6ForStønadsbehandling(simulertStans)
-            verify(serviceAndMocks.sakStatistikkService).lagreForBrukerflyt(event, kode6Vurdering, tx)
         }
+        verify(serviceAndMocks.sakStatistikkService).lagre(event, kode6Vurdering, tx)
         verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
         serviceAndMocks.verifyNoMoreInteractions()
     }

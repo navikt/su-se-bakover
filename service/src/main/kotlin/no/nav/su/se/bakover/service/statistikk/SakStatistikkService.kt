@@ -169,21 +169,9 @@ class SakStatistikkService(
         return vurderKode6ForPersoner(PersonerOgSakstype(sak.type, listOf(sak.fnr) + eps))
     }
 
-    fun lagreForBrukerflyt(
+    fun lagre(
         hendelse: StatistikkEvent.Behandling,
         vurdering: Kode6Vurdering,
-        sessionContext: SessionContext?,
-    ) = lagre(hendelse, vurdering.harKode6, sessionContext)
-
-    fun lagreAutomatiskSystemflyt(
-        hendelse: StatistikkEvent.Behandling,
-        vurdering: Kode6Vurdering,
-        sessionContext: SessionContext?,
-    ) = lagre(hendelse, harKode6 = vurdering.harKode6, sessionContext = sessionContext)
-
-    private fun lagre(
-        hendelse: StatistikkEvent.Behandling,
-        harKode6: Boolean,
         sessionContext: SessionContext?,
     ) {
         val behandling: Behandling = when (hendelse) {
@@ -197,7 +185,7 @@ class SakStatistikkService(
         }
         val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(behandling.id, sessionContext)
         val statistikk = hendelse.toBehandlingsstatistikkOverordnet(clock, førsteLinje).let {
-            if (harKode6) {
+            if (vurdering.harKode6) {
                 it.copy(
                     opprettetAv = SKJERMET,
                     ansvarligBeslutter = it.ansvarligBeslutter?.let { SKJERMET },

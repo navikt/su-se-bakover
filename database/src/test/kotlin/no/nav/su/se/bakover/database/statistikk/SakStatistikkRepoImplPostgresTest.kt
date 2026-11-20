@@ -56,7 +56,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
         val vurdering = service.vurderKode6ForStønadsbehandling(behandling)
 
         testDataHelper.sessionFactory.withTransactionContext { tx ->
-            service.lagreForBrukerflyt(StatistikkEvent.Behandling.Søknad.Opprettet(behandling, fiktivSaksbehandler), vurdering, tx)
+            service.lagre(StatistikkEvent.Behandling.Søknad.Opprettet(behandling, fiktivSaksbehandler), vurdering, tx)
         }
 
         val rad = repo.hentSakStatistikk(sak.id).single()
@@ -75,7 +75,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
             .thenReturn(personMedAdresse().copy(adressebeskyttelse = Adressebeskyttelse.UGRADERT.name).right())
         val ordinærVurdering = service.vurderKode6ForStønadsbehandling(ordinærBehandling)
         testDataHelper.sessionFactory.withTransactionContext { tx ->
-            service.lagreForBrukerflyt(
+            service.lagre(
                 StatistikkEvent.Behandling.Søknad.Opprettet(ordinærBehandling, ordinærSaksbehandler),
                 ordinærVurdering,
                 tx,
