@@ -209,7 +209,7 @@ sealed interface DokumentMal {
         data object Inntekt : Revurdering {
             override val navn = "revurderingAvInntekt"
             override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
             fun lagBestilling(innhold: RevurderingAvInntektPdfInnholdNy): PdfBestilling =
