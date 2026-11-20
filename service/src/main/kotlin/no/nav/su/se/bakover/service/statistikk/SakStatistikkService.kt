@@ -81,6 +81,15 @@ class SakStatistikkService(
             ),
         )
 
+    fun vurderKode6ForSøknadMedSystembruker(sak: Sak, søknad: SøknadInnhold): Kode6Vurdering =
+        vurderKode6ForPersoner(
+            PersonerOgSakstype(
+                sak.type,
+                listOfNotNull(sak.fnr, søknad.boforhold.ektefellePartnerSamboer?.fnr),
+            ),
+            medSystembruker = true,
+        )
+
     fun vurderKode6ForVedtaksdata(sak: Sak, vedtaksdata: GjeldendeVedtaksdata): Kode6Vurdering =
         vurderKode6ForVedtaksdata(sak, vedtaksdata, medSystembruker = false)
 

@@ -6,6 +6,7 @@ import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
 import dokument.domain.generer.SammenslåPdf
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -45,6 +47,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -173,7 +176,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
             søknadsbehandlingRepo = mock(),
             sakStatistikkService = mock {
-                on { vurderKode6ForStønadsbehandlingMedSystembruker(any()) } doReturn kode6Vurdering
+                on { vurderKode6ForSøknadMedSystembruker(sak, søknad.søknadInnhold) } doReturn kode6Vurdering
             },
         )
         serviceOgMocks.service.addObserver(observer)
@@ -189,7 +192,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         val transactionContext = argumentCaptor<TransactionContext>()
         inOrder(serviceOgMocks.søknadRepo, serviceOgMocks.søknadsbehandlingRepo, serviceOgMocks.sakStatistikkService, observer) {
             verify(serviceOgMocks.søknadsbehandlingRepo).hentForSøknad(søknad.id)
-            verify(serviceOgMocks.sakStatistikkService).vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
+            verify(serviceOgMocks.sakStatistikkService).vurderKode6ForSøknadMedSystembruker(sak, søknad.søknadInnhold)
             verify(serviceOgMocks.søknadsbehandlingRepo).lagre(eq(behandling), transactionContext.capture())
             verify(serviceOgMocks.sakStatistikkService).lagre(
                 event,
@@ -199,6 +202,33 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(observer).handle(event, transactionContext.firstValue)
         }
         verifyNoInteractions(serviceOgMocks.oppgaveService, serviceOgMocks.journalførSøknadClient)
+    }
+
+    @Test
+    fun `feilet kode 6-vurdering avbryter reparasjon før behandling og statistikk lagres`() {
+        val søknad = journalførtSøknad.medOppgave(oppgaveId)
+        val observer = mock<StatistikkEventObserver>()
+        val serviceOgMocks = SøknadServiceOgMocks(
+            søknadRepo = mock {
+                on { hentSøknaderUtenBehandling(opprettetFør) } doReturn listOf(søknad)
+            },
+            sakService = mock {
+                on { hentSak(sakId) } doReturn sak.right()
+            },
+            søknadsbehandlingRepo = mock(),
+            sakStatistikkService = mock {
+                on { vurderKode6ForSøknadMedSystembruker(sak, søknad.søknadInnhold) } doThrow SakStatistikkService.KunneIkkeVurdereKode6()
+            },
+        )
+        serviceOgMocks.service.addObserver(observer)
+
+        shouldThrow<SakStatistikkService.KunneIkkeVurdereKode6> {
+            serviceOgMocks.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
+        }
+
+        verify(serviceOgMocks.søknadsbehandlingRepo, never()).lagre(any(), any())
+        verify(serviceOgMocks.sakStatistikkService, never()).lagre(any(), any(), any())
+        verifyNoInteractions(observer, serviceOgMocks.oppgaveService, serviceOgMocks.journalførSøknadClient)
     }
 
     @Test

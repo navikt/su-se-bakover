@@ -145,6 +145,25 @@ internal class SakStatistikkServiceTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
+    fun `systemvurdering av søknad bruker søker fra saken og partner fra søknaden`(kode6HosSøker: Boolean) {
+        val sak = nySøknadsbehandlingUtenStønadsperiode().first.copy(fnr = Fnr.generer())
+        val søknad = behandling.søknad.søknadInnhold
+        val eps = requireNotNull(søknad.boforhold.ektefellePartnerSamboer).fnr
+        val skjermetPerson = if (kode6HosSøker) sak.fnr else eps
+        whenever(personOppslag.personMedSystembruker(any(), any())).thenReturn(person().right())
+        whenever(personOppslag.personMedSystembruker(skjermetPerson, sak.type))
+            .thenReturn(person().copy(adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG.name).right())
+
+        service.vurderKode6ForSøknadMedSystembruker(sak, søknad).harKode6 shouldBe true
+
+        verify(personOppslag).personMedSystembruker(sak.fnr, sak.type)
+        verify(personOppslag).personMedSystembruker(eps, sak.type)
+        org.mockito.kotlin.verifyNoMoreInteractions(personOppslag)
+        verifyNoInteractions(repo, sakRepo)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
     fun `automatisk behandling skjermes ved kode 6 hos søker eller EPS uten brukerkontekst`(kode6HosSøker: Boolean) {
         val eps = requireNotNull(behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer).fnr
         val skjermetPerson = if (kode6HosSøker) behandling.fnr else eps

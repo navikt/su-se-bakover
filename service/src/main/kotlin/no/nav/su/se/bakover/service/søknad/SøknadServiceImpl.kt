@@ -180,7 +180,8 @@ class SøknadServiceImpl(
                 log.info("Søknadbehandling fantes allerede for søknad ${søknad.id} på sak ${sak.id}. Ingen ny behandling opprettes.")
                 return@map it.right()
             }
-            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad, kode6Vurdering = null).mapLeft { feil ->
+            val kode6Vurdering = sakStatistikkService.vurderKode6ForSøknadMedSystembruker(sak, søknad.søknadInnhold)
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad, kode6Vurdering).mapLeft { feil ->
                 log.error("Kunne ikke opprette manglende behandling for søknad ${søknad.id} på sak ${sak.id}: $feil")
                 KunneIkkeOppretteManglendeSøknadsbehandling(sak.id, søknad.id, "Kunne ikke opprette søknadsbehandling")
             }
@@ -190,22 +191,20 @@ class SøknadServiceImpl(
     private fun opprettSøknadsbehandlingForSøknadOgSendStatistikk(
         sak: Sak,
         søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
-        kode6Vurdering: Kode6Vurdering?,
+        kode6Vurdering: Kode6Vurdering,
     ): Either<KunneIkkeStarteSøknadsbehandling, Søknadsbehandling> {
         return sak.opprettNySøknadsbehandling(
             søknad = søknad,
             clock = clock,
             saksbehandler = null,
         ).map { (_, behandling) ->
-            val vurdering = kode6Vurdering
-                ?: sakStatistikkService.vurderKode6ForStønadsbehandlingMedSystembruker(behandling)
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(behandling, tx)
                 val event = StatistikkEvent.Behandling.Søknad.Opprettet(
                     behandling,
                     NavIdentBruker.Saksbehandler.systembruker(),
                 )
-                sakStatistikkService.lagre(event, vurdering, tx)
+                sakStatistikkService.lagre(event, kode6Vurdering, tx)
                 observers.notify(event, tx)
                 behandling
             }

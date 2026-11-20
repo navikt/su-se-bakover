@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.søknad
 
-import behandling.domain.Stønadsbehandling
 import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -39,7 +39,7 @@ internal data class SøknadServiceOgMocks(
     val sakStatistikkService: SakStatistikkService = mock {
         val kode6Vurdering = Kode6Vurdering(false)
         on { vurderKode6ForSøknad(any<SøknadInnhold>()) } doReturn kode6Vurdering
-        on { vurderKode6ForStønadsbehandlingMedSystembruker(any<Stønadsbehandling>()) } doReturn kode6Vurdering
+        on { vurderKode6ForSøknadMedSystembruker(any<Sak>(), any<SøknadInnhold>()) } doReturn kode6Vurdering
     },
     val forstesideGeneratorService: ForstesideGeneratorService = mock(),
 ) {
