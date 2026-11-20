@@ -141,6 +141,45 @@ internal class InputValidatorTest {
         fun `aksenter e-akutt er tillatt`() {
             valider("café résumé") shouldBe null
         }
+
+        @Test
+        fun `stor og liten a med grav aksent er tillatt`() {
+            val bokstaver = "Àà"
+            bokstaver.forEach { valider(it.toString()) shouldBe null }
+            valider("À jour, 2 timer à 500 kr") shouldBe null
+        }
+
+        @Test
+        fun `store og små a o og u med trema er tillatt`() {
+            val bokstaver = "ÄäÖöÜü"
+            bokstaver.forEach { valider(it.toString()) shouldBe null }
+            valider("Änne Östen Ümit Müller") shouldBe null
+        }
+
+        @Test
+        fun `matematisk minustegn og tilnærmet lik er tillatt`() {
+            val minustegn = '−'
+            val tilnærmetLik = '≈'
+            listOf(minustegn, tilnærmetLik).forEach { valider(it.toString()) shouldBe null }
+            valider("Beløp $tilnærmetLik ${minustegn}500 kr") shouldBe null
+        }
+
+        @Test
+        fun `hakeparenteser er tillatt`() {
+            val startparentes = '['
+            val sluttparentes = ']'
+            listOf(startparentes, sluttparentes).forEach { valider(it.toString()) shouldBe null }
+            valider("${startparentes}utelatt$sluttparentes") shouldBe null
+        }
+
+        @Test
+        fun `hardt og smalt hardt mellomrom er tillatt alene og i tekst`() {
+            val mellomrom = listOf('\u00A0', '\u202F')
+            mellomrom.forEach { tegn ->
+                valider(tegn.toString()) shouldBe null
+                valider("1${tegn}000 kr") shouldBe null
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -188,6 +227,15 @@ internal class InputValidatorTest {
 
     @Nested
     inner class UlovligeTegn {
+        @Test
+        fun `loddrett strek og utelatte islandske bokstaver er fortsatt ugyldige`() {
+            val utelatteTegn = "|ÞþÐð"
+            utelatteTegn.forEach { tegn ->
+                val verdi = tegn.toString()
+                valider(verdi) shouldBe UgyldigInput("felt", "inneholder tegn utenfor tillatt tegnsett", verdi)
+            }
+        }
+
         @Test
         fun `backslash og bokstavelige unicode-escape-sekvenser er ugyldige`() {
             val backslash = "\\"
