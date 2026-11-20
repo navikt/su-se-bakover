@@ -62,7 +62,7 @@ internal class SøknadRoutesKtTest {
     }
 
     @Test
-    fun `fritekst er påkrevet for lukking med fritekst`() {
+    fun `fritekst er påkrevet for avvisning med vedtaksbrev`() {
         testApplication {
             application { testSusebakoverWithMockedDb() }
             defaultRequest(
@@ -76,7 +76,7 @@ internal class SøknadRoutesKtTest {
                         LukketJson.AvvistJson(
                             type = LukketJson.LukketType.AVSLAG,
                             brevConfig = LukketJson.AvvistJson.BrevConfigJson(
-                                brevtype = LukketJson.BrevType.FRITEKST,
+                                brevtype = LukketJson.BrevType.VEDTAK,
                                 null,
                             ),
                         ),

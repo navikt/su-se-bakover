@@ -284,7 +284,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             søknad = søknad,
             lukkSøknadCommand = avvisSøknadMedBrev(
                 søknadId = søknad.id,
-                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("Fritekst"),
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(fritekst = "Fritekst"),
             ),
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
@@ -472,7 +472,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         is LukkSøknadCommand.MedBrev.AvvistSøknad -> AvvistSøknadDokumentCommand(
                             saksnummer = sak!!.saksnummer,
                             sakstype = sak.type,
-                            brevvalg = lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev,
+                            brevvalg = lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev,
                             fødselsnummer = sak.fnr,
                             saksbehandler = saksbehandler,
                         )

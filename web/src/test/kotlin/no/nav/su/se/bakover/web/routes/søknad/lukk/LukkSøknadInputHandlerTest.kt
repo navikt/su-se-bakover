@@ -170,27 +170,22 @@ internal class LukkSøknadInputHandlerTest {
     }
 
     @Test
-    fun `godtar avvist søknad med fritekst`() {
+    fun `avviser avvist søknad med informasjonsbrev (brevtype FRITEKST)`() {
         runBlocking {
-            val søknadId = UUID.randomUUID()
             LukkSøknadInputHandler.handle(
                 body = """
                     {
                         "type":"AVSLAG",
                         "brevConfig": {
-                            "brevtype":"${LukketJson.BrevType.FRITEKST}",
+                            "brevtype":"FRITEKST",
                             "fritekst": "jeg er fritekst"
                         }
                     }
                 """.trimIndent(),
-                søknadId = søknadId,
+                søknadId = UUID.randomUUID(),
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
-            ) shouldBe avvisSøknadMedBrev(
-                søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("jeg er fritekst"),
-            ).right()
+            ) shouldBe FeilVedLukkSøknad.DeserializeFeil.left()
         }
     }
 }

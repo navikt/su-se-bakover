@@ -57,7 +57,6 @@ sealed interface LukketJson {
 
     enum class BrevType {
         VEDTAK,
-        FRITEKST,
     }
 }
 
@@ -122,9 +121,6 @@ internal data object LukkSøknadInputHandler {
         return when (brevConfig.brevtype) {
             // Vi sjekker for null hvis brevet er av typen fritekst på steget over
             LukketJson.BrevType.VEDTAK -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(fritekst = brevConfig.fritekst!!)
-            LukketJson.BrevType.FRITEKST -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
-                brevConfig.fritekst!!,
-            )
         }
     }
 }
