@@ -53,7 +53,7 @@ internal class VedtakRoutesTest {
         val sakstype = sak.type
         val harTillattRolle = when (rolle) {
             Brukerrolle.Saksbehandler, Brukerrolle.Attestant -> true
-            Brukerrolle.Veileder, Brukerrolle.Drift -> false
+            Brukerrolle.Veileder, Brukerrolle.Drift, Brukerrolle.Statistikk -> false
         }
         val vedtakService = mock<VedtakService> {
             on {
