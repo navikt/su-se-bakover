@@ -30,7 +30,7 @@ import dokument.domain.generer.bygger.maler.revurderingAvInntekt
 import dokument.domain.generer.bygger.maler.sendtTilKlageinstans
 import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
 import dokument.domain.generer.bygger.maler.skattegrunnlag.skattegrunnlag
-import dokument.domain.generer.bygger.maler.soknadNy
+import dokument.domain.generer.bygger.maler.soknad
 import dokument.domain.generer.bygger.maler.søknadTrukket
 import dokument.domain.generer.bygger.maler.vedtakAvslag
 import dokument.domain.generer.bygger.maler.vedtakInnvilgelse
@@ -65,7 +65,7 @@ sealed interface DokumentMal {
         override val pdfByggerProd: Boolean = false
 
         fun lagBestilling(innhold: SøknadPdfInnhold): PdfBestilling =
-            soknadNy(innhold)
+            soknad(innhold)
     }
 
     data object Kontrollnotat : DokumentMal {
