@@ -126,7 +126,7 @@ fun Innhold.opphørsgrunner(data: OpphørsvedtakPdfInnhold) {
                 "Du har ikke levert nødvendig dokumentasjon for at vi kan vurdere om du fortsatt har rett til supplerende stønad.",
             )
             OpphørsgrunnBrev.FLYKTNING -> listOf(
-                "Nye opplysninger viser at du ikke er registrert som flyktning etter utlendingslova §28. Vi har " +
+                "Nye opplysninger viser at du ikke er registrert som flyktning etter utlendingsloven § 28. Vi har " +
                     "derfor opphørt din stønad som ufør flyktning.",
             )
             OpphørsgrunnBrev.OPPHOLDSTILLATELSE -> listOf("Nye opplysninger viser at du ikke har lovlig opphold i Norge.")

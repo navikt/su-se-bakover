@@ -75,7 +75,7 @@ val opphørsvedtakPdf = OpphørsvedtakPdfInnhold(
         perioder = listOf(
             SatsoversiktBrev.Satsperiode(
                 fraOgMed = "01.01.2020",
-                tilOgMed = "31.04.2020",
+                tilOgMed = "30.04.2020",
                 sats = "høy",
                 satsBeløp = 20637,
                 satsGrunn = "ENSLIG",
@@ -194,7 +194,7 @@ val opphørsvedtakVerdier = listOf(
     "01",
     "01",
     "2020",
-    "31",
+    "30",
     "04",
     "2020",
     "Deler",
