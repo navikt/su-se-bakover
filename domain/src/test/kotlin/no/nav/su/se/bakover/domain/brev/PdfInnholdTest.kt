@@ -5,6 +5,7 @@ import arrow.core.right
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
+import dokument.domain.generer.bygger.MånedsfradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -19,6 +20,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
+import no.nav.su.se.bakover.domain.brev.jsonRequest.RevurderingAvInntektPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.RevurderingAvInntektPdfInnhold.Companion.tilPdfByggerInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.test.brev.pdfInnholdPersonalia
 import no.nav.su.se.bakover.test.brev.pdfInnholdTrukketSøknad
@@ -33,6 +36,71 @@ import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.KunneIkkeHenteNavnForNavIdent
 
 internal class PdfInnholdTest {
+
+    @Test
+    fun `konvertering av inntektsrevurdering bevarer brevgrunnlaget og avledet fradragsflagg`() {
+        val høySats = "høy"
+        val høySatsbeløp = 20637
+        val fradragstilfeller = listOf(
+            emptyList<MånedsfradragForBrev>() to false,
+            listOf(MånedsfradragForBrev(type = "Pensjon", beløp = 3000, utenlandskInntekt = null)) to true,
+            listOf(
+                MånedsfradragForBrev(
+                    type = "Avkorting på grunn av tidligere utenlandsopphold",
+                    beløp = 1000,
+                    utenlandskInntekt = null,
+                ),
+            ) to false,
+        )
+        val satsoversikt = Satsoversikt(
+            perioder = listOf(
+                Satsoversikt.Satsperiode(
+                    fraOgMed = "01.01.2020",
+                    tilOgMed = "31.01.2020",
+                    sats = høySats,
+                    satsBeløp = høySatsbeløp,
+                    satsGrunn = "ENSLIG",
+                ),
+                Satsoversikt.Satsperiode(
+                    fraOgMed = "01.02.2020",
+                    tilOgMed = "29.02.2020",
+                    sats = "ordinær",
+                    satsBeløp = 19250,
+                    satsGrunn = "DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67",
+                ),
+            ),
+        )
+
+        Sakstype.entries.forEach { sakstype ->
+            fradragstilfeller.forEach { (fradrag, forventetHarFradrag) ->
+                val innhold = RevurderingAvInntektPdfInnhold(
+                    sakstype = sakstype,
+                    personalia = pdfInnholdPersonalia(),
+                    saksbehandlerNavn = "Saksbehandler",
+                    attestantNavn = "Attestant",
+                    beregningsperioder = listOf(
+                        BeregningsperiodeBrev(
+                            ytelsePerMåned = 10000,
+                            satsbeløpPerMåned = høySatsbeløp,
+                            epsFribeløp = 0,
+                            fradrag = FradragForBrev(fradrag, FradragForBrev.Eps(emptyList(), false)),
+                            periode = BrevPeriode("januar 2020", "februar 2020"),
+                            sats = høySats,
+                        ),
+                    ),
+                    fritekst = if (sakstype == Sakstype.ALDER) null else "Første avsnitt.\n\nAndre avsnitt.",
+                    harEktefelle = true,
+                    forventetInntektStørreEnn0 = sakstype == Sakstype.UFØRE,
+                    satsoversikt = satsoversikt,
+                )
+
+                val nyttInnhold = innhold.tilPdfByggerInnhold()
+
+                nyttInnhold.harFradrag shouldBe forventetHarFradrag
+                JSONAssert.assertEquals(innhold.toJson(), nyttInnhold.toJson(), true)
+            }
+        }
+    }
 
     @Test
     fun `systembruker får tomt navn i brev uten navneoppslag`() {

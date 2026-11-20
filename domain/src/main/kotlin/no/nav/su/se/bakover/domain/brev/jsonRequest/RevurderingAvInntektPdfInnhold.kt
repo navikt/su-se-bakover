@@ -6,10 +6,12 @@ import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.harFradrag
+import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnholdNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.toBrev
 
 data class RevurderingAvInntektPdfInnhold(
     override val sakstype: Sakstype,
@@ -47,5 +49,18 @@ data class RevurderingAvInntektPdfInnhold(
                 satsoversikt = command.satsoversikt,
             )
         }
+
+        fun RevurderingAvInntektPdfInnhold.tilPdfByggerInnhold() = RevurderingAvInntektPdfInnholdNy(
+            sakstype = sakstype,
+            personalia = personalia,
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            beregningsperioder = beregningsperioder,
+            fritekst = fritekst,
+            harEktefelle = harEktefelle,
+            forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+            satsoversikt = satsoversikt.toBrev(),
+            harFradrag = harFradrag,
+        )
     }
 }
