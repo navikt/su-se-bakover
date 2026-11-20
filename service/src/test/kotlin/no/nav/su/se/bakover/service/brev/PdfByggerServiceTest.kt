@@ -9,6 +9,7 @@ import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.GenerellData
+import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
@@ -20,11 +21,14 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.jsonRequest.RevurderingAvInntektPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.revurderingAvInntektPdf
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -50,6 +54,26 @@ import java.io.ByteArrayOutputStream
 import java.util.UUID
 
 internal class PdfByggerServiceTest {
+
+    @Test
+    fun `velger inntektsrevurderingsmal for både gammel og ny modell`() {
+        val nyModell = revurderingAvInntektPdf.copy(satsoversikt = SatsoversiktBrev(emptyList()))
+        val gammelModell = RevurderingAvInntektPdfInnhold(
+            sakstype = nyModell.sakstype,
+            personalia = nyModell.personalia,
+            saksbehandlerNavn = nyModell.saksbehandlerNavn,
+            attestantNavn = nyModell.attestantNavn,
+            beregningsperioder = nyModell.beregningsperioder,
+            fritekst = nyModell.fritekst,
+            harEktefelle = nyModell.harEktefelle,
+            forventetInntektStørreEnn0 = nyModell.forventetInntektStørreEnn0,
+            satsoversikt = Satsoversikt(emptyList()),
+        )
+        val forventet = DokumentMal.Revurdering.Inntekt.lagBestilling(nyModell)
+
+        gammelModell.tilPdfBestilling() shouldBe forventet
+        nyModell.tilPdfBestilling() shouldBe forventet
+    }
 
     @Test
     fun `velger riktig malbygger for støttede innholdsmodeller`() {
