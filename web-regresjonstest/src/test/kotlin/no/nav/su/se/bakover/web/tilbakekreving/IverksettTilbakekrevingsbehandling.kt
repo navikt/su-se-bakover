@@ -211,6 +211,7 @@ private fun AppComponents.verifiserDokumenterPåSak(
                           "saksbehandlerNavn":"Testbruker, Lokal",
                           "attestantNavn":"Testbruker, Lokal",
                           "skalTilbakekreve": false,
+                          "dødsbo": false,
                           "fritekst":"Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
                           "dato":"1. februar 2021",
                           "månedsoversiktMedSum":{

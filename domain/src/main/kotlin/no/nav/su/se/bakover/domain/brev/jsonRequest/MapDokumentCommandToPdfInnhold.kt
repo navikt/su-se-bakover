@@ -29,7 +29,7 @@ import person.domain.Person
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.fromBrevCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
+import tilbakekreving.domain.vedtaksbrev.fromBrevCommand
 import java.time.Clock
 
 fun GenererDokumentCommand.tilPdfInnhold(
@@ -155,8 +155,7 @@ fun fromBrevCommand(
                 clock = clock,
             )
 
-            is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> VedtaksbrevTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
-                command = command,
+            is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = command.attestant?.let { hentNavnMappedLeft(it).bind() },
