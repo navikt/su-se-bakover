@@ -13,6 +13,7 @@ import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -127,6 +128,7 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
+    is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
     is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
@@ -135,6 +137,7 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     // is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     // is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
     // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
+    // is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     else -> null
 }
