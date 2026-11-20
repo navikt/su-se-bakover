@@ -481,7 +481,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                             trukketDato = 1.januar(2021),
                             saksnummer = sak!!.saksnummer,
                             sakstype = sak.type,
-                            søknadOpprettet = fixedTidspunkt,
+                            søknadMottatt = søknad!!.mottaksdato,
                             fødselsnummer = sak.fnr,
                             saksbehandler = saksbehandler,
                         )

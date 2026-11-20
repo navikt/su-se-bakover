@@ -326,7 +326,7 @@ sealed interface Søknad {
                         sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                         TrukketSøknadDokumentCommand(
-                            søknadOpprettet = opprettet,
+                            søknadMottatt = mottaksdato,
                             trukketDato = trukketDato,
                             saksbehandler = lukketAv,
                             fødselsnummer = fnr,

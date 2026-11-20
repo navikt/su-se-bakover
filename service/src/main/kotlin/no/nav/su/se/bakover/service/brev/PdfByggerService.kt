@@ -13,6 +13,7 @@ import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -22,6 +23,7 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
@@ -127,14 +129,16 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
+    is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
     is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
     // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
+    is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     // is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
     // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
+    // is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     else -> null
 }
