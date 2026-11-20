@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":satser"))
     implementation(project(":vilkår:inntekt:domain"))
+    implementation(project(":søknad:domain"))
     implementation(rootProject.libs.brevbaker.markup.model)
     implementation(rootProject.libs.brevbaker.markup.dsl)
     implementation(rootProject.libs.pdfbox)

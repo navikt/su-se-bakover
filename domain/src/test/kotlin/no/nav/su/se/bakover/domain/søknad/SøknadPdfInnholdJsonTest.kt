@@ -43,7 +43,7 @@ class SøknadPdfInnholdJsonTest {
             ),
         ),
         clock: Clock = fixedClock,
-    ) = SøknadPdfInnhold.create(
+    ) = lagSøknadPdfInnhold(
         saksnummer = saksnummer,
         sakstype = Sakstype.UFØRE,
         søknadsId = søknadsId,

@@ -5,6 +5,7 @@ import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
 import dokument.domain.generer.SammenslåPdf
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -27,7 +28,7 @@ import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -322,7 +323,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
@@ -434,7 +435,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
