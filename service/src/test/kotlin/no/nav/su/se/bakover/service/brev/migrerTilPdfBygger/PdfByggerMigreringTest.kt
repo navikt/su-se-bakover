@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingK
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.opphørsvedtakPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.opphørsvedtakVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.påminnelseOmNyStønadsperiodePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.påminnelseOmNyStønadsperiodeVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
@@ -69,7 +71,7 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
     DokumentMal.AvvistSøknadFritekst to Pair(avvistSøknadFritekstPdf, avvistSøknadFritekstVerdier),
     DokumentMal.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
-    // DokumentMal.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
+    DokumentMal.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
     // DokumentMal.Tilbakekreving.Vedtaksbrev to Pair(vedtaksbrevTilbakekrevingsbehandlingPdf, vedtaksbrevTilbakekrevingsbehandlingVerdier),
     // DokumentMal.Tilbakekreving.VedtaksbrevDødsbo to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
     // DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),

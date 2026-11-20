@@ -54,7 +54,7 @@ internal fun Route.opprettRevurderingRoute(
                 call.withValidertBody<OpprettRevurderingBody>(log) { body ->
                     either {
                         val revurdering = revurderingService.opprettRevurdering(
-                            OpprettRevurderingCommand(
+                            command = OpprettRevurderingCommand(
                                 sakId = sakId,
                                 periode = Periode.create(
                                     fraOgMed = body.fraOgMed,

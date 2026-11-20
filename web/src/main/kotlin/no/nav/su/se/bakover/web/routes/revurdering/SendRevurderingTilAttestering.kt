@@ -42,7 +42,7 @@ internal fun Route.sendRevurderingTilAttestering(
                         return@authorize call.svar(it)
                     }
                 revurderingService.sendTilAttestering(
-                    SendTilAttesteringRequest(
+                    request = SendTilAttesteringRequest(
                         revurderingId = RevurderingId(revurderingId),
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     ),
