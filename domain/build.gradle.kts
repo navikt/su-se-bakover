@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":vilkår:vurderinger:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":statistikk:domain"))
+    implementation(project(":søknad:domain"))
 
     testImplementation(project(":test-common"))
 }

@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nySkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -121,7 +121,7 @@ internal class PdfClientTest {
         }
     }
 
-    private val søknadPdfInnhold = SøknadPdfInnhold.create(
+    private val søknadPdfInnhold = lagSøknadPdfInnhold(
         saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
         sakstype = Sakstype.UFØRE,
         søknadsId = UUID.randomUUID(),
