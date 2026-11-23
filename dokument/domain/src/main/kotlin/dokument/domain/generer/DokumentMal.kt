@@ -63,7 +63,7 @@ sealed interface DokumentMal {
 
     // Dokumenter som sendes inn fra lokalkontor av veileder
     sealed interface Lokalkontor : DokumentMal {
-        data object Søknad : DokumentMal {
+        data object Søknad : Lokalkontor {
             override val navn = "soknad"
             override val tittel = "Søknad om supplerende stønad"
             override val pdfByggerDev: Boolean = true
@@ -73,7 +73,7 @@ sealed interface DokumentMal {
                 soknad(innhold)
         }
 
-        data object Kontrollnotat : DokumentMal {
+        data object Kontrollnotat : Lokalkontor {
             override val navn = "kontrollnotat"
             override val tittel = "Kontrollnotat"
             override val pdfByggerDev: Boolean = true
