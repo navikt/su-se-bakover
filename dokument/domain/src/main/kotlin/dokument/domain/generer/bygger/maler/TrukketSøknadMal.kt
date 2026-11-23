@@ -17,7 +17,7 @@ data class TrukketSøknadPdfInnhold(
     val saksbehandlerNavn: String,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.TrukketSøknad
+    override val dokumentMal = DokumentMal.Søknadsbehandling.TrukketSøknad
 }
 
 val søknadTrukket = { _: String, pdfInnhold: TrukketSøknadPdfInnhold ->

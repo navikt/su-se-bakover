@@ -35,7 +35,7 @@ class PdfByggerSøknadMigreringTest(private val klient: PdfByggerKlientImpl) {
     fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen for søknad`() =
         testdata.map { (sakstype, data) ->
             val (pdfInnhold, forventet) = data
-            val malOgSakstype = "${DokumentMal.Søknad.navn}-$sakstype"
+            val malOgSakstype = "${DokumentMal.Lokalkontor.Søknad.navn}-$sakstype"
             DynamicTest.dynamicTest(malOgSakstype) {
                 val bestilling = requireNotNull(pdfInnhold.tilPdfBestilling())
                 pdfHarForventaVerdier(malOgSakstype, bestilling, forventet)
