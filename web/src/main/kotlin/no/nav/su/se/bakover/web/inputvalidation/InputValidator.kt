@@ -49,13 +49,14 @@ private val listeindeks = Regex("\\[\\d+]")
 
 internal object InputValidator {
     private val tillatteSkilletegn = setOf(
-        ' ', '.', ',', '?', '!', '(', ')',
+        ' ', '.', ',', '?', '!', '(', ')', '[', ']',
+        '\u00A0', '\u202F',
         '%', '*', ':', ';',
-        '-', '\u2011', '–', '—',
+        '-', '\u2011', '–', '—', '−',
         '\'', '"',
         '\u2018', '\u2019', '\u201C', '\u201D', // ‘, ’, “, ”
         '/', '+', '&', '_',
-        '§', '=', '»', '«', '•',
+        '§', '=', '≈', '»', '«', '•',
         '…',
         '@',
         '½', // U+00BD
@@ -72,6 +73,14 @@ internal object InputValidator {
         'é',
         'É',
         'è',
+        'À',
+        'à',
+        'Ä',
+        'ä',
+        'Ö',
+        'ö',
+        'Ü',
+        'ü',
     )
 
     private val mistenkeligeMønstre = listOf(
