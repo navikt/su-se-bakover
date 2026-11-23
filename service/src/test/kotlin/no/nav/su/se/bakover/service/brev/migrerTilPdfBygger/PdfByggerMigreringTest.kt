@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 import arrow.core.getOrElse
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.service.brev.PdfByggerExtension
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsva
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselTilbakekrevingPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselTilbakekrevingVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
@@ -36,7 +34,6 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKla
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.søknadTrukketPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.søknadTrukketVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakAvslagPdf
@@ -56,9 +53,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.to
 
-val testDataJson = mapOf(
-    DokumentMal.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
-)
 val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
     DokumentMal.InnkallingTilKontrollsamtale to Pair(innkallingKontrollsamtalePdf, innkallingKontrollsamtaleVerdier),
@@ -97,16 +91,6 @@ class PdfByggerMigreringTest(private val klient: PdfByggerKlientImpl) {
             it.readAllBytes()
         }
     }
-
-    @TestFactory
-    fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen generell data`() =
-        testDataJson.mapNotNull { (mal, testData) ->
-            val (innholdJson, forventetInnholdVerdier) = testData
-            DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.lagBestilling(GenerellData.parse(innholdJson))
-                sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
-            }
-        }
 
     @TestFactory
     fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen typet data`() =

@@ -1,6 +1,5 @@
 package dokument.domain.generer
 
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
@@ -15,6 +14,7 @@ import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
@@ -66,7 +66,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: GenerellData): PdfBestilling =
+        fun lagBestilling(innhold: SøknadPdfInnhold): PdfBestilling =
             soknad(innhold)
     }
 
