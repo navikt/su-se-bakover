@@ -53,9 +53,7 @@ internal data class KlageServiceMocks(
     val observer: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} },
     val dokumentHendelseRepo: DokumentHendelseRepo = defaultMock(),
     val clock: Clock = fixedClock,
-    val sakStatistikkRepo: SakStatistikkService = mock {
-        on { lagre(any(), any()) }.then {}
-    },
+    val sakStatistikkRepo: SakStatistikkService = mock(),
     val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
 ) {
     val service = KlageServiceImpl(

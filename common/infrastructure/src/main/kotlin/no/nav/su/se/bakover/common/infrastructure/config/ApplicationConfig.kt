@@ -752,6 +752,7 @@ data class ApplicationConfig(
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
         fun isProd() = naisCluster() == NaisCluster.Prod
 
+        // Kun for PersonOppslagStub: simulerer kode 6 og avvist brukertilgang, ikke PDLs rollekontroll.
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
 

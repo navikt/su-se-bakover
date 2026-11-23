@@ -73,31 +73,39 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         }
 
         val behandletRegulering = Either.catch {
+            val kode6Vurdering = if (testRun == null) {
+                statistikkService.vurderKode6ForStønadsbehandlingMedSystembruker(regulering)
+            } else {
+                null
+            }
             reguleringService.behandleReguleringAutomatisk(
                 regulering,
                 sakInfo,
                 utbetalinger,
                 satsFactory,
                 isLiveRun = testRun == null,
-            )
+            ).map { it to kode6Vurdering }
         }.getOrElse { feil ->
             return BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.UkjentFeil(feil, saksnummer).left()
         }
         return behandletRegulering.mapLeft { feil ->
             BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.KjentFeil(feil, saksnummer)
-        }.map { attestertRegulering ->
+        }.map { (attestertRegulering, kode6Vurdering) ->
             val attestertReguleringSjekk =
                 attestertRegulering as? ReguleringUnderBehandling.TilAttestering
                     ?: throw IllegalStateException("Expected TilAttestering for omgjøring")
             if (testRun == null) {
+                val vurdering = requireNotNull(kode6Vurdering)
                 sessionFactory.withTransactionContext { tx ->
                     val relId = reguleringService.hentRelatertId(sakInfo.sakId, tx)
                     statistikkService.lagre(
                         StatistikkEvent.Behandling.ReguleringOmregning.Opprettet(regulering, relId),
+                        vurdering,
                         tx,
                     )
                     statistikkService.lagre(
                         StatistikkEvent.Behandling.ReguleringOmregning.TilAttestering(attestertReguleringSjekk),
+                        vurdering,
                         tx,
                     )
                 }

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.domain.Stønadsbehandling
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
@@ -40,6 +41,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersO
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Service
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -1289,7 +1291,9 @@ private data class ServiceAndMocks(
     val dokumentRepo: DokumentRepo = mock {},
     val skattDokumentService: SkattDokumentService = mock {},
     val fritekstService: FritekstService = mock {},
-    val sakStatistikkService: SakStatistikkService = mock {},
+    val sakStatistikkService: SakStatistikkService = mock {
+        on { vurderKode6ForStønadsbehandling(any<Stønadsbehandling>()) } doReturn Kode6Vurdering(false)
+    },
     val mottakerService: MottakerService = mock {
         on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
     },

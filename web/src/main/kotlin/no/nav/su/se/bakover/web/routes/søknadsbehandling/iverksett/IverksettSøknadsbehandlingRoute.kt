@@ -54,7 +54,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                     call.suUserContext.navIdent
                 }
                 service.iverksett(
-                    IverksettSøknadsbehandlingCommand(
+                    command = IverksettSøknadsbehandlingCommand(
                         behandlingId = SøknadsbehandlingId(behandlingId),
                         attestering = Attestering.Iverksatt(
                             NavIdentBruker.Attestant(navIdent),

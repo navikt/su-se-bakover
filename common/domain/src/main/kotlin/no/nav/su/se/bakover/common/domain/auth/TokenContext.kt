@@ -20,7 +20,11 @@ import org.slf4j.Logger
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-data class TokenContext(val token: String) : AbstractCoroutineContextElement(Key) {
+data class TokenContext(
+    val token: String,
+) : AbstractCoroutineContextElement(Key) {
+    override fun toString(): String = "TokenContext"
+
     companion object Key : CoroutineContext.Key<TokenContext>
 }
 
@@ -41,7 +45,7 @@ fun authTokenContextPlugin(log: Logger): RouteScopedPlugin<Unit> {
                 return@on
             }
 
-            val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
+            val tokenContextElement = Kontekst.asContextElement(TokenContext(token = authHeader))
 
             withContext(tokenContextElement) {
                 proceed()
