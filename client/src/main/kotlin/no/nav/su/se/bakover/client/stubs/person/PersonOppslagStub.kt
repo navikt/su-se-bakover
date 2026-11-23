@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import person.domain.Adressebeskyttelse
 import person.domain.AdresseopplysningerMedMetadata
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
@@ -66,17 +67,19 @@ data class PersonOppslagStub(
                 Sakstype.UFØRE -> fødselsdato
             },
         ),
-        adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
+        adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) Adressebeskyttelse.STRENGT_FORTROLIG.name else null,
         vergemål = null,
         dødsdato = null,
     )
 
-    override fun person(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
-        if (fnr.toString() == ApplicationConfig.fnrKode6()) {
+    override fun person(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
+        val resultat: Either<KunneIkkeHentePerson, Person> = if (fnr.toString() == ApplicationConfig.fnrKode6()) {
             KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         } else {
             nyTestPerson(fnr, sakstype).right()
         }
+        return resultat
+    }
 
     override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
         nyTestPerson(fnr, sakstype).right()
@@ -127,11 +130,7 @@ data class PersonOppslagStub(
         AktørId("2437280977705").right()
 
     override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> =
-        if (fnr.toString() == ApplicationConfig.fnrKode6()) {
-            KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
-        } else {
-            Unit.right()
-        }
+        person(fnr, sakstype).map { }
 
     override fun borPåAdresse(
         borPåAdresseRequest: BorPåAdresseRequest,

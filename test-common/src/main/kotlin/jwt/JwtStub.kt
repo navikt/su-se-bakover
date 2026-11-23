@@ -26,6 +26,7 @@ class JwtStub(
         expiresAt: Date = Date(Long.MAX_VALUE),
         issuer: String = AuthStubCommonConfig.ISSUER,
         externalRoles: List<String>? = null,
+        extraGroups: List<String> = emptyList(),
     ): String {
         val tokenBuilder = JWT.create()
             .withIssuer(issuer)
@@ -34,7 +35,7 @@ class JwtStub(
             .withClaim("name", navn)
             .withKeyId(AuthStubCommonConfig.KEY_ID)
             .withSubject(subject)
-            .withArrayClaim("groups", roller.map(::toAzureTestGroup).toTypedArray())
+            .withArrayClaim("groups", (roller.map(::toAzureTestGroup) + extraGroups).toTypedArray())
             .withClaim("oid", subject + "oid")
             .withExpiresAt(expiresAt)
 

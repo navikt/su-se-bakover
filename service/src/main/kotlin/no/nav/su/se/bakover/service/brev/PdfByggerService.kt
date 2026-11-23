@@ -10,9 +10,9 @@ import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.SammenslåPdf
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -22,7 +22,12 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
+import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
+import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
+import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -30,7 +35,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Runti
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Local
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -123,17 +127,18 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is AvvistSøknadFritekstPdfInnhold -> dokumentMal.lagBestilling(this)
     is SkattegrunnlagsPdfInnhold -> dokumentMal.lagBestilling(this)
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
-    is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
+    is SøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is AvslagSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
+    is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is ForhåndsvarselTilbakekrevingDødsboPdfInnhold -> dokumentMal.lagBestilling(this) TODO fjern
+    is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
+    is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
     // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
-    // is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
+    is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
+    is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     // is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
+    // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     else -> null
 }

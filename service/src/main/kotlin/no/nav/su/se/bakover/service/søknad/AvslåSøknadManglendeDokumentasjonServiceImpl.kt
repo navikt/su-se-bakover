@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.avslåSøknad
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -39,6 +40,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
+    private val sakStatistikkService: SakStatistikkService,
 ) : AvslåSøknadManglendeDokumentasjonService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -46,8 +48,13 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
     override fun avslå(
         command: AvslagSøknadCmd,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
-        return lagAvslag(command).map {
-            iverksettSøknadsbehandlingService.iverksett(it)
+        val sak = sakService.hentSakForSøknad(command.søknadId).getOrElse {
+            throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}")
+        }
+        val søknad = sak.søknader.single { it.id == command.søknadId }
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForSøknad(søknad.søknadInnhold)
+        return lagAvslag(command, sak).map {
+            iverksettSøknadsbehandlingService.iverksett(it, kode6Vurdering)
             it.sak
         }
     }
@@ -80,10 +87,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
         return brevService.lagDokumentPdf(dok).map { Pair(sak.fnr, it.generertDokument) }
     }
 
-    private fun lagAvslag(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
-        val sak = sakService.hentSakForSøknad(command.søknadId)
-            .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pga. manglende dokumentasjon.") }
-
+    private fun lagAvslag(command: AvslagSøknadCmd, sak: Sak): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
         val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
             return KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
         }.adresse.isNullOrEmpty()

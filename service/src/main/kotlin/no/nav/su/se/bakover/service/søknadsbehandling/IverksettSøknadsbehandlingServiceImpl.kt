@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Service
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -77,6 +78,7 @@ class IverksettSøknadsbehandlingServiceImpl(
         val sak = sakService.hentSakForSøknadsbehandling(command.behandlingId)
 
         val søknadsbehandling = sak.hentSøknadsbehandlingEllerKast(command).getOrElse { return it.left() }
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForStønadsbehandling(søknadsbehandling)
         if (søknadsbehandling.skalSendeVedtaksbrev()) {
             val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
                 return KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
@@ -97,13 +99,14 @@ class IverksettSøknadsbehandlingServiceImpl(
             fritekst = fritekst,
         )
             .map {
-                iverksett(it)
+                iverksett(it, kode6Vurdering)
                 Triple(it.sak, it.søknadsbehandling, it.vedtak)
             }
     }
 
     override fun iverksett(
         iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
+        kode6Vurdering: Kode6Vurdering,
     ) {
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
@@ -125,7 +128,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             },
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker, // TODO: Flytt denne ut.
             lagreSakstatistikk = { statistikk, tx ->
-                sakStatistikkService.lagre(statistikk, tx)
+                sakStatistikkService.lagre(statistikk, kode6Vurdering, tx)
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
 

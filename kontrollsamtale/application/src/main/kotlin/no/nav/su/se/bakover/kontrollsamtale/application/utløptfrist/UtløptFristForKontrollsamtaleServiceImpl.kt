@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleJobRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
@@ -60,6 +61,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         sakId: UUID,
         stansDato: FørsteDagIMåneden,
         transactionContext: TransactionContext,
+        kode6Vurdering: Kode6Vurdering,
     ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
         return stansAvYtelseService.stansAvYtelseITransaksjon(
             StansYtelseRequest.Opprett(
@@ -74,6 +76,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 ),
             ),
             transactionContext = transactionContext,
+            kode6Vurdering = kode6Vurdering,
         )
     }
 
@@ -129,9 +132,11 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         )
 
         return Either.catch {
+            val stansDato = LocalDate.now(clock).tilFørsteDagINesteMåned()
+            val kode6Vurdering = stansAvYtelseService.vurderKode6ForAutomatiskStans(sak, stansDato)
             sessionFactory.withTransactionContext { tx ->
                 kontrollsamtaleRepo.lagre(annullert, tx)
-                opprettStans(kontrollsamtale.sakId, LocalDate.now(clock).tilFørsteDagINesteMåned(), tx)
+                opprettStans(kontrollsamtale.sakId, stansDato, tx, kode6Vurdering)
             }
         }.fold(
             ifLeft = { stansfeil ->
@@ -237,6 +242,17 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                     throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil)
                 },
                 { erKontrollnotatMottatt ->
+                    val stansDato = kontrollsamtale.frist.tilFørsteDagINesteMåned()
+                    val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
+                    val kode6Vurdering = if (
+                        erKontrollnotatMottatt is ErKontrollNotatMottatt.Nei &&
+                        gjeldendeStønadsperiode != null &&
+                        stansDato.dato <= gjeldendeStønadsperiode.tilOgMed
+                    ) {
+                        stansAvYtelseService.vurderKode6ForAutomatiskStans(sak, stansDato)
+                    } else {
+                        null
+                    }
                     sessionFactory.withTransactionContext { tx ->
                         when (erKontrollnotatMottatt) {
                             is ErKontrollNotatMottatt.Ja -> {
@@ -254,6 +270,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                                     kontrollsamtale = kontrollsamtale,
                                     sak = sak,
                                     tx = tx,
+                                    kode6Vurdering = kode6Vurdering,
                                 )
                             }
                         }
@@ -300,6 +317,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         kontrollsamtale: Kontrollsamtale,
         sak: Sak,
         tx: TransactionContext,
+        kode6Vurdering: Kode6Vurdering?,
     ): UtløptFristForKontrollsamtaleContext {
         return kontrollsamtale.settIkkeMøttInnenFrist()
             .fold(
@@ -324,10 +342,12 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                         kontrollsamtaleJobRepo.lagre(oppdatertContext, tx)
                         return@fold oppdatertContext
                     }
+                    val vurdering = requireNotNull(kode6Vurdering)
                     val revurdering = opprettStans(
                         ikkeMøttKontrollsamtale.sakId,
                         stansDato,
                         tx,
+                        vurdering,
                     )
                     val oppdatertContext = context.ikkeMøtt(ikkeMøttKontrollsamtale.id, clock)
 
@@ -337,6 +357,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                             revurderingId = revurdering.id,
                             attestant = NavIdentBruker.Attestant(serviceUser),
                             transactionContext = tx,
+                            kode6Vurdering = vurdering,
                         )
                     } catch (_: Exception) {
                         throw FeilVedProsesseringAvKontrollsamtaleException(msg = UtbetalingFeilet.Protokollfeil::class.java.toString())

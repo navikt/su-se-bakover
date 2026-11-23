@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -14,6 +15,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.auth.TokenContext
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import org.junit.jupiter.api.Test
@@ -26,6 +28,32 @@ import java.util.Date
 const val SECURE_ENDPOINT = "/me"
 
 internal class AuthenticationTest {
+    @Test
+    fun `brukerkontekstens tekstrepresentasjon røper ikke token`() {
+        val token = "test-token"
+        val kontekst = TokenContext(token)
+
+        kontekst.toString() shouldNotContain token
+    }
+
+    @Test
+    fun `ukjent Azure-gruppe gir ikke applikasjonstilgang alene`() {
+        val ukjentGruppe = "ukjent-gruppe"
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            client.get(SECURE_ENDPOINT) {
+                header(
+                    Authorization,
+                    jwtStub.createJwtToken(
+                        roller = emptyList(),
+                        extraGroups = listOf(ukjentGruppe),
+                    ).asBearerToken(),
+                )
+            }.status shouldBe Unauthorized
+        }
+    }
 
     @Test
     fun `secure endpoint krever autentisering`() {

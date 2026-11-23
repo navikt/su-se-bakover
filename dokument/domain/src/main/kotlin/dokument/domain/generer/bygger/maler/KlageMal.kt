@@ -103,7 +103,11 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
     }
 }
 val avvistKlage = { _: String, pdfInnhold: KlagePdfInnhold.Avvist ->
-    val tittel = "Nav har avvist klagen din"
+    val tittel = if (pdfInnhold.dødsbo) {
+        "Nav har avvist dødsboets klage"
+    } else {
+        "Nav har avvist klagen din"
+    }
     dokument(tittel, pdfInnhold.personalia) {
         paragraph("Fødselsnummer: ${pdfInnhold.personalia.fødselsnummer}")
         fritekst(pdfInnhold.fritekst)

@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":dokument:infrastructure"))
     implementation(project(":domain"))
+    implementation(project(":søknad:domain"))
     implementation(project(":hendelse:domain"))
     implementation(project(":nøkkeltall:domain"))
     implementation(project(":oppgave:domain"))

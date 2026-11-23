@@ -130,6 +130,10 @@ class KlageServiceImpl(
                 },
             )
         }
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForRelatertBehandling(
+            sak,
+            request.relatertBehandlingId,
+        )
         val oppgaveResponse = oppgaveService.opprettOppgave(
             OppgaveConfig.Klage.Saksbehandler(
                 saksnummer = sak.saksnummer,
@@ -158,7 +162,7 @@ class KlageServiceImpl(
                     request.erInfotrygdSakId,
                 )
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
             }
         }.right()
     }
@@ -300,6 +304,7 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage.left()
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage)
         val ferdigstiltTidspunkt = Tidspunkt.now(clock)
         // BekreftetBehandlesIVedtaksinstans er eneste implementerende type ellers kastes KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand
         return klage.ferdigstillOmgjøring(saksbehandler, ferdigstiltTidspunkt).onRight {
@@ -307,7 +312,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(it, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring(it)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                 oppgaveService.lukkOppgave(
                     it.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
@@ -362,6 +367,7 @@ class KlageServiceImpl(
             ).let {
             (it as? KlageTilAttestering.Vurdert) ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class).left()
         }
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage, sak)
         val eksternSak = klage.infotrygdSakId != null
         val vedtakId = klage.vilkårsvurderinger.vedtakId
 
@@ -455,7 +461,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(oversendtKlage, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                 klageClient.sendTilKlageinstans(
                     klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
@@ -478,6 +484,7 @@ class KlageServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage)
 
         if (klage !is KlageTilAttestering.Avvist) {
             return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(
@@ -556,7 +563,7 @@ class KlageServiceImpl(
                 }
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Avvist(vedtak)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
             }
         } catch (_: Exception) {
             return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()
@@ -649,6 +656,7 @@ class KlageServiceImpl(
         begrunnelse: String,
     ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeAvslutteKlage.FantIkkeKlage.left()
+        val kode6Vurdering = sakStatistikkService.vurderKode6ForKlage(klage)
 
         return klage.avslutt(
             saksbehandler = saksbehandler,
@@ -659,7 +667,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(it, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Avsluttet(it)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, kode6Vurdering, tx)
                 oppgaveService.lukkOppgave(
                     it.oppgaveId,
                     OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),

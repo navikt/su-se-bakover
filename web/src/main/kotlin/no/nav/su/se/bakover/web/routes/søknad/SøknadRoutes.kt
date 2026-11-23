@@ -234,7 +234,7 @@ internal fun Route.søknadRoutes(
                 call.withValidertBody<AvslagBody>(log) { body ->
                     either {
                         val avslåttSøknad = avslåSøknadManglendeDokumentasjonService.avslå(
-                            AvslagSøknadCmd(
+                            command = AvslagSøknadCmd(
                                 søknadId = søknadId,
                                 saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                 fritekst = body.fritekst,
