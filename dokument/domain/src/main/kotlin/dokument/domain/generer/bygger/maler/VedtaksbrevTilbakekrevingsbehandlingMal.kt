@@ -154,14 +154,14 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
         paragraph(
             "Beløpet boet skylder før skatt er " +
                 "${pdfInnhold.månedsoversiktMedSum.sumBruttoSkalTilbakekreve.kroner(utenDesimaler = true)} kr. " +
-                "Boet skal betale tilbake" +
+                "Boet skal betale tilbake " +
                 "${pdfInnhold.månedsoversiktMedSum.sumNettoSkalTilbakekreve.kroner(utenDesimaler = true)} kr etter at skatten er trukket fra. ",
         )
         paragraph("Beløpet som er trukket i skatt får vi tilbake fra Skatteetaten. ")
         paragraph("Nedenfor følger en oversikt over periodene med feilutbetalinger og feilutbetalt beløp inkludert skatt. ")
         title3("Hvordan har vi kommet fram til at boet må betale tilbake? ")
         fritekst(pdfInnhold.fritekst ?: "")
-        title3("Skatt og sketteoppgjør")
+        title3("Skatt og skatteoppgjør")
         paragraph(
             "Vi gir opplysninger til Skatteetaten om dette vedtaket. " +
                 "Skatteetaten fastsetter det endelige skattebeløpet, " +
@@ -173,17 +173,17 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
                 "På fakturaen står det informasjon om nøyaktig beløp, kontonummer og forfallsdato. " +
                 "Boet trenger ikke å gjøre noe før boet får fakturaen. ",
         )
-        paragraph("Boet finner mer informasjon på www.skatteetaten.no/betale. ")
+        paragraph("Boet finner mer informasjon på skatteetaten.no/betale. ")
         title3("Boet har rett til å klage ")
         paragraph(
             " Hvis boet mener at vedtaket er feil, kan boet klage innen 6 uker fra den datoen boet mottok vedtaket. " +
-                "Skjema og informasjon finnes på www.nav.no/klage.",
+                "Skjema og informasjon finnes på nav.no/klage.",
         )
-        paragraph("Klagen kan sendes digitalt via innlogging på nettsiden vår www.nav.no, eller i posten.")
+        paragraph("Klagen kan sendes digitalt via innlogging på nettsiden vår nav.no, eller i posten.")
         paragraph(
             "Skriftlig klage som sendes i posten må inneholde navn, fødselsnummer og adresse, " +
                 "og den må være underskrevet av representant for boet. " +
-                "Klagen må sendes til Nav Familie- og pensjonsytelser Ålesund sammen med forside fra www.nav.no. ",
+                "Klagen må sendes til Nav Familie- og pensjonsytelser Ålesund sammen med forside fra nav.no. ",
         )
         paragraph("Nav kan hjelpe med å skrive ned klagen. ")
         paragraph("Boet må skrive")
@@ -218,12 +218,12 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
         )
         title3("Boet har rett til innsyn")
         paragraph(
-            "På www.nav.no/dittnav kan boet se dokumentene i saken til den avdøde. ",
+            "På nav.no/dittnav kan boet se dokumentene i saken til den avdøde. ",
         )
         title3("Har boet spørsmål?")
         paragraph(
-            "Boet finner mer informasjon på www.nav.no. " +
-                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontakt. " +
+            "Boet finner mer informasjon på nav.no. " +
+                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på nav.no/kontakt. " +
                 "Boet kan også kontakte oss på telefon ${telefonnummer(pdfInnhold.sakstype)}.",
         )
         postadresse()
