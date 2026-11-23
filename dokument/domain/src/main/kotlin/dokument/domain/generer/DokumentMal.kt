@@ -1,6 +1,5 @@
 package dokument.domain.generer
 
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
@@ -14,8 +13,11 @@ import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
+import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnhold
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
+import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
 import dokument.domain.generer.bygger.maler.avvistSøknadVedtak
@@ -36,7 +38,6 @@ import dokument.domain.generer.bygger.maler.vedtakAvslag
 import dokument.domain.generer.bygger.maler.vedtakInnvilgelse
 import dokument.domain.generer.bygger.maler.vedtaksbrevReguleringAldersfradrag
 import dokument.domain.generer.bygger.maler.vedtaksbrevTilbakekrevingsbehandling
-import dokument.domain.generer.bygger.maler.vedtaksbrevTilbakekrevingsbehandlingDødsbo
 
 /**
  * En dokumentmal som brukes til lage innhold til dokumenter.
@@ -64,7 +65,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: GenerellData): PdfBestilling =
+        fun lagBestilling(innhold: SøknadPdfInnhold): PdfBestilling =
             soknad(innhold)
     }
 
@@ -151,24 +152,24 @@ sealed interface DokumentMal {
                 forhåndsvarselTilbakekreving(tittel, innhold)
         }
 
-        data object Vedtaksbrev : DokumentMal {
-            override val navn = "vedtaksbrevTilbakekrevingsbehandling"
-            override val tittel = "Tilbakekreving av Supplerende stønad"
-            override val pdfByggerDev: Boolean = false
+        data class Vedtaksbrev(
+            val dødsbo: Boolean,
+        ) : DokumentMal {
+            override val navn = if (dødsbo) {
+                "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
+            } else {
+                "vedtaksbrevTilbakekrevingsbehandling"
+            }
+            override val tittel = if (dødsbo) {
+                "Tilbakekreving av Supplerende stønad til dødsbo"
+            } else {
+                "Tilbakekreving av Supplerende stønad"
+            }
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            fun lagBestilling(innhold: VedtaksbrevTilbakekrevingsbehandlingPdfInnhold): PdfBestilling =
                 vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
-        }
-
-        data object VedtaksbrevDødsbo : DokumentMal {
-            override val navn = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
-            override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
-            override val pdfByggerDev: Boolean = false
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
-                vedtaksbrevTilbakekrevingsbehandlingDødsbo(tittel, innhold)
         }
     }
 
@@ -196,10 +197,10 @@ sealed interface DokumentMal {
         data object Inntekt : Revurdering {
             override val navn = "revurderingAvInntekt"
             override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            fun lagBestilling(innhold: RevurderingAvInntektPdfInnhold): PdfBestilling =
                 revurderingAvInntekt(tittel, innhold)
         }
 

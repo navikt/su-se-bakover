@@ -29,7 +29,7 @@ import person.domain.Person
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.fromBrevCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
+import tilbakekreving.domain.vedtaksbrev.fromBrevCommand
 import java.time.Clock
 
 fun GenererDokumentCommand.tilPdfInnhold(
@@ -132,8 +132,7 @@ fun fromBrevCommand(
 
             is PåminnelseNyStønadsperiodeDokumentCommand -> command.fromBrevCommand(personalia().bind())
 
-            is IverksettRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold.fromBrevCommand(
-                command = command,
+            is IverksettRevurderingDokumentCommand.Inntekt -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
@@ -155,24 +154,17 @@ fun fromBrevCommand(
                 clock = clock,
             )
 
-            is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> VedtaksbrevTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
-                command = command,
+            is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = command.attestant?.let { hentNavnMappedLeft(it).bind() },
                 clock = clock,
             )
 
-            is HistoriskInfotrygdRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold(
-                sakstype = command.sakstype,
+            is HistoriskInfotrygdRevurderingDokumentCommand.Inntekt -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-                beregningsperioder = command.beregningsperioder,
-                fritekst = command.fritekst,
-                harEktefelle = command.harEktefelle,
-                forventetInntektStørreEnn0 = false,
-                satsoversikt = command.satsoversikt,
             )
 
             is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> command.fromBrevCommand(

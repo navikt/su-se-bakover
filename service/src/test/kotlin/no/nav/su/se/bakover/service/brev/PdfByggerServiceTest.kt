@@ -8,11 +8,11 @@ import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
+import dokument.domain.generer.bygger.maler.revurderingAvInntekt
 import dokument.domain.generer.bygger.maler.soknad
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -20,11 +20,12 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.revurderingAvInntektPdf
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -52,6 +53,26 @@ import java.util.UUID
 internal class PdfByggerServiceTest {
 
     @Test
+    fun `inntektsrevurdering bruker felles brevmodell mot gammel generator i prod`() {
+        val pdf = PdfA(lagPdf(antallSider = 1))
+        val klient = mock<PensjonPdfByggerKlient>()
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(revurderingAvInntektPdf) } doReturn pdf.right()
+        }
+        val service = PdfByggerService(
+            klient,
+            gammelKlient,
+            ApplicationConfig.RuntimeEnvironment.Prod,
+            fixedClock,
+        )
+
+        service.genererPdf(revurderingAvInntektPdf) shouldBe pdf.right()
+
+        verify(gammelKlient).genererPdf(revurderingAvInntektPdf)
+        verifyNoInteractions(klient)
+    }
+
+    @Test
     fun `velger riktig malbygger for støttede innholdsmodeller`() {
         val forventninger = listOf(
             kontrollnotatPdf to kontrollnotat(kontrollnotatPdf.dokumentMal.tittel, kontrollnotatPdf),
@@ -61,6 +82,10 @@ internal class PdfByggerServiceTest {
                 innkallingKontrollsamtalePdf,
             ),
             fritekstDokumentPdf to fritekstDokument(fritekstDokumentPdf.dokumentMal.tittel, fritekstDokumentPdf),
+            revurderingAvInntektPdf to revurderingAvInntekt(
+                revurderingAvInntektPdf.dokumentMal.tittel,
+                revurderingAvInntektPdf,
+            ),
         )
         val pdf = PdfA(lagPdf(antallSider = 1))
         val klient = mock<PensjonPdfByggerKlient> {
@@ -78,7 +103,7 @@ internal class PdfByggerServiceTest {
 
     @Test
     fun `velger søknadsbygger for konkret søknadsinnhold`() {
-        val innhold = SøknadPdfInnhold.create(
+        val innhold = lagSøknadPdfInnhold(
             saksnummer = Saksnummer(2021),
             sakstype = Sakstype.UFØRE,
             søknadsId = UUID.randomUUID(),
@@ -96,7 +121,7 @@ internal class PdfByggerServiceTest {
 
         service.genererPdf(innhold) shouldBe pdf.right()
 
-        verify(klient).lagPdf(soknad(GenerellData.parse(innhold.toJson())))
+        verify(klient).lagPdf(soknad(innhold))
         verifyNoInteractions(gammelKlient)
     }
 
@@ -119,7 +144,7 @@ internal class PdfByggerServiceTest {
 
     private val pdfInnhold = object : PdfInnhold {
         // Mal med både pdfByggerDev = false og pdfByggerProd = false
-        override val dokumentMal = DokumentMal.Tilbakekreving.Vedtaksbrev
+        override val dokumentMal = DokumentMal.VedtaksbrevReguleringAldersfradrag
         override val sakstype: Sakstype = Sakstype.UFØRE
     }
 
