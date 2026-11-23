@@ -27,6 +27,7 @@ import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnho
 import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
+import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -134,8 +135,8 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
     // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
+    is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
     is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
     // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
     // is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
