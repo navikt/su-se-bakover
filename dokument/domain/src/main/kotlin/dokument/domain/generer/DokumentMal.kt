@@ -262,7 +262,7 @@ sealed interface DokumentMal {
         override val navn = "fritekstDokument"
         override val tittel = nyTittel
         override val pdfByggerDev: Boolean = true
-        override val pdfByggerProd: Boolean = false
+        override val pdfByggerProd: Boolean = true
 
         fun lagBestilling(innhold: FritekstPdfInnhold): PdfBestilling =
             fritekstDokument(tittel, innhold)
