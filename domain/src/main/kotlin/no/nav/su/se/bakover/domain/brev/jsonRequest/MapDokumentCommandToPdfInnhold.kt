@@ -132,8 +132,7 @@ fun fromBrevCommand(
 
             is PåminnelseNyStønadsperiodeDokumentCommand -> command.fromBrevCommand(personalia().bind())
 
-            is IverksettRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold.fromBrevCommand(
-                command = command,
+            is IverksettRevurderingDokumentCommand.Inntekt -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
@@ -162,16 +161,10 @@ fun fromBrevCommand(
                 clock = clock,
             )
 
-            is HistoriskInfotrygdRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold(
-                sakstype = command.sakstype,
+            is HistoriskInfotrygdRevurderingDokumentCommand.Inntekt -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-                beregningsperioder = command.beregningsperioder,
-                fritekst = command.fritekst,
-                harEktefelle = command.harEktefelle,
-                forventetInntektStørreEnn0 = false,
-                satsoversikt = command.satsoversikt,
             )
 
             is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> command.fromBrevCommand(

@@ -11,6 +11,7 @@ import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
+import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnhold
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
@@ -33,6 +34,96 @@ import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.KunneIkkeHenteNavnForNavIdent
 
 internal class PdfInnholdTest {
+
+    @Test
+    fun `jsonformat for inntektsrevurdering stemmer overens med det som forventes av pdfgenerator`() {
+        // TODO PdfBygger ryddejobb
+
+        val satsbeløp = 20637
+        val sats = "høy"
+        val fraOgMed = "01.01.2020"
+        val tilOgMed = "31.01.2020"
+        val beregningsperiode = "januar 2020"
+        val innhold = RevurderingAvInntektPdfInnhold(
+            sakstype = Sakstype.UFØRE,
+            personalia = pdfInnholdPersonalia(),
+            saksbehandlerNavn = "Saksbehandler",
+            attestantNavn = "Attestant",
+            beregningsperioder = listOf(
+                BeregningsperiodeBrev(
+                    ytelsePerMåned = satsbeløp,
+                    satsbeløpPerMåned = satsbeløp,
+                    epsFribeløp = 0,
+                    fradrag = FradragForBrev(emptyList(), FradragForBrev.Eps(emptyList(), false)),
+                    periode = BrevPeriode(beregningsperiode, beregningsperiode),
+                    sats = sats,
+                ),
+            ),
+            fritekst = null,
+            harEktefelle = false,
+            forventetInntektStørreEnn0 = false,
+            satsoversikt = SatsoversiktBrev(
+                perioder = listOf(
+                    SatsoversiktBrev.Satsperiode(
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        sats = sats,
+                        satsBeløp = satsbeløp,
+                        satsGrunn = "ENSLIG",
+                    ),
+                ),
+            ),
+            harFradrag = false,
+        )
+
+        //language=json
+        val expectedJson = """
+            {
+                "sakstype": "UFØRE",
+                "personalia": {
+                    "dato": "01.01.2020",
+                    "fødselsnummer": "12345678901",
+                    "fornavn": "Tore",
+                    "etternavn": "Strømøy",
+                    "saksnummer": 2021
+                },
+                "saksbehandlerNavn": "Saksbehandler",
+                "attestantNavn": "Attestant",
+                "beregningsperioder": [{
+                    "ytelsePerMåned": 20637,
+                    "satsbeløpPerMåned": 20637,
+                    "epsFribeløp": 0,
+                    "fradrag": {
+                        "bruker": [],
+                        "eps": {
+                            "fradrag": [],
+                            "harFradragMedSumSomErLavereEnnFribeløp": false
+                        }
+                    },
+                    "periode": {
+                        "fraOgMed": "januar 2020",
+                        "tilOgMed": "januar 2020"
+                    },
+                    "sats": "høy"
+                }],
+                "fritekst": null,
+                "harEktefelle": false,
+                "forventetInntektStørreEnn0": false,
+                "satsoversikt": {
+                    "perioder": [{
+                        "fraOgMed": "01.01.2020",
+                        "tilOgMed": "31.01.2020",
+                        "sats": "høy",
+                        "satsBeløp": 20637,
+                        "satsGrunn": "ENSLIG"
+                    }]
+                },
+                "harFradrag": false
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expectedJson, innhold.toJson(), true)
+    }
 
     @Test
     fun `systembruker får tomt navn i brev uten navneoppslag`() {

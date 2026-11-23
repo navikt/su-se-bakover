@@ -12,6 +12,7 @@ import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
+import dokument.domain.generer.bygger.maler.revurderingAvInntekt
 import dokument.domain.generer.bygger.maler.soknad
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsva
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.revurderingAvInntektPdf
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -51,6 +53,26 @@ import java.util.UUID
 internal class PdfByggerServiceTest {
 
     @Test
+    fun `inntektsrevurdering bruker felles brevmodell mot gammel generator i prod`() {
+        val pdf = PdfA(lagPdf(antallSider = 1))
+        val klient = mock<PensjonPdfByggerKlient>()
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(revurderingAvInntektPdf) } doReturn pdf.right()
+        }
+        val service = PdfByggerService(
+            klient,
+            gammelKlient,
+            ApplicationConfig.RuntimeEnvironment.Prod,
+            fixedClock,
+        )
+
+        service.genererPdf(revurderingAvInntektPdf) shouldBe pdf.right()
+
+        verify(gammelKlient).genererPdf(revurderingAvInntektPdf)
+        verifyNoInteractions(klient)
+    }
+
+    @Test
     fun `velger riktig malbygger for støttede innholdsmodeller`() {
         val forventninger = listOf(
             kontrollnotatPdf to kontrollnotat(kontrollnotatPdf.dokumentMal.tittel, kontrollnotatPdf),
@@ -60,6 +82,10 @@ internal class PdfByggerServiceTest {
                 innkallingKontrollsamtalePdf,
             ),
             fritekstDokumentPdf to fritekstDokument(fritekstDokumentPdf.dokumentMal.tittel, fritekstDokumentPdf),
+            revurderingAvInntektPdf to revurderingAvInntekt(
+                revurderingAvInntektPdf.dokumentMal.tittel,
+                revurderingAvInntektPdf,
+            ),
         )
         val pdf = PdfA(lagPdf(antallSider = 1))
         val klient = mock<PensjonPdfByggerKlient> {
