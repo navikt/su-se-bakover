@@ -61,6 +61,7 @@ sealed interface DokumentMal {
     val pdfByggerDev: Boolean
     val pdfByggerProd: Boolean
 
+    // Dokumenter fra lokalkontor:
     data object Søknad : DokumentMal {
         override val navn = "soknad"
         override val tittel = "Søknad om supplerende stønad"
@@ -81,6 +82,7 @@ sealed interface DokumentMal {
             kontrollnotat(tittel, innhold)
     }
 
+    // Brev for søknadsbehandling
     data object InnvilgetVedtak : DokumentMal {
         override val navn = "vedtakInnvilgelse"
         override val tittel = "Vedtaksbrev for søknad om supplerende stønad"
@@ -130,15 +132,7 @@ sealed interface DokumentMal {
             avvistSøknadFritekst(tittel, innhold)
     }
 
-    data object Opphørsvedtak : DokumentMal {
-        override val navn = "opphørsvedtak"
-        override val tittel = "Vedtak om opphør av supplerende stønad"
-        override val pdfByggerDev: Boolean = true
-        override val pdfByggerProd: Boolean = false
-
-        fun lagBestilling(innhold: OpphørsvedtakPdfInnhold): PdfBestilling =
-            opphørsvedtak(tittel, innhold)
-    }
+    // Brev for revurderingsflyt
 
     data object Forhåndsvarsel : DokumentMal {
         override val navn = "forhåndsvarsel"
@@ -150,13 +144,48 @@ sealed interface DokumentMal {
             forhåndsvarsel(tittel, innhold)
     }
 
+    sealed interface Revurdering : DokumentMal {
+        // TODO PdfBygger ryddejobb - endre navn fra revurderingAvInntekt da det kan være andre årsaker, litt misvisende
+        data object Inntekt : Revurdering {
+            override val navn = "revurderingAvInntekt"
+            override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
+            override val pdfByggerDev: Boolean = true
+            override val pdfByggerProd: Boolean = false
+
+            fun lagBestilling(innhold: RevurderingAvInntektPdfInnhold): PdfBestilling =
+                revurderingAvInntekt(tittel, innhold)
+        }
+
+        data object Avslutt : Revurdering {
+            override val navn = "avsluttRevurdering"
+            override val tittel = "Ikke grunnlag for revurdering"
+            override val pdfByggerDev: Boolean = true
+            override val pdfByggerProd: Boolean = false
+
+            fun lagBestilling(innhold: AvsluttRevurderingPdfInnhold): PdfBestilling =
+                avsluttRevurdering(tittel, innhold)
+        }
+    }
+
+    data object Opphørsvedtak : DokumentMal {
+        override val navn = "opphørsvedtak"
+        override val tittel = "Vedtak om opphør av supplerende stønad"
+        override val pdfByggerDev: Boolean = true
+        override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: OpphørsvedtakPdfInnhold): PdfBestilling =
+            opphørsvedtak(tittel, innhold)
+    }
+
     sealed interface Tilbakekreving {
         data class Forhåndsvarsel(
             val dødsbo: Boolean,
         ) : DokumentMal {
             // TODO PdfBygger ryddejobb - trenger ikke to navn etter su-pdfgen
-            override val navn = if (dødsbo) "forhåndsvarselTilbakekrevingsbehandlingDødsbo" else "forhåndsvarselTilbakekrevingsbehandling"
-            override val tittel = if (dødsbo) "Varsel om mulig tilbakekreving til dødsbo" else "Varsel om mulig tilbakekreving"
+            override val navn =
+                if (dødsbo) "forhåndsvarselTilbakekrevingsbehandlingDødsbo" else "forhåndsvarselTilbakekrevingsbehandling"
+            override val tittel =
+                if (dødsbo) "Varsel om mulig tilbakekreving til dødsbo" else "Varsel om mulig tilbakekreving"
             override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
@@ -184,6 +213,28 @@ sealed interface DokumentMal {
                 vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
         }
     }
+    sealed interface Klage : DokumentMal {
+        data object Oppretthold : Klage {
+            override val navn = "sendtTilKlageinstans"
+            override val tittel = "Oversendelsesbrev til klager"
+            override val pdfByggerDev: Boolean = true
+            override val pdfByggerProd: Boolean = false
+
+            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =
+                sendtTilKlageinstans(tittel, innhold)
+        }
+
+        data object Avvist : Klage {
+            override val navn = "avvistKlage"
+            override val tittel = "Avvist klage"
+            override val pdfByggerDev: Boolean = true
+            override val pdfByggerProd: Boolean = false
+
+            fun lagBestiling(innhold: KlagePdfInnhold.Avvist): PdfBestilling = avvistKlage(tittel, innhold)
+        }
+    }
+
+    // Annet
 
     data object InnkallingTilKontrollsamtale : DokumentMal {
         override val navn = "innkallingKontrollsamtale"
@@ -205,28 +256,6 @@ sealed interface DokumentMal {
             påminnelseOmNyStønadsperiode(tittel, innhold)
     }
 
-    sealed interface Revurdering : DokumentMal {
-        data object Inntekt : Revurdering {
-            override val navn = "revurderingAvInntekt"
-            override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
-            override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestilling(innhold: RevurderingAvInntektPdfInnhold): PdfBestilling =
-                revurderingAvInntekt(tittel, innhold)
-        }
-
-        data object Avslutt : Revurdering {
-            override val navn = "avsluttRevurdering"
-            override val tittel = "Ikke grunnlag for revurdering"
-            override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestilling(innhold: AvsluttRevurderingPdfInnhold): PdfBestilling =
-                avsluttRevurdering(tittel, innhold)
-        }
-    }
-
     data object VedtaksbrevReguleringAldersfradrag : DokumentMal {
         override val navn = "vedtaksbrevReguleringAldersfradrag"
         override val tittel = "Vedtak for regulering etter endret alderspensjon"
@@ -235,27 +264,6 @@ sealed interface DokumentMal {
 
         fun lagBestilling(innhold: VedtakVedReguleringPdfInnhold): PdfBestilling =
             vedtaksbrevReguleringAldersfradrag(tittel, innhold)
-    }
-
-    sealed interface Klage : DokumentMal {
-        data object Oppretthold : Klage {
-            override val navn = "sendtTilKlageinstans"
-            override val tittel = "Oversendelsesbrev til klager"
-            override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =
-                sendtTilKlageinstans(tittel, innhold)
-        }
-
-        data object Avvist : Klage {
-            override val navn = "avvistKlage"
-            override val tittel = "Avvist klage"
-            override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestiling(innhold: KlagePdfInnhold.Avvist): PdfBestilling = avvistKlage(tittel, innhold)
-        }
     }
 
     data class FritekstDokument(val nyTittel: String) : DokumentMal {
