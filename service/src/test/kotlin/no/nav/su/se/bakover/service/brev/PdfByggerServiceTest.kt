@@ -8,7 +8,6 @@ import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
@@ -20,7 +19,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
@@ -78,7 +77,7 @@ internal class PdfByggerServiceTest {
 
     @Test
     fun `velger søknadsbygger for konkret søknadsinnhold`() {
-        val innhold = SøknadPdfInnhold.create(
+        val innhold = lagSøknadPdfInnhold(
             saksnummer = Saksnummer(2021),
             sakstype = Sakstype.UFØRE,
             søknadsId = UUID.randomUUID(),
@@ -96,7 +95,7 @@ internal class PdfByggerServiceTest {
 
         service.genererPdf(innhold) shouldBe pdf.right()
 
-        verify(klient).lagPdf(soknad(GenerellData.parse(innhold.toJson())))
+        verify(klient).lagPdf(soknad(innhold))
         verifyNoInteractions(gammelKlient)
     }
 

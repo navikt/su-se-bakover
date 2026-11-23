@@ -5,6 +5,7 @@ import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
 import dokument.domain.generer.SammenslåPdf
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -15,7 +16,7 @@ import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
@@ -107,7 +108,7 @@ class HentSøknadPdfTest {
                 verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr }, eq(Sakstype.UFØRE))
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = Sakstype.UFØRE,
                             søknadsId = søknad.id,
@@ -158,7 +159,7 @@ class HentSøknadPdfTest {
                 verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr }, eq(Sakstype.UFØRE))
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = Sakstype.UFØRE,
                             søknadsId = søknad.id,
