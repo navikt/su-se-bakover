@@ -14,6 +14,7 @@ dependencies {
     api(project(":dokument:domain"))
     api(project(":dokument:infrastructure"))
     api(project(":domain"))
+    api(project(":søknad:domain"))
     api(project(":grunnbeløp"))
     api(project(":hendelse:domain"))
     api(project(":hendelse:infrastructure"))

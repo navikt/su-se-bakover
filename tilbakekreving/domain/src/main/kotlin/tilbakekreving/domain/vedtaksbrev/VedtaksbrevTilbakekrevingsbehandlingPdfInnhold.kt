@@ -1,95 +1,52 @@
 package tilbakekreving.domain.vedtaksbrev
 
-import dokument.domain.generer.DokumentMal
-import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import dokument.domain.generer.bygger.maler.EnkeltMånedsoversikt
+import dokument.domain.generer.bygger.maler.MånedsoversiktMedSum
+import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.Vurdering
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
-import tilbakekreving.domain.vedtaksbrev.MånedsoversiktMedSum.Companion.månedsoversiktMedSum
 import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.time.Clock
 import java.time.LocalDate
 
-data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
-    override val sakstype: Sakstype,
-    val personalia: PersonaliaPdfInnhold,
-    val saksbehandlerNavn: String,
-    val attestantNavn: String?,
-    val fritekst: String?,
-    val dato: String,
-    val månedsoversiktMedSum: MånedsoversiktMedSum,
-    val skalTilbakekreve: Boolean,
-    /**
-     * Summen av brutto beløp som skal ikke tilbakekreves. Dette vises dersom `skalTilbakekreve` er false.
-     */
-    val bruttoSkalIkkeTilbakekreveSummert: Int,
-    override val dokumentMal: DokumentMal = DokumentMal.Tilbakekreving.Vedtaksbrev,
-) : PdfInnhold {
+fun VedtaksbrevTilbakekrevingsbehandlingDokumentCommand.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String?,
+    clock: Clock,
+): VedtaksbrevTilbakekrevingsbehandlingPdfInnhold {
+    return VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
+        sakstype = sakstype,
+        personalia = personalia,
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        fritekst = fritekst,
+        // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
+        // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
+        dato = LocalDate.now(clock).toBrevformat(),
+        månedsoversiktMedSum = vurderingerMedKrav.månedsoversiktMedSum(),
+        skalTilbakekreve = skalTilbakekreve,
+        dødsbo = dødsbo,
+        bruttoSkalIkkeTilbakekreveSummert = vurderingerMedKrav.bruttoSkalIkkeTilbakekreveSummert,
+    )
+}
 
-    companion object {
-        fun fromBrevCommand(
-            command: VedtaksbrevTilbakekrevingsbehandlingDokumentCommand,
-            personalia: PersonaliaPdfInnhold,
-            saksbehandlerNavn: String,
-            attestantNavn: String?,
-            clock: Clock,
-        ): VedtaksbrevTilbakekrevingsbehandlingPdfInnhold {
-            return VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
-                dokumentMal = when (command.dødsbo) {
-                    true -> DokumentMal.Tilbakekreving.VedtaksbrevDødsbo
-                    false -> DokumentMal.Tilbakekreving.Vedtaksbrev
+fun VurderingerMedKrav.månedsoversiktMedSum(): MånedsoversiktMedSum {
+    return MånedsoversiktMedSum(
+        sorterteMåneder = this.perioder.map {
+            EnkeltMånedsoversikt(
+                periode = it.periode.ddMMyyyy(),
+                vurdering = when (it) {
+                    is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> Vurdering.SkalIkkeTilbakekreve
+                    is PeriodevurderingMedKrav.SkalTilbakekreve -> Vurdering.SkalTilbakekreve
                 },
-                sakstype = command.sakstype,
-                personalia = personalia,
-                saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn,
-                fritekst = command.fritekst,
-                // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
-                // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
-                dato = LocalDate.now(clock).toBrevformat(),
-                månedsoversiktMedSum = command.vurderingerMedKrav.månedsoversiktMedSum(),
-                skalTilbakekreve = command.skalTilbakekreve,
-                bruttoSkalIkkeTilbakekreveSummert = command.vurderingerMedKrav.bruttoSkalIkkeTilbakekreveSummert,
+                bruttoSkalTilbakekreve = it.bruttoSkalTilbakekreve,
+                nettoSkalTilbakekreve = it.nettoSkalTilbakekreve,
             )
-        }
-    }
+        },
+        sumBruttoSkalTilbakekreve = this.bruttoSkalTilbakekreveSummert,
+        sumNettoSkalTilbakekreve = this.nettoSkalTilbakekreveSummert,
+    )
 }
-
-data class MånedsoversiktMedSum private constructor(
-    val sorterteMåneder: List<EnkeltMånedsoversikt>,
-    val sumBruttoSkalTilbakekreve: Int,
-    val sumNettoSkalTilbakekreve: Int,
-) {
-    companion object {
-        fun VurderingerMedKrav.månedsoversiktMedSum(): MånedsoversiktMedSum {
-            return MånedsoversiktMedSum(
-                sorterteMåneder = this.perioder.map {
-                    EnkeltMånedsoversikt(
-                        periode = it.periode.ddMMyyyy(),
-                        vurdering = when (it) {
-                            is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> Vurdering.SkalIkkeTilbakekreve
-                            is PeriodevurderingMedKrav.SkalTilbakekreve -> Vurdering.SkalTilbakekreve
-                        },
-                        bruttoSkalTilbakekreve = it.bruttoSkalTilbakekreve,
-                        nettoSkalTilbakekreve = it.nettoSkalTilbakekreve,
-                    )
-                },
-                sumBruttoSkalTilbakekreve = this.bruttoSkalTilbakekreveSummert,
-                sumNettoSkalTilbakekreve = this.nettoSkalTilbakekreveSummert,
-            )
-        }
-    }
-}
-
-enum class Vurdering {
-    SkalTilbakekreve,
-    SkalIkkeTilbakekreve,
-}
-
-data class EnkeltMånedsoversikt(
-    val periode: String,
-    val vurdering: Vurdering,
-    val bruttoSkalTilbakekreve: Int,
-    val nettoSkalTilbakekreve: Int,
-)

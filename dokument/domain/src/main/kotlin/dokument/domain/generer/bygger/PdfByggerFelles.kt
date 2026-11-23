@@ -109,9 +109,12 @@ fun Innhold.postadresse() {
     }
 }
 
-fun Innhold.fellesKlageinfo(sakstype: Sakstype) {
+fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: String? = null) {
     title2("Du har rett til å klage")
     paragraph("Du kan klage innen 6 uker fra den datoen du mottok vedtaket. Du finner skjema og informasjon på www.nav.no/klage.")
+    ekstraVedtaksInfoForKlage?.let {
+        paragraph(it)
+    }
     rettTilInnsyn()
     harDuSpørsmål(sakstype)
 }

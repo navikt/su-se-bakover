@@ -5,6 +5,7 @@ import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
 import dokument.domain.generer.SammenslåPdf
+import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
@@ -22,7 +23,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.lagSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -163,7 +164,7 @@ class SøknadTest {
                 verify(it.søknadRepo).opprettSøknad(any())
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
@@ -224,7 +225,7 @@ class SøknadTest {
                 verify(it.sakService).hentSak(any<UUID>())
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
@@ -285,7 +286,7 @@ class SøknadTest {
                 )
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
@@ -368,7 +369,7 @@ class SøknadTest {
                 )
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
@@ -481,7 +482,7 @@ class SøknadTest {
                 )
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
-                        it shouldBe SøknadPdfInnhold.create(
+                        it shouldBe lagSøknadPdfInnhold(
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             søknadsId = it.søknadsId,
