@@ -1,47 +1,41 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 
-import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.maler.EnkeltMånedsoversikt
+import dokument.domain.generer.bygger.maler.MånedsoversiktMedSum
+import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.Vurdering
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
-val vedtaksbrevTilbakekrevingsbehandlingPdf: PdfInnhold = TODO("erstatt med tilhørende PdfInnhold")
-/*
-{
-  "personalia": {
-    "dato": "01.01.2020",
-    "fødselsnummer": "12345678901",
-    "fornavn": "Leeroy",
-    "etternavn": "Jenkins",
-    "adresse": "en Adresse",
-    "husnummer": "4C",
-    "bruksenhet": "H102",
-    "postnummer": "0186",
-    "poststed": "Oslo",
-    "saksnummer": "2021"
-  },
-  "skalTilbakekreve": false,
-  "bruttoSkalIkkeTilbakekreveSummert": 2021,
-  "fritekst": "Lorem Ipsum is simply dummy text of the printing and typesetting industry.\n\n Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-  "månedsoversiktMedSum": {
-    "sorterteMåneder": [
-      {
-        "periode": "01.01.2023 - 31.01.2023",
-        "vurdering": "SkalIkkeTilbakekreve",
-        "bruttoSkalTilbakekreve": 62011,
-        "nettoSkalTilbakekreve": 62011
-      },
-      {
-        "periode": "01.02.2023 - 28.02.2023",
-        "vurdering": "SkalTilbakekreve",
-        "bruttoSkalTilbakekreve": 67177,
-        "nettoSkalTilbakekreve": 67177
-      }
-    ],
-    "sumBruttoSkalTilbakekreve": 67177,
-    "sumNettoSkalTilbakekreve": 67177
-  },
-  "saksbehandlerNavn": "Malenia, blade of Miquella",
-  "attestantNavn": "James Eugene Raynor"
-}
-*/
+val vedtaksbrevTilbakekrevingsbehandlingPdf = VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
+    personalia = PersonaliaPdfInnhold(
+        dato = "01.01.2020",
+        fødselsnummer = "12345678901",
+        fornavn = "Leeroy",
+        etternavn = "Jenkins",
+        saksnummer = 2021,
+    ),
+    saksbehandlerNavn = "Malenia, blade of Miquella",
+    fritekst = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
+    sakstype = Sakstype.UFØRE,
+    dødsbo = false,
+    skalTilbakekreve = false,
+    attestantNavn = "James Eugene Raynor",
+    dato = "01.01.2020",
+    månedsoversiktMedSum = MånedsoversiktMedSum(
+        sorterteMåneder = listOf(
+            EnkeltMånedsoversikt(
+                periode = "01.01.2023 - 31.01.2023",
+                vurdering = Vurdering.SkalTilbakekreve,
+                bruttoSkalTilbakekreve = 1000,
+                nettoSkalTilbakekreve = 800,
+            ),
+        ),
+        sumBruttoSkalTilbakekreve = 1000,
+        sumNettoSkalTilbakekreve = 800,
+    ),
+    bruttoSkalIkkeTilbakekreveSummert = 2021,
+)
 
 val vedtaksbrevTilbakekrevingsbehandlingVerdier = listOf(
     "Du",
