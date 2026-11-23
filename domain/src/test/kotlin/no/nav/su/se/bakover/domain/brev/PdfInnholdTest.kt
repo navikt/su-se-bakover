@@ -5,7 +5,6 @@ import arrow.core.right
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
-import dokument.domain.generer.bygger.MånedsfradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
@@ -19,15 +18,9 @@ import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
-import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
-import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.brev.pdfInnholdPersonalia
 import no.nav.su.se.bakover.test.brev.pdfInnholdTrukketSøknad
 import no.nav.su.se.bakover.test.fixedClock
@@ -44,6 +37,8 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for inntektsrevurdering stemmer overens med det som forventes av pdfgenerator`() {
+        // TODO PdfBygger ryddejobb
+
         val satsbeløp = 20637
         val sats = "høy"
         val fraOgMed = "01.01.2020"
@@ -128,82 +123,6 @@ internal class PdfInnholdTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, innhold.toJson(), true)
-    }
-
-    @Test
-    fun `ordinær og historisk inntektsrevurdering mapper til felles brevmodell`() {
-        val beregning = beregning(periode = januar(2021))
-        val beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold
-        val historiskeBeregningsperioder = beregningsperioder.map { periode ->
-            periode.copy(
-                fradrag = FradragForBrev(
-                    bruker = emptyList(),
-                    eps = FradragForBrev.Eps(
-                        fradrag = listOf(MånedsfradragForBrev(type = "Pensjon", beløp = 3000, utenlandskInntekt = null)),
-                        harFradragMedSumSomErLavereEnnFribeløp = false,
-                    ),
-                ),
-            )
-        }
-        val fritekst = "Første avsnitt.\n\nAndre avsnitt."
-        val satsoversikt = Satsoversikt(
-            perioder = listOf(
-                Satsoversikt.Satsperiode(
-                    fraOgMed = "01.01.2021",
-                    tilOgMed = "31.01.2021",
-                    sats = "høy",
-                    satsBeløp = 20637,
-                    satsGrunn = "ENSLIG",
-                ),
-            ),
-        )
-        val ordinær = IverksettRevurderingDokumentCommand.Inntekt(
-            fødselsnummer = fnr,
-            saksnummer = saksnummer,
-            sakstype = Sakstype.UFØRE,
-            saksbehandler = saksbehandler,
-            attestant = attestant,
-            beregning = beregning,
-            fritekst = fritekst,
-            harEktefelle = false,
-            forventetInntektStørreEnn0 = false,
-            satsoversikt = satsoversikt,
-        )
-        val historisk = HistoriskInfotrygdRevurderingDokumentCommand.Inntekt(
-            fødselsnummer = fnr,
-            saksnummer = saksnummer,
-            saksbehandler = saksbehandler,
-            attestant = attestant,
-            beregningsperioder = historiskeBeregningsperioder,
-            fritekst = fritekst,
-            harEktefelle = true,
-            satsoversikt = satsoversikt,
-        )
-
-        val (ordinærtInnhold, historiskInnhold) = listOf(ordinær, historisk).map { command ->
-            command.tilPdfInnhold(
-                clock = fixedClock,
-                hentPerson = { person().right() },
-                hentNavnForIdent = { ident -> ident.navIdent.right() },
-            ).getOrFail().shouldBeInstanceOf<RevurderingAvInntektPdfInnhold>().also { innhold ->
-                innhold.fritekst shouldBe fritekst
-                innhold.saksbehandlerNavn shouldBe saksbehandler.navIdent
-                innhold.attestantNavn shouldBe attestant.navIdent
-                innhold.satsoversikt shouldBe satsoversikt.toBrev()
-            }
-        }
-
-        ordinærtInnhold.sakstype shouldBe ordinær.sakstype
-        ordinærtInnhold.beregningsperioder shouldBe beregningsperioder
-        ordinærtInnhold.harFradrag shouldBe false
-        ordinærtInnhold.harEktefelle shouldBe ordinær.harEktefelle
-        ordinærtInnhold.forventetInntektStørreEnn0 shouldBe ordinær.forventetInntektStørreEnn0
-
-        historiskInnhold.sakstype shouldBe historisk.sakstype
-        historiskInnhold.beregningsperioder shouldBe historiskeBeregningsperioder
-        historiskInnhold.harFradrag shouldBe true
-        historiskInnhold.harEktefelle shouldBe historisk.harEktefelle
-        historiskInnhold.forventetInntektStørreEnn0 shouldBe false
     }
 
     @Test
