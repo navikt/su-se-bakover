@@ -111,7 +111,7 @@ val avvistKlage = { _: String, pdfInnhold: KlagePdfInnhold.Avvist ->
     dokument(tittel, pdfInnhold.personalia) {
         paragraph("Fødselsnummer: ${pdfInnhold.personalia.fødselsnummer}")
         fritekst(pdfInnhold.fritekst)
-        fellesKlageinfo(pdfInnhold.sakstype)
+        fellesKlageinfo(pdfInnhold.sakstype, dødsbo = pdfInnhold.dødsbo)
         hilsen(saksbehandler = pdfInnhold.saksbehandlerNavn, attestant = pdfInnhold.attestantNavn)
     }
 }
