@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.migratedDb
+import no.nav.su.se.bakover.test.persistence.withTestConnectionPool
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -150,22 +151,24 @@ data object SharedRegressionTestData {
         aapApiClientStub: AapApiInternClient = AapApiInternClientStub(),
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
-        val appComponents = AppComponents.from(
-            dataSource,
-            clock,
-            utbetalingerKjørtTilOgMed,
-            satsFactory,
-            applicationConfig,
-            personOppslagStub,
-            pesysClientStub,
-            aapApiClientStub,
-        )
-        runTestWithRealTime(timeout = regresjonstestTimeout) {
-            runTestApplication {
-                application {
-                    testSusebakover(appComponents = appComponents)
+        withTestConnectionPool(dataSource) { scopedDataSource ->
+            val appComponents = AppComponents.from(
+                scopedDataSource,
+                clock,
+                utbetalingerKjørtTilOgMed,
+                satsFactory,
+                applicationConfig,
+                personOppslagStub,
+                pesysClientStub,
+                aapApiClientStub,
+            )
+            runTestWithRealTime(timeout = regresjonstestTimeout) {
+                runTestApplication {
+                    application {
+                        testSusebakover(appComponents = appComponents)
+                    }
+                    test(appComponents)
                 }
-                test(appComponents)
             }
         }
     }
@@ -180,22 +183,24 @@ data object SharedRegressionTestData {
         aapApiClientStub: AapApiInternClient = AapApiInternClientStub(),
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
-        val appComponents = AppComponents.from(
-            dataSource,
-            clock,
-            utbetalingerKjørtTilOgMed,
-            satsFactory,
-            applicationConfig,
-            personOppslagStub,
-            pesysClientStub,
-            aapApiClientStub,
-        )
-        runTestWithRealTime(timeout = regresjonstestTimeout) {
-            runTestApplication {
-                application {
-                    testSusebakover(appComponents = appComponents)
+        withTestConnectionPool(dataSource) { scopedDataSource ->
+            val appComponents = AppComponents.from(
+                scopedDataSource,
+                clock,
+                utbetalingerKjørtTilOgMed,
+                satsFactory,
+                applicationConfig,
+                personOppslagStub,
+                pesysClientStub,
+                aapApiClientStub,
+            )
+            runTestWithRealTime(timeout = regresjonstestTimeout) {
+                runTestApplication {
+                    application {
+                        testSusebakover(appComponents = appComponents)
+                    }
+                    test(appComponents)
                 }
-                test(appComponents)
             }
         }
     }

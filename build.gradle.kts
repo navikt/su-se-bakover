@@ -209,23 +209,26 @@ subprojects {
     tasks.test.configure {
         sharedTestSetup()
         val cpus = Runtime.getRuntime().availableProcessors()
+        val parallelism = (cpus - 1).toString()
         // denne gir en jvm per modul ikke for hele prosjektet!
         maxParallelForks = 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = "true"
         systemProperties["junit.jupiter.execution.parallel.config.strategy"] = "fixed"
-        systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = (cpus - 1).toString()
+        systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = parallelism
+        if (project.name == "database") {
+            // Blocking database provisioning otherwise allows JUnit to add compensation threads.
+            systemProperties["junit.jupiter.execution.parallel.config.fixed.max-pool-size"] = parallelism
+        }
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
         systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
     if (project.name == "web-regresjonstest") {
         tasks.test.configure {
-            sharedTestSetup()
-            // jah: Fikk problemer med at reg-testene fikk timeout etter opgpradering til ktor 3
-            maxParallelForks = 1
-            systemProperties["junit.jupiter.execution.parallel.enabled"] = false
+            val parallelism = "2"
+            systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = parallelism
+            systemProperties["junit.jupiter.execution.parallel.config.fixed.max-pool-size"] = parallelism
             systemProperties["junit.jupiter.execution.parallel.mode.default"] = "same_thread"
-            systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "same_thread"
         }
     }
 }
