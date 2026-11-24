@@ -82,6 +82,28 @@ internal class InstitusjonsoppholdServiceTest {
     }
 
     @Test
+    fun `ugyldig norskident gir nøytral feil uten identifikator før saksoppslag`() {
+        val correlationId = CorrelationId.generate()
+        val testMocks = mockedServices()
+        val ugyldigNorskident = "${Fnr.generer()}A"
+        val melding = EksternInstitusjonsoppholdHendelseJson(
+            hendelseId = 1,
+            oppholdId = 2,
+            norskident = ugyldigNorskident,
+            type = EksternInstitusjonsoppholdTypeJson.INNMELDING,
+            kilde = EksternInstitusjonsoppholdKildeJson.INST,
+        )
+
+        val feil = assertThrows<IllegalArgumentException> {
+            testMocks.institusjonsoppholdService().process(serialize(melding), correlationId)
+        }
+
+        feil.message shouldBe "Ugyldig norskident i institusjonsoppholdshendelse"
+        feil.cause shouldBe null
+        testMocks.verifyNoMoreInteractions()
+    }
+
+    @Test
     fun `melding med null kilde ignoreres selv om personen har sak`() {
         val correlationId = CorrelationId.generate()
         val sak = søknadsbehandlingIverksattInnvilget().first

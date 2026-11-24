@@ -36,7 +36,9 @@ class EksternInstitusjonsoppholdKonsument(
         val jsontreeAvHendelse = jsonNode(hendelseRå)
         // Vi ønsker ikke å deserialisere hele før vi vet om hendelsen er relevant for oss.
         val norskIdentForHendelse = jsontreeAvHendelse.get("norskident")?.textValue() ?: throw IllegalStateException("NorskIdentForHendelse er null i hendelse")
-        sakRepo.hentSaker(Fnr(norskIdentForHendelse)).ifNotEmpty {
+        val norskIdent = Fnr.tryCreate(norskIdentForHendelse)
+            ?: throw IllegalArgumentException("Ugyldig norskident i institusjonsoppholdshendelse")
+        sakRepo.hentSaker(norskIdent).ifNotEmpty {
             val hendelseRå = deserialize<EksternInstitusjonsoppholdHendelseJson>(hendelseRå)
             if (hendelseRå.kilde == null) {
                 log.warn("Hendelse ${hendelseRå.hendelseId} for opphold ${hendelseRå.oppholdId} har kilde=null. Dette er ikke forventet, og det er avtalt med team-rocket at de trygt kan ignorereres")
