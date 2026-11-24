@@ -72,12 +72,37 @@ internal class PersonRoutesKtTest {
             }
             listOf("$PERSON_PATH/søk", "$PERSON_PATH/bor-paa-adresse").forEach { path ->
                 tilfeller.forEach { (body, forventetFeil) ->
-                    defaultRequest(Post, path, listOf(Brukerrolle.Veileder)) {
+                    defaultRequest(Post, path, listOf(Brukerrolle.Saksbehandler)) {
                         setBody(serialize(body))
                     }.apply {
                         status shouldBe HttpStatusCode.BadRequest
                         deserialize<ErrorJson>(bodyAsText()) shouldBe forventetFeil
                     }
+                }
+            }
+        }
+        verifyNoInteractions(personService)
+    }
+
+    @Test
+    fun `avviser roller uten tilgang før personoppslag`() {
+        val personService = mock<PersonService>()
+        val avvisteKall = listOf(
+            "$PERSON_PATH/søk" to Brukerrolle.Drift,
+            "$PERSON_PATH/bor-paa-adresse" to Brukerrolle.Drift,
+            "$PERSON_PATH/bor-paa-adresse" to Brukerrolle.Veileder,
+        )
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services.copy(person = personService))
+            }
+            avvisteKall.forEach { (path, rolle) ->
+                defaultRequest(Post, path, listOf(rolle)) {
+                    setBody(serialize(gyldigRequest))
+                }.apply {
+                    status shouldBe Forbidden
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe "mangler_rolle"
                 }
             }
         }
@@ -134,11 +159,39 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(clock = fixedClock, accessCheckProxy = accessCheckProxyMock)
             }
-            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody(serialize(gyldigRequest))
-            }.apply {
-                status shouldBe OK
-                deserialize<PersonResponseJson>(bodyAsText()) shouldBe expectedResponse
+            listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder).forEach { rolle ->
+                defaultRequest(Post, "$PERSON_PATH/søk", listOf(rolle)) {
+                    setBody(serialize(gyldigRequest))
+                }.apply {
+                    status shouldBe OK
+                    deserialize<PersonResponseJson>(bodyAsText()) shouldBe expectedResponse
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `saksbehandler og attestant kan hente personer på adresse`() {
+        val adresse = BorPåAdresse(søktAdresse = "Testveien 1", treff = emptyList())
+        val personService = mock<PersonService> {
+            on { borPåAdresse(any(), any()) } doReturn adresse.right()
+        }
+        val accessCheckProxy = mock<AccessCheckProxy> {
+            on { proxy() } doReturn services.copy(person = personService)
+        }
+        val forventetResponse = adresse.toJson()
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(accessCheckProxy = accessCheckProxy)
+            }
+            listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant).forEach { rolle ->
+                defaultRequest(Post, "$PERSON_PATH/bor-paa-adresse", listOf(rolle)) {
+                    setBody(serialize(gyldigRequest))
+                }.apply {
+                    status shouldBe OK
+                    deserialize<BorPåAdresseJson>(bodyAsText()) shouldBe forventetResponse
+                }
             }
         }
     }
