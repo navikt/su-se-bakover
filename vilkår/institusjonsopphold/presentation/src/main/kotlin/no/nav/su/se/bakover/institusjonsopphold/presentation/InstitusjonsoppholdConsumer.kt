@@ -93,8 +93,21 @@ class InstitusjonsoppholdConsumer private constructor(
                     message.partition(),
                     message.offset(),
                 )
-                val eksternInstHendelse = deserialize<EksternInstitusjonsoppholdHendelseJson>(message.value())
-                institusjonsoppholdService.process(eksternInstHendelse.toDomain(), correlationId)
+                if (
+                    message.topic() == "team-rocket.institusjon-opphold-hendelser" &&
+                    message.partition() == 0 &&
+                    message.offset() == 783114L
+                ) {
+                    log.warn(
+                        "InstitusjonsoppholdConsumer: Forkaster melding etter avtale med produsenten fra topic {}, partisjon {}, offset {}. Produsenten vil sende en erstatningshendelse.",
+                        message.topic(),
+                        message.partition(),
+                        message.offset(),
+                    )
+                } else {
+                    val eksternInstHendelse = deserialize<EksternInstitusjonsoppholdHendelseJson>(message.value())
+                    institusjonsoppholdService.process(eksternInstHendelse.toDomain(), correlationId)
+                }
                 offsets[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(message.offset() + 1)
             }
             consumer.commitSync(offsets)
