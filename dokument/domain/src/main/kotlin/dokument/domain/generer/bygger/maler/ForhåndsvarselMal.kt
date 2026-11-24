@@ -18,7 +18,7 @@ data class ForhåndsvarselPdfInnhold(
     val saksbehandlerNavn: String,
     val fritekst: String,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Forhåndsvarsel
+    override val dokumentMal = DokumentMal.Revurdering.Forhåndsvarsel
 }
 
 val forhåndsvarsel = { tittel: String, pdfInnhold: ForhåndsvarselPdfInnhold ->
