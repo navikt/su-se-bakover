@@ -37,7 +37,7 @@ data class KontrollnotatPdfInnholdNy(
     val skatteOpplysninger: Boolean,
     val fritekst: String?,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Kontrollnotat
+    override val dokumentMal = DokumentMal.Lokalkontor.Kontrollnotat
 }
 
 val kontrollnotat = { tittel: String, pdfInnhold: KontrollnotatPdfInnholdNy ->

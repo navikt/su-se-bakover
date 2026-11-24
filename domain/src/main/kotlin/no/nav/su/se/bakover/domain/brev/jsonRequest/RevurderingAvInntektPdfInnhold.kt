@@ -1,51 +1,52 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import dokument.domain.generer.DokumentMal
-import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.harFradrag
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.toBrev
+import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 
-data class RevurderingAvInntektPdfInnhold(
-    override val sakstype: Sakstype,
-    val personalia: PersonaliaPdfInnhold,
-    val saksbehandlerNavn: String,
-    val attestantNavn: String,
-    val beregningsperioder: List<BeregningsperiodeBrev>,
-    val fritekst: String?,
-    val harEktefelle: Boolean,
-    val forventetInntektStørreEnn0: Boolean,
-    val satsoversikt: Satsoversikt,
-) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Revurdering.Inntekt
+fun IverksettRevurderingDokumentCommand.Inntekt.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+): RevurderingAvInntektPdfInnhold {
+    val command = this
+    val beregningsperioder = LagBrevinnholdForBeregning(command.beregning).brevInnhold
 
-    @Suppress("unused")
-    @JsonInclude
-    val harFradrag: Boolean = beregningsperioder.harFradrag()
+    return RevurderingAvInntektPdfInnhold(
+        sakstype = command.sakstype,
+        personalia = personalia,
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        beregningsperioder = beregningsperioder,
+        fritekst = command.fritekst,
+        harEktefelle = command.harEktefelle,
+        forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
+        satsoversikt = command.satsoversikt.toBrev(),
+        harFradrag = beregningsperioder.harFradrag(),
+    )
+}
 
-    companion object {
-        fun fromBrevCommand(
-            command: IverksettRevurderingDokumentCommand.Inntekt,
-            personalia: PersonaliaPdfInnhold,
-            saksbehandlerNavn: String,
-            attestantNavn: String,
-        ): RevurderingAvInntektPdfInnhold {
-            return RevurderingAvInntektPdfInnhold(
-                sakstype = command.sakstype,
-                personalia = personalia,
-                saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn,
-                beregningsperioder = LagBrevinnholdForBeregning(command.beregning).brevInnhold,
-                fritekst = command.fritekst,
-                harEktefelle = command.harEktefelle,
-                forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
-                satsoversikt = command.satsoversikt,
-            )
-        }
-    }
+fun HistoriskInfotrygdRevurderingDokumentCommand.Inntekt.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+): RevurderingAvInntektPdfInnhold {
+    val command = this
+
+    return RevurderingAvInntektPdfInnhold(
+        sakstype = command.sakstype,
+        personalia = personalia,
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        beregningsperioder = command.beregningsperioder,
+        fritekst = command.fritekst,
+        harEktefelle = command.harEktefelle,
+        forventetInntektStørreEnn0 = false,
+        satsoversikt = command.satsoversikt.toBrev(),
+        harFradrag = command.beregningsperioder.harFradrag(),
+    )
 }

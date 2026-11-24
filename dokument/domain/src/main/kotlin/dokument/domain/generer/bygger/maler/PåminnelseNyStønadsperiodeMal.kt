@@ -17,7 +17,7 @@ data class PåminnelseNyStønadsperiodePdfInnhold(
     // Er en bruker med uføre som fyller 67 år i stønadsperiode sin siste måned
     val uføreSomFyller67: Boolean,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.PåminnelseNyStønadsperiode
+    override val dokumentMal = DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode
 }
 
 val påminnelseOmNyStønadsperiode = { _: String, pdfInnhold: PåminnelseNyStønadsperiodePdfInnhold ->
