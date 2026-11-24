@@ -393,27 +393,29 @@ internal fun Route.søknadsbehandlingRoutes(
     )
 
     get("$SØKNADSBEHANDLING_PATH/{behandlingId}/gjeldendeVedtaksdata/tidligereperiode") {
-        call.withSakId { sakId ->
-            call.withBehandlingId { behandlingId ->
-                søknadsbehandlingService.hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
-                    sakId = sakId,
-                    søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
-                ).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = {
-                        call.svar(
-                            Resultat.json(
-                                OK,
-                                serialize(
-                                    TidligerePeriodeRespnse(
-                                        periode = it.first.toJson(),
-                                        grunnlagsdataOgVilkårsvurderinger = it.second.toJson(formuegrenserFactory),
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                call.withBehandlingId { behandlingId ->
+                    søknadsbehandlingService.hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
+                        sakId = sakId,
+                        søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.svar(
+                                Resultat.json(
+                                    OK,
+                                    serialize(
+                                        TidligerePeriodeRespnse(
+                                            periode = it.first.toJson(),
+                                            grunnlagsdataOgVilkårsvurderinger = it.second.toJson(formuegrenserFactory),
+                                        ),
                                     ),
                                 ),
-                            ),
-                        )
-                    },
-                )
+                            )
+                        },
+                    )
+                }
             }
         }
     }

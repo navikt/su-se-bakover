@@ -42,7 +42,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
     override val sakstype: Sakstype,
 ) : PdfInnhold {
 
-    override val dokumentMal = DokumentMal.AvslagsVedtak
+    override val dokumentMal = DokumentMal.Søknadsbehandling.AvslagsVedtak
 }
 
 data class FormueForBrev(

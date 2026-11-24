@@ -8,15 +8,18 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import person.domain.BorPåAdresse
 import person.domain.KunneIkkeHenteBorPåAdresse
@@ -56,37 +59,41 @@ internal fun Route.personRoutes(
     clock: Clock,
 ) {
     post("$PERSON_PATH/søk") {
-        call.withBody<PersonSøkBody> { body ->
-            val (fnr, sakstype) = body.valider().getOrElse { return@withBody call.svar(it) }
-            call.svar(
-                personService.hentPersonMedSkjermingOgKontaktinfo(fnr, sakstype).fold(
-                    {
-                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                        it.tilResultat()
-                    },
-                    {
-                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson(clock)))
-                    },
-                ),
-            )
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder) {
+            call.withValidertBody<PersonSøkBody>(log) { body ->
+                val (fnr, sakstype) = body.valider().getOrElse { return@withValidertBody call.svar(it) }
+                call.svar(
+                    personService.hentPersonMedSkjermingOgKontaktinfo(fnr, sakstype).fold(
+                        {
+                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                            it.tilResultat()
+                        },
+                        {
+                            call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                            Resultat.json(HttpStatusCode.OK, serialize(it.toJson(clock)))
+                        },
+                    ),
+                )
+            }
         }
     }
     post("$PERSON_PATH/bor-paa-adresse") {
-        call.withBody<PersonSøkBody> { body ->
-            val (fnr, sakstype) = body.valider().getOrElse { return@withBody call.svar(it) }
-            call.svar(
-                personService.borPåAdresse(fnr, sakstype).fold(
-                    {
-                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                        it.tilResultat()
-                    },
-                    {
-                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
-                    },
-                ),
-            )
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withValidertBody<PersonSøkBody>(log) { body ->
+                val (fnr, sakstype) = body.valider().getOrElse { return@withValidertBody call.svar(it) }
+                call.svar(
+                    personService.borPåAdresse(fnr, sakstype).fold(
+                        {
+                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                            it.tilResultat()
+                        },
+                        {
+                            call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                            Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
+                        },
+                    ),
+                )
+            }
         }
     }
 }

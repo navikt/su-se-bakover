@@ -9,4 +9,5 @@ fun KunneIkkeStarteSøknadsbehandling.tilResultat() = when (this) {
     KunneIkkeStarteSøknadsbehandling.FeilVedOpprettingAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
     KunneIkkeStarteSøknadsbehandling.BehandlingErAlleredePåbegynt -> Feilresponser.behandlingErAlleredePåbegynt
     KunneIkkeStarteSøknadsbehandling.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+    KunneIkkeStarteSøknadsbehandling.FantIkkeSak -> Feilresponser.fantIkkeSak
 }

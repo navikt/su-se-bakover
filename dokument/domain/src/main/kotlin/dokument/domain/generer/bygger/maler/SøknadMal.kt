@@ -50,7 +50,7 @@ data class SøknadPdfInnhold(
     val søknadOpprettet: String,
     val søknadInnhold: SøknadInnhold,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Søknad
+    override val dokumentMal = DokumentMal.Lokalkontor.Søknad
 }
 val soknad = { pdfInnhold: SøknadPdfInnhold ->
     val innhold = pdfInnhold.søknadInnhold

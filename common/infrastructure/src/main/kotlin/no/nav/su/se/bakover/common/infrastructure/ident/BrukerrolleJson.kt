@@ -13,6 +13,7 @@ enum class BrukerrolleJson {
     SAKSBEHANDLER,
     ATTESTANT,
     DRIFT,
+    STATISTIKK,
     ;
 
     fun toNavIdentBruker(ident: String): NavIdentBruker {
@@ -21,6 +22,7 @@ enum class BrukerrolleJson {
             SAKSBEHANDLER -> NavIdentBruker.Saksbehandler(ident)
             ATTESTANT -> NavIdentBruker.Attestant(ident)
             DRIFT -> NavIdentBruker.Drift(ident)
+            STATISTIKK -> NavIdentBruker.Statistikk(ident)
         }
     }
     companion object {
@@ -30,6 +32,7 @@ enum class BrukerrolleJson {
                 is NavIdentBruker.Saksbehandler -> SAKSBEHANDLER
                 is NavIdentBruker.Veileder -> VEILEDER
                 is NavIdentBruker.Drift -> DRIFT
+                is NavIdentBruker.Statistikk -> STATISTIKK
             }
         }
 
@@ -39,6 +42,7 @@ enum class BrukerrolleJson {
                 Brukerrolle.Saksbehandler -> SAKSBEHANDLER
                 Brukerrolle.Veileder -> VEILEDER
                 Brukerrolle.Drift -> DRIFT
+                Brukerrolle.Statistikk -> STATISTIKK
             }
         }
     }

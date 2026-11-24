@@ -5,6 +5,7 @@ data class AzureGroups(
     val saksbehandler: String,
     val veileder: String,
     val drift: String,
+    val statistikk: String,
 ) {
-    fun asList() = listOf(attestant, saksbehandler, veileder, drift)
+    fun asList() = listOf(attestant, saksbehandler, veileder, drift, statistikk)
 }

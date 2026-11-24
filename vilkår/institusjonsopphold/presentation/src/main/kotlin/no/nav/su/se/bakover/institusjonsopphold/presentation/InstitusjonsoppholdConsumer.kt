@@ -8,7 +8,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
@@ -87,8 +86,16 @@ class InstitusjonsoppholdConsumer private constructor(
 
         run offsets@{
             messages.forEach { message ->
-                val eksternInstHendelse = deserialize<EksternInstitusjonsoppholdHendelseJson>(message.value())
-                institusjonsoppholdService.process(eksternInstHendelse.toDomain(), correlationId)
+                log.info(
+                    "InstitusjonsoppholdConsumer: Starter behandling av melding fra topic {}, partisjon {}, offset {}.",
+                    message.topic(),
+                    message.partition(),
+                    message.offset(),
+                )
+
+                val melding = message.value()
+                institusjonsoppholdService.process(melding, correlationId)
+
                 offsets[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(message.offset() + 1)
             }
             consumer.commitSync(offsets)
