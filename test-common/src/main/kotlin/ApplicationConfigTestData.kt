@@ -27,6 +27,7 @@ fun applicationConfig() = ApplicationConfig(
             saksbehandler = "testAzureGroupSaksbehandler",
             veileder = "testAzureGroupVeileder",
             drift = "testAzureGroupDrift",
+            statistikk = "testAzureGroupStatistikk",
         ),
     ),
     oppdrag = ApplicationConfig.OppdragConfig(

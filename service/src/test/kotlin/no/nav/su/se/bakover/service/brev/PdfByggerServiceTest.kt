@@ -131,7 +131,7 @@ internal class PdfByggerServiceTest {
         val gammelKlient = mock<PdfGenerator>()
         val service = PdfByggerService(klient, gammelKlient, ApplicationConfig.RuntimeEnvironment.Test, fixedClock)
 
-        listOf(DokumentMal.Kontrollnotat, DokumentMal.Søknad).forEach { mal ->
+        listOf(DokumentMal.Lokalkontor.Kontrollnotat, DokumentMal.Lokalkontor.Søknad).forEach { mal ->
             val innhold = object : PdfInnhold {
                 override val dokumentMal = mal
                 override val sakstype = Sakstype.UFØRE
@@ -378,7 +378,7 @@ internal class PdfByggerServiceTest {
         brukPdfgenLokalt: Boolean = false,
     ) {
         // Ingen ekte mal har pdfByggerProd = true ennå, så vi overstyrer flaggene i testen.
-        val mal = spy(DokumentMal.Kontrollnotat)
+        val mal = spy(DokumentMal.Lokalkontor.Kontrollnotat)
         doReturn(pdfByggerDev).whenever(mal).pdfByggerDev
         doReturn(pdfByggerProd).whenever(mal).pdfByggerProd
         val innhold = spy(kontrollnotatPdf)

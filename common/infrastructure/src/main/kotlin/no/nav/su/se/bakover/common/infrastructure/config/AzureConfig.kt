@@ -21,6 +21,7 @@ data class AzureConfig(
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
                     drift = getEnvironmentVariableOrThrow("AZURE_GROUP_DRIFT"),
+                    statistikk = getEnvironmentVariableOrThrow("AZURE_GROUP_STATISTIKK"),
                 ),
             )
         }
@@ -57,6 +58,10 @@ data class AzureConfig(
                     drift = getEnvironmentVariableOrDefault(
                         "AZURE_GROUP_DRIFT",
                         "5ccd88bd-58d6-41a7-9652-5e0597b00f9b",
+                    ),
+                    statistikk = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_STATISTIKK",
+                        "07d31250-3fe5-435d-9382-0930852f35db",
                     ),
                 ),
             )

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.institusjonsopphold.presentation
+package no.nav.su.se.bakover.institusjonsopphold.application.json
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
@@ -12,7 +12,7 @@ data class EksternInstitusjonsoppholdHendelseJson(
     val oppholdId: Long,
     val norskident: String,
     val type: EksternInstitusjonsoppholdTypeJson,
-    val kilde: EksternInstitusjonsoppholdKildeJson,
+    val kilde: EksternInstitusjonsoppholdKildeJson? = null,
 ) {
     fun toDomain(): EksternInstitusjonsoppholdHendelse =
         EksternInstitusjonsoppholdHendelse(
@@ -21,6 +21,8 @@ data class EksternInstitusjonsoppholdHendelseJson(
             norskident = Fnr.tryCreate(norskident)
                 ?: throw IllegalArgumentException("Kunne ikke lage fødselsnummer av ident for hendelse $hendelseId, opphold $oppholdId. Er dette ikke et fnr?"),
             type = type.toDomain(),
-            kilde = kilde.toDomain(),
+            kilde = checkNotNull(kilde) {
+                "Kan ikke konvertere institusjonsoppholdshendelse uten kilde til domenemodell"
+            }.toDomain(),
         )
 }

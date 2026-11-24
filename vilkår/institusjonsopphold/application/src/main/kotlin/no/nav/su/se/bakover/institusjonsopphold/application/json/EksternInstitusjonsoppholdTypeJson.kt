@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.institusjonsopphold.presentation
+package no.nav.su.se.bakover.institusjonsopphold.application.json
 
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
 

@@ -35,6 +35,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import java.util.UUID
 
 internal class SøknadsbehandlingRoutesKtTest {
@@ -263,6 +264,32 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
             }
         }
+    }
+
+    @ParameterizedTest
+    @EnumSource(Brukerrolle::class, names = ["Attestant", "Veileder", "Drift"])
+    fun `bare saksbehandler kan hente gjeldende vedtaksdata for tidligere periode`(rolle: Brukerrolle) {
+        val søknadsbehandlingServices = SøknadsbehandlingServices(
+            søknadsbehandlingService = mock(),
+            iverksettSøknadsbehandlingService = mock(),
+        )
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServices),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Get,
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/gjeldendeVedtaksdata/tidligereperiode",
+                listOf(rolle),
+            ).apply {
+                status shouldBe HttpStatusCode.Forbidden
+                deserialize<ErrorJson>(bodyAsText()).code shouldBe "mangler_rolle"
+            }
+        }
+        verifyNoInteractions(søknadsbehandlingServices.søknadsbehandlingService)
     }
 
     @Test
