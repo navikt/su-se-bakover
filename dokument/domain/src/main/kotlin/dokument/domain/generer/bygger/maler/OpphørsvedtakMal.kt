@@ -50,7 +50,7 @@ data class OpphørsvedtakPdfInnhold(
     val satsoversikt: SatsoversiktBrev,
     val harFradrag: Boolean,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Opphørsvedtak
+    override val dokumentMal = DokumentMal.Revurdering.Opphørsvedtak
 }
 
 val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnhold ->

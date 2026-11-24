@@ -116,13 +116,13 @@ class SendPåminnelseNyStønadsperiodeKomponentTest(private val dataSource: Data
             )
 
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperIJobbmåned.first).forNone {
-                it.tittel shouldContain DokumentMal.PåminnelseNyStønadsperiode.tittel
+                it.tittel shouldContain DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperMånedenEtter.first).single {
-                it.tittel.contains(DokumentMal.PåminnelseNyStønadsperiode.tittel)
+                it.tittel.contains(DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperSenere.first).forNone {
-                it.tittel shouldContain DokumentMal.PåminnelseNyStønadsperiode.tittel
+                it.tittel shouldContain DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel
             }
 
             val nySakUtløperMånedenEtter = opprettInnvilgetSøknadsbehandling(
@@ -162,16 +162,16 @@ class SendPåminnelseNyStønadsperiodeKomponentTest(private val dataSource: Data
             )
 
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperIJobbmåned.first).forNone {
-                it.tittel shouldContain DokumentMal.PåminnelseNyStønadsperiode.tittel
+                it.tittel shouldContain DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperMånedenEtter.first).single {
-                it.tittel.contains(DokumentMal.PåminnelseNyStønadsperiode.tittel)
+                it.tittel.contains(DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperSenere.first).forNone {
-                it.tittel shouldContain DokumentMal.PåminnelseNyStønadsperiode.tittel
+                it.tittel shouldContain DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(nySakUtløperMånedenEtter.first).single {
-                it.tittel.contains(DokumentMal.PåminnelseNyStønadsperiode.tittel)
+                it.tittel.contains(DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel)
             }
         }
     }
