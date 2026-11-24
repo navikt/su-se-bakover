@@ -155,11 +155,12 @@ class SøknadsbehandlingServiceImpl(
 
     override fun startBehandling(
         request: OppstartRequest,
-        hentSak: (() -> Sak)?,
     ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
         val (søknadId, sakId, saksbehandler) = request
-        val sak = hentSak?.let { it() } ?: sakService.hentSak(sakId)
-            .getOrElse { throw IllegalArgumentException("Fant ikke sak $sakId") }
+        val sak = sakService.hentSak(sakId)
+            .getOrElse {
+                return KunneIkkeStarteSøknadsbehandling.FantIkkeSak.left()
+            }
 
         // TODO Når alle søknader i produksjon som mangler behandling er opprettet kan denne erstattes med en feilmelding
         val søknadsbehandling = søknadsbehandlingRepo.hentForSøknad(søknadId)

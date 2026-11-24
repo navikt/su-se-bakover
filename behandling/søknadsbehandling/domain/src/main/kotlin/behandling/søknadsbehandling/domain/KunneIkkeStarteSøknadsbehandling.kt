@@ -6,4 +6,5 @@ sealed interface KunneIkkeStarteSøknadsbehandling {
     data object FeilVedOpprettingAvOppgave : KunneIkkeStarteSøknadsbehandling
     data object FantIkkeBehandling : KunneIkkeStarteSøknadsbehandling
     data object BehandlingErAlleredePåbegynt : KunneIkkeStarteSøknadsbehandling
+    data object FantIkkeSak : KunneIkkeStarteSøknadsbehandling
 }
