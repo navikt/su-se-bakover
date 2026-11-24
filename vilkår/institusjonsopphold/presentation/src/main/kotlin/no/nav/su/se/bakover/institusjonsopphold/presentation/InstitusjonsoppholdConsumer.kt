@@ -87,6 +87,12 @@ class InstitusjonsoppholdConsumer private constructor(
 
         run offsets@{
             messages.forEach { message ->
+                log.info(
+                    "InstitusjonsoppholdConsumer: Starter behandling av melding fra topic {}, partisjon {}, offset {}.",
+                    message.topic(),
+                    message.partition(),
+                    message.offset(),
+                )
                 val eksternInstHendelse = deserialize<EksternInstitusjonsoppholdHendelseJson>(message.value())
                 institusjonsoppholdService.process(eksternInstHendelse.toDomain(), correlationId)
                 offsets[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(message.offset() + 1)
