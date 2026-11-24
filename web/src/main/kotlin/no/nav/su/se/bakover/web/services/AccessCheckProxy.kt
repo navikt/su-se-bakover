@@ -776,10 +776,9 @@ open class AccessCheckProxy(
                     val service = services.søknadsbehandling.søknadsbehandlingService
                     override fun startBehandling(
                         request: SøknadsbehandlingService.OppstartRequest,
-                        hentSak: (() -> Sak)?,
                     ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
                         assertHarTilgangTilSøknad(request.søknadId)
-                        return service.startBehandling(request, hentSak)
+                        return service.startBehandling(request)
                     }
 
                     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, BeregnetSøknadsbehandling> {
