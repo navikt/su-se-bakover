@@ -26,7 +26,7 @@ private const val MAKS_ANTALL_MÅNEDER = 12L
 
 internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
     get("$STATISTIKK_PATH/sak") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
+        authorize(Brukerrolle.Statistikk, Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
             val nøkkel = call.sakstatistikkvisningsvalg()
                 ?: return@authorize call.svar(ugyldigeParametre())
 
@@ -51,7 +51,7 @@ internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
     }
 
     get("$STATISTIKK_PATH/stønad") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
+        authorize(Brukerrolle.Statistikk, Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
             val fraOgMed = call.request.parameter("fraOgMed")?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
             val tilOgMed = call.request.parameter("tilOgMed")?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
             if (

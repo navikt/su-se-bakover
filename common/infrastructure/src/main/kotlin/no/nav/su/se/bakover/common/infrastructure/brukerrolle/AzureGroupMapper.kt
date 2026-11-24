@@ -10,6 +10,7 @@ class AzureGroupMapper(private val azureGroups: AzureGroups) {
             azureGroups.saksbehandler -> Brukerrolle.Saksbehandler
             azureGroups.veileder -> Brukerrolle.Veileder
             azureGroups.drift -> Brukerrolle.Drift
+            azureGroups.statistikk -> Brukerrolle.Statistikk
             else -> null
         }
     }
