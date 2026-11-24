@@ -108,7 +108,7 @@ val avvistKlage = { _: String, pdfInnhold: KlagePdfInnhold.Avvist ->
     } else {
         "Nav har avvist klagen din"
     }
-    dokument(tittel, pdfInnhold.personalia) {
+    dokument(tittel, pdfInnhold.personalia, dødsbo = pdfInnhold.dødsbo) {
         paragraph("Fødselsnummer: ${pdfInnhold.personalia.fødselsnummer}")
         fritekst(pdfInnhold.fritekst)
         fellesKlageinfo(pdfInnhold.sakstype, dødsbo = pdfInnhold.dødsbo)

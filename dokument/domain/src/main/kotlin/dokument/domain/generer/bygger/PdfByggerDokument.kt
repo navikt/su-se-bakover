@@ -41,6 +41,7 @@ fun dokument(
 fun dokument(
     tittel: String?,
     personalia: PersonaliaPdfInnhold?,
+    dødsbo: Boolean = false,
     innhold: Innhold.() -> Unit,
 ): PdfBestilling.Dokument {
     val gyldigTittel = tittel?.trim()?.takeIf { it.isNotBlank() }
@@ -50,7 +51,13 @@ fun dokument(
                 tittel = gyldigTittel ?: STANDARDTITTEL,
                 visTittel = gyldigTittel != null,
                 visLogo = personalia != null,
-                gjelderNavn = personalia?.let { personaliaNavn(personalia) },
+                gjelderNavn = personalia?.let {
+                    if (dødsbo) {
+                        "${personaliaNavn(it)} v/dødsbo"
+                    } else {
+                        personaliaNavn(personalia)
+                    }
+                },
                 saksnummer = personalia?.let { documentSaksnummer(it.saksnummer.toString()) },
                 dokumentDato = personalia?.let { parsePersonaliaDato(it.dato) },
                 build = innhold,
