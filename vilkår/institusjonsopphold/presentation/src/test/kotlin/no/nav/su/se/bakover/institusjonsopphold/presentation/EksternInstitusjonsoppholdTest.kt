@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.institusjonsopphold.presentation
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdKilde
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
+import no.nav.su.se.bakover.institusjonsopphold.application.json.EksternInstitusjonsoppholdKildeJson
+import no.nav.su.se.bakover.institusjonsopphold.application.json.EksternInstitusjonsoppholdTypeJson
 import org.junit.jupiter.api.Test
 
 class EksternInstitusjonsoppholdTest {
