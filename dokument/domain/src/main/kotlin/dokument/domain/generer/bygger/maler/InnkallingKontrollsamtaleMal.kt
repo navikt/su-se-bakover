@@ -16,7 +16,7 @@ data class InnkallingTilKontrollsamtalePdfInnhold(
     override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.InnkallingTilKontrollsamtale
+    override val dokumentMal = DokumentMal.Tidsstyrt.InnkallingTilKontrollsamtale
 }
 
 val innkallingKontrollsamtale = { _: String, pdfInnhold: InnkallingTilKontrollsamtalePdfInnhold ->

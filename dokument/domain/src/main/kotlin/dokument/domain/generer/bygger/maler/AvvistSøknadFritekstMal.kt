@@ -17,7 +17,7 @@ data class AvvistSøknadFritekstPdfInnhold(
     val fritekst: String,
 ) : PdfInnhold {
 
-    override val dokumentMal = DokumentMal.AvvistSøknadFritekst
+    override val dokumentMal = DokumentMal.Søknadsbehandling.AvvistSøknadFritekst
 
     @Suppress("unused")
     @JsonInclude

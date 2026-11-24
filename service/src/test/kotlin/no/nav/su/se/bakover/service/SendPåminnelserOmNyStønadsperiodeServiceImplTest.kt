@@ -117,7 +117,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
-                        tittel = DokumentMal.PåminnelseNyStønadsperiode.tittel,
+                        tittel = DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel,
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right()
@@ -171,7 +171,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
             verify(serviceAndMocks.brevService).lagreDokument(
                 dokument = argThat {
-                    it.tittel shouldBe DokumentMal.PåminnelseNyStønadsperiode.tittel
+                    it.tittel shouldBe DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel
                     it.metadata shouldBe Dokument.Metadata(
                         sakId = sakSomFårPåminnelse.id,
                     )
@@ -224,7 +224,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
-                        tittel = DokumentMal.PåminnelseNyStønadsperiode.tittel,
+                        tittel = DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel,
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right()
@@ -328,7 +328,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),
-                        tittel = DokumentMal.PåminnelseNyStønadsperiode.tittel,
+                        tittel = DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode.tittel,
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right()

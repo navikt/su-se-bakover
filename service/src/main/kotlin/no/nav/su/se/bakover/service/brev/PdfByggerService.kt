@@ -24,6 +24,7 @@ import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.PåminnelseNyStønadsperiodePdfInnhold
+import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnhold
 import dokument.domain.generer.bygger.maler.SøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
@@ -133,12 +134,8 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
     is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
-    // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
+    is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
     is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
+    is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
     else -> null
 }
