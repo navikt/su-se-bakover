@@ -225,7 +225,6 @@ subprojects {
     }
     if (project.name == "web-regresjonstest") {
         tasks.test.configure {
-            systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = parallelism
             systemProperties["junit.jupiter.execution.parallel.config.fixed.max-pool-size"] = parallelism
             systemProperties["junit.jupiter.execution.parallel.mode.default"] = "same_thread"
         }
