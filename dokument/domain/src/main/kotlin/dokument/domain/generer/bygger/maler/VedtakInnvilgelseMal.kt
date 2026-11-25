@@ -1,6 +1,5 @@
 package dokument.domain.generer.bygger.maler
 
-import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
@@ -34,9 +33,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val satsoversikt: SatsoversiktBrev,
     val harFradrag: Boolean,
     override val sakstype: Sakstype,
-) : PdfInnhold {
-    override val dokumentMal = DokumentMal.Søknadsbehandling.InnvilgetVedtak
-}
+) : PdfInnhold
 
 val vedtakInnvilgelse = { _: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfInnhold ->
     brev(

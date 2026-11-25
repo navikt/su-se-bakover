@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 
 interface PdfGenerator {
     fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA>
+    fun genererPdf(command: GenererDokumentCommand): Either<KunneIkkeGenererePdf, PdfA>
 }
 
 data object KunneIkkeGenererePdf

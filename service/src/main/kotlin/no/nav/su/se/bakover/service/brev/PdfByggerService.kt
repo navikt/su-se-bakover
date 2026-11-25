@@ -4,11 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
+import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
@@ -30,18 +32,25 @@ import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Dev
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Local
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
+import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.IdentClient
+import person.domain.PersonService
 import java.time.Clock
 
 class PdfByggerService(
     val klient: PensjonPdfByggerKlient,
+    private val personService: PersonService,
+    private val identClient: IdentClient,
     val gammelKlient: PdfGenerator,
     val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
     val clock: Clock,
@@ -49,6 +58,62 @@ class PdfByggerService(
     val brukPdfgenLokalt: Boolean = false,
     private val log: Logger = LoggerFactory.getLogger(PdfByggerService::class.java),
 ) : PdfGenerator {
+
+    override fun genererPdf(command: GenererDokumentCommand): Either<KunneIkkeGenererePdf, PdfA> = either {
+        val bestilling = tilPdfBestilling(command).bind()
+        return klient.lagPdf(bestilling).fold(
+            ifLeft = {
+                log.error("Kunne ikke generere PDF med pdf-bygger for command ${command.javaClass.name}.")
+                KunneIkkeGenererePdf.left()
+            },
+            ifRight = {
+                PdfA(it).right()
+            },
+        )
+    }
+
+    private fun tilPdfBestilling(command: GenererDokumentCommand): Either<KunneIkkeGenererePdf, PdfBestilling> =
+        either {
+            return when (command) {
+                is IverksettSøknadsbehandlingDokumentCommand.Innvilgelse -> {
+                    val innhold = command.tilPdfInnhold(
+                        personalia = hentPerson(command).bind(),
+                        saksbehandlerNavn = hentNavnForIdent(command.saksbehandler).bind(),
+                        attestantNavn = hentNavnForIdent(command.attestant).bind(),
+                    )
+                    command.dokumentMal.lagBestilling(innhold).right()
+                }
+                // TODO alle andre commands > mal.lagBestilling
+                else -> {
+                    log.error("PDF-mal ${command.dokumentMal.navn} har ikke implementert lagBestilling")
+                    KunneIkkeGenererePdf.left()
+                }
+            }
+        }
+
+    private fun hentPerson(command: GenererDokumentCommand) =
+        personService.hentPersonMedSystembruker(command.fødselsnummer, command.sakstype).mapLeft {
+            // FeilVedHentingAvInformasjon.KunneIkkeHentePerson(it)
+            KunneIkkeGenererePdf // TODO utvide med info
+        }.map {
+            PersonaliaPdfInnhold.lagPersonalia(
+                fødselsnummer = command.fødselsnummer,
+                saksnummer = command.saksnummer,
+                fornavn = it.navn.fornavn,
+                etternavn = it.navn.etternavn,
+                clock = clock,
+            )
+        }
+
+    private fun hentNavnForIdent(ident: NavIdentBruker?): Either<KunneIkkeGenererePdf, String> = when {
+        ident == null -> "-".right()
+        ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> SU_SE_BAKOVER_CONSUMER_ID.right()
+        else -> identClient.hentNavnForNavIdent(ident).mapLeft {
+            // FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it)
+            KunneIkkeGenererePdf // TODO utvide med info
+        }
+    }
+
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         val mal = pdfInnhold.dokumentMal
 
