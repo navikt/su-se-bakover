@@ -88,7 +88,7 @@ sealed interface DokumentMal {
             override val navn = "vedtakInnvilgelse"
             override val tittel = "Vedtaksbrev for søknad om supplerende stønad"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: InnvilgetSøknadsbehandlingPdfInnhold): PdfBestilling =
                 vedtakInnvilgelse(tittel, innhold)
@@ -98,7 +98,7 @@ sealed interface DokumentMal {
             override val navn = "vedtakAvslag"
             override val tittel = "Avslag supplerende stønad"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: AvslagSøknadsbehandlingPdfInnhold): PdfBestilling = vedtakAvslag(tittel, innhold)
         }
@@ -107,7 +107,7 @@ sealed interface DokumentMal {
             override val navn = "søknadTrukket"
             override val tittel = "Bekrefter at søknad er trukket"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: TrukketSøknadPdfInnhold): PdfBestilling =
                 søknadTrukket(tittel, innhold)
@@ -118,7 +118,7 @@ sealed interface DokumentMal {
             override val navn = "avvistSøknadVedtak"
             override val tittel = "Søknaden din om supplerende stønad er avvist"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: AvvistSøknadVedtakPdfInnhold): PdfBestilling =
                 avvistSøknadVedtak(tittel, innhold)
