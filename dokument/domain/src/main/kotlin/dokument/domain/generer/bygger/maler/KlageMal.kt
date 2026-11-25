@@ -82,7 +82,7 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
             title2("Har du spørsmål?")
             paragraph(
                 "Du finner nyttig informasjon på " +
-                    if (pdfInnhold.sakstype == Sakstype.ALDER) "www.nav.no/supplerende-stonad-over-67." else "nav.no/supplerende-stonad-flyktninger.",
+                    if (pdfInnhold.sakstype == Sakstype.ALDER) "nav.no/supplerende-stonad-over-67." else "nav.no/supplerende-stonad-flyktninger.",
             )
             paragraph(
                 "Kontakt gjerne Nav Klageinstans på nav.no eller på telefon 21 07 17 30. " +

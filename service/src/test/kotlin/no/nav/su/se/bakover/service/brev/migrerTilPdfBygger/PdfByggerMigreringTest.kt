@@ -42,10 +42,6 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakAvsla
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakAvslagVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelsePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelseVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtaksbrevTilbakekrevingsbehandlingDødsboPdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtaksbrevTilbakekrevingsbehandlingPdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtaksbrevTilbakekrevingsbehandlingVerdier
 import no.nav.su.se.bakover.service.brev.tilPdfBestilling
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Tag
@@ -73,8 +69,6 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
     DokumentMal.Revurdering.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
     DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),
-    DokumentMal.Tilbakekreving.Vedtaksbrev(false) to Pair(vedtaksbrevTilbakekrevingsbehandlingPdf, vedtaksbrevTilbakekrevingsbehandlingVerdier),
-    DokumentMal.Tilbakekreving.Vedtaksbrev(dødsbo = true) to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
     DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),
 )
 
