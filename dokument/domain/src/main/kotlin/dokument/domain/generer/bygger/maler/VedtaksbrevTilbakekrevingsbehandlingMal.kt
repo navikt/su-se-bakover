@@ -7,12 +7,12 @@ import dokument.domain.generer.bygger.brev
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
+import dokument.domain.generer.bygger.harDuSpørsmål
 import dokument.domain.generer.bygger.kroner
 import dokument.domain.generer.bygger.linjer
 import dokument.domain.generer.bygger.postadresse
 import dokument.domain.generer.bygger.punktliste
 import dokument.domain.generer.bygger.rettTilInnsyn
-import dokument.domain.generer.bygger.telefonnummer
 import no.nav.brev.brevbaker.markup.Attachment
 import no.nav.brev.brevbaker.markup.dsl.attachment
 import no.nav.brev.brevbaker.markup.dsl.cell
@@ -218,12 +218,7 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
                 "Informasjon om denne ordningen kan boet få hos Statsforvalteren, advokater eller Nav. ",
         )
         rettTilInnsyn(true)
-        title3("Har boet spørsmål?")
-        paragraph(
-            "Boet finner mer informasjon på nav.no. " +
-                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på nav.no/kontakt. " +
-                "Boet kan også kontakte oss på telefon ${telefonnummer(pdfInnhold.sakstype)}.",
-        )
+        harDuSpørsmål(pdfInnhold.sakstype, dødsbo = true)
         postadresse()
     }
 }
