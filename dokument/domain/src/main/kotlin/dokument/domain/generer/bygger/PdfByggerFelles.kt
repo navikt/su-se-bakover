@@ -113,7 +113,7 @@ fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: Strin
     if (dødsbo) {
         title2("Boet har rett til å klage")
         paragraph(
-            " Boet kan klage innen 6 uker fra den datoen boet mottok vedtaket. Boet finner skjema og informasjon på www.nav.no/klage.",
+            "Boet kan klage innen 6 uker fra den datoen boet mottok vedtaket. Boet finner skjema og informasjon på www.nav.no/klage.",
         )
     } else {
         title2("Du har rett til å klage")
