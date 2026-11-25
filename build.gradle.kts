@@ -206,10 +206,10 @@ subprojects {
 }
 
 subprojects {
+    val cpus = Runtime.getRuntime().availableProcessors()
+    val parallelism = (cpus - 1).toString()
     tasks.test.configure {
         sharedTestSetup()
-        val cpus = Runtime.getRuntime().availableProcessors()
-        val parallelism = (cpus - 1).toString()
         // denne gir en jvm per modul ikke for hele prosjektet!
         maxParallelForks = 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
@@ -225,7 +225,6 @@ subprojects {
     }
     if (project.name == "web-regresjonstest") {
         tasks.test.configure {
-            val parallelism = "2"
             systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = parallelism
             systemProperties["junit.jupiter.execution.parallel.config.fixed.max-pool-size"] = parallelism
             systemProperties["junit.jupiter.execution.parallel.mode.default"] = "same_thread"
