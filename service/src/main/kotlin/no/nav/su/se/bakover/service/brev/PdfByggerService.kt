@@ -132,12 +132,8 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is ForhåndsvarselTilbakekrevingPdfInnhold -> dokumentMal.lagBestilling(this)
     is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
     is PåminnelseNyStønadsperiodePdfInnhold -> dokumentMal.lagBestilling(this)
-    // is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this) // VedtaksbrevTilbakekrevingsbehandling og VedtaksbrevTilbakekrevingsbehandlingDødsbo
+    is VedtaksbrevTilbakekrevingsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
     is OpphørsvedtakPdfInnhold -> dokumentMal.lagBestilling(this)
     is RevurderingAvInntektPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is VedtakVedReguleringPdfInnhold -> dokumentMal.lagBestilling(this)
-    // is AvsluttRevurderingPdfInnhold -> dokumentMal.lagBestilling(this)
     else -> null
 }

@@ -35,7 +35,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val harFradrag: Boolean,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.InnvilgetVedtak
+    override val dokumentMal = DokumentMal.Søknadsbehandling.InnvilgetVedtak
 }
 
 val vedtakInnvilgelse = { _: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfInnhold ->

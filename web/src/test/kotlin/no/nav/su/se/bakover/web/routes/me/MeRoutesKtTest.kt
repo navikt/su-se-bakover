@@ -14,30 +14,52 @@ import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 
 internal class MeRoutesKtTest {
+    private val meUri = "/me"
 
     @Test
-    fun `GET me should return NAVIdent and roller`() {
+    fun `GET me returnerer bare Statistikk når brukeren bare har statistikkrollen`() {
+        val rolle = Brukerrolle.Statistikk
+        testApplication {
+            application { testSusebakoverWithMockedDb() }
+            client.get(meUri) {
+                header(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(roller = listOf(rolle)).asBearerToken(),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                deserialize<UserData>(bodyAsText()).roller.shouldContainExactly(rolle)
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(Brukerrolle::class)
+    fun `GET me should return NAVIdent and roller`(rolle: Brukerrolle) {
+        val navIdent = "navidenten"
         testApplication {
             application { testSusebakoverWithMockedDb() }
             client.get(
-                "/me",
+                meUri,
             ) {
                 header(
                     HttpHeaders.Authorization,
 
                     jwtStub.createJwtToken(
                         subject = "random",
-                        roller = listOf(Brukerrolle.Attestant),
-                        navIdent = "navidenten",
+                        roller = listOf(rolle),
+                        navIdent = navIdent,
                     ).asBearerToken(),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 deserialize<UserData>(bodyAsText()).let {
-                    it.navIdent shouldBe "navidenten"
-                    it.roller.shouldContainExactly(Brukerrolle.Attestant)
+                    it.navIdent shouldBe navIdent
+                    it.roller.shouldContainExactly(rolle)
                 }
             }
         }

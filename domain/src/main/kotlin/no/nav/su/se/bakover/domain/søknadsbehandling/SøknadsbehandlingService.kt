@@ -53,7 +53,6 @@ import kotlin.reflect.KClass
 interface SøknadsbehandlingService {
     fun startBehandling(
         request: OppstartRequest,
-        hentSak: (() -> Sak)? = null, // TODO: why?
     ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>>
 
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling>

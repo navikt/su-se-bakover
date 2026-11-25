@@ -28,10 +28,14 @@ Azure-grupper mappes til:
 - `Attestant`
 - `Veileder`
 - `Drift`
+- `Statistikk`
 
 Routes bruker `authorize` for å kreve minst én eksplisitt tillatt rolle. Manglende
 rolle gir 403. Manglende eller ugyldig autentisering håndteres av Ktor sin
 autentiseringsflyt.
+
+`/statistikk/sak` og `/statistikk/stønad` tillater `Statistikk`, `Saksbehandler`
+og `Drift`. Statistikkrollen gir ikke saksbehandler- eller driftsrettigheter.
 
 Gruppe-ID-er er runtime-konfigurasjon og skal ikke kopieres inn i
 kunnskapsdokumentasjon.

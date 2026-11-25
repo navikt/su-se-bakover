@@ -16,7 +16,7 @@ data class AvvistSøknadVedtakPdfInnhold(
     val saksbehandlerNavn: String,
     val fritekst: String?,
 ) : PdfInnhold {
-    override val dokumentMal = DokumentMal.AvvistSøknadVedtak
+    override val dokumentMal = DokumentMal.Søknadsbehandling.AvvistSøknadVedtak
 }
 
 val avvistSøknadVedtak = { _: String, pdfInnhold: AvvistSøknadVedtakPdfInnhold ->
