@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.fixedClock
 import no.nav.su.se.bakover.test.avvisSøknadMedBrev
-import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.trekkSøknad
@@ -112,22 +111,19 @@ internal class LukkSøknadInputHandlerTest {
     }
 
     @Test
-    fun `godtar fullstendige requester for avviste søknad uten brev`() {
+    fun `avviser avvist søknad uten brev`() {
         runBlocking {
-            val søknadId = UUID.randomUUID()
-            LukkSøknadInputHandler.handle(
-                body = """
-                    {
-                        "type":"AVSLAG"
-                    }
-                """.trimIndent(),
-                søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock,
-            ) shouldBe avvisSøknadUtenBrev(
-                søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-            ).right()
+            listOf(
+                """{"type":"AVSLAG"}""",
+                """{"type":"AVSLAG","brevConfig":null}""",
+            ).forEach { body ->
+                LukkSøknadInputHandler.handle(
+                    body = body,
+                    søknadId = UUID.randomUUID(),
+                    saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                    clock = fixedClock,
+                ) shouldBe FeilVedLukkSøknad.DeserializeFeil.left()
+            }
         }
     }
 
@@ -162,6 +158,10 @@ internal class LukkSøknadInputHandlerTest {
         assertThrows<IllegalArgumentException> {
             LukketJson.AvvistJson(
                 type = LukketJson.LukketType.BORTFALT,
+                brevConfig = LukketJson.AvvistJson.BrevConfigJson(
+                    brevtype = LukketJson.BrevType.VEDTAK,
+                    fritekst = "fritekst",
+                ),
             )
         }
         assertThrows<IllegalArgumentException> {

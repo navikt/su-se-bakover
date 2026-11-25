@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
+import no.nav.su.se.bakover.test.avvisSøknadMedBrev
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -136,7 +136,7 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
 
     @ParameterizedTest
     @EnumSource(Sakstype::class)
-    fun `søknad med reparert behandling kan avvises uten brev`(sakstype: Sakstype) {
+    fun `søknad med reparert behandling kan avvises med vedtaksbrev`(sakstype: Sakstype) {
         val registrertTid = fixedTidspunkt.minus(10, ChronoUnit.MINUTES)
         val søknadsinnhold = when (sakstype) {
             Sakstype.ALDER -> søknadsinnholdAlder()
@@ -149,7 +149,10 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
 
         withKomptestApplication(dataSource, clock = fixedClock) { app ->
             val behandling = app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling().behandlingResultat.single().getOrFail()
-            val command = avvisSøknadUtenBrev(søknadId = søknad.id)
+            val command = avvisSøknadMedBrev(
+                søknadId = søknad.id,
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(fritekst = "fritekst"),
+            )
 
             app.services.lukkSøknad.lukkSøknad(command)
 
@@ -157,7 +160,7 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
                 .shouldBeTypeOf<Søknad.Journalført.MedOppgave.Lukket.Avvist>()
             lukketSøknad.lukketTidspunkt shouldBe command.lukketTidspunkt
             lukketSøknad.lukketAv shouldBe command.saksbehandler
-            lukketSøknad.brevvalg.shouldBeTypeOf<Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev>()
+            lukketSøknad.brevvalg.shouldBeTypeOf<Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst>()
 
             val lukketBehandling = app.databaseRepos.søknadsbehandling.hentForSøknad(søknad.id)
                 .shouldBeTypeOf<LukketSøknadsbehandling>()

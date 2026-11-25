@@ -147,20 +147,6 @@ sealed interface Søknad {
                             dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                         )
 
-                        is LukkSøknadCommand.UtenBrev.AvvistSøknad -> Lukket.Avvist(
-                            id = id,
-                            opprettet = opprettet,
-                            sakId = sakId,
-                            søknadInnhold = søknadInnhold,
-                            journalpostId = journalpostId,
-                            oppgaveId = oppgaveId,
-                            lukketTidspunkt = lukkSøknadCommand.lukketTidspunkt,
-                            lukketAv = lukkSøknadCommand.saksbehandler,
-                            brevvalg = Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(),
-                            innsendtAv = innsendtAv,
-                            dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE,
-                        )
-
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> Lukket.TrukketAvSøker(
                             id = id,
                             opprettet = opprettet,
@@ -233,8 +219,8 @@ sealed interface Søknad {
                 data object KanIkkeLageBrevRequestForDenneTilstanden
 
                 /**
-                 * Saksbehandler velger om det sendes brev eller ikke.
-                 * Dersom det skal sendes brev er det enten et informasjonsbrev med fritekst, eller et vedtaksbrev uten fritekst.
+                 * Nye avvisninger sendes alltid med vedtaksbrev med fritekst.
+                 * Historiske avvisninger kan være lagret uten brev eller med informasjonsbrev med fritekst, og må fortsatt kunne leses.
                  */
                 data class Avvist(
                     override val id: UUID,
@@ -272,16 +258,19 @@ sealed interface Søknad {
                         sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
                         return when (brevvalg) {
-                            is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> KanIkkeLageBrevRequestForDenneTilstanden.left()
-                            // Historiske avvisninger kan ha informasjonsbrev; malen er fjernet og nye kan ikke bestilles.
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> KanIkkeLageBrevRequestForDenneTilstanden.left()
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev -> AvvistSøknadDokumentCommand(
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> AvvistSøknadDokumentCommand(
                                 fødselsnummer = fnr,
                                 saksnummer = sak.saksnummer,
                                 sakstype = sak.type,
-                                brevvalg = brevvalg,
+                                fritekst = brevvalg.fritekst,
                                 saksbehandler = lukketAv,
                             ).right()
+
+                            // Historiske avvisninger uten brev eller med informasjonsbrev får ikke nytt brev. UtenFritekst stoppes i init.
+                            is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev,
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst,
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst,
+                            -> KanIkkeLageBrevRequestForDenneTilstanden.left()
                         }
                     }
                 }

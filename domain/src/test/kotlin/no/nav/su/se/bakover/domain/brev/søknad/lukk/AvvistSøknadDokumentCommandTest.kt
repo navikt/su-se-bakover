@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import arrow.core.right
-import dokument.domain.brev.Brevvalg
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import io.kotest.matchers.shouldBe
@@ -46,7 +45,7 @@ internal class AvvistSøknadDokumentCommandTest {
     @Test
     fun `lager vedtaks-brevdata`() {
         AvvistSøknadDokumentCommand(
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(null, "fritekst"),
+            fritekst = "fritekst",
             saksbehandler = saksbehandler,
             fødselsnummer = person.ident.fnr,
             sakstype = Sakstype.UFØRE,

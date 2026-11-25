@@ -43,7 +43,7 @@ sealed interface LukketJson {
 
     data class AvvistJson(
         override val type: LukketType,
-        val brevConfig: BrevConfigJson? = null,
+        val brevConfig: BrevConfigJson,
     ) : LukketJson {
         init {
             require(type == LukketType.AVSLAG)
@@ -89,28 +89,21 @@ internal data object LukkSøknadInputHandler {
                 lukketTidspunkt = Tidspunkt.now(clock),
             ).right()
 
-            is LukketJson.AvvistJson -> when (bodyAsJson.brevConfig) {
-                null -> LukkSøknadCommand.UtenBrev.AvvistSøknad(
-                    søknadId = søknadId,
-                    saksbehandler = saksbehandler,
-                    lukketTidspunkt = Tidspunkt.now(clock),
-                ).right()
-
-                else -> {
-                    if (bodyAsJson.brevConfig.fritekst == null) {
-                        FeilVedLukkSøknad.FritekstErnull.left()
+            // Avvisning krever vedtaksbrev; en body uten brevConfig avvises allerede ved deserialisering.
+            is LukketJson.AvvistJson -> {
+                if (bodyAsJson.brevConfig.fritekst == null) {
+                    FeilVedLukkSøknad.FritekstErnull.left()
+                } else {
+                    val ugyldigeFelt = InputValidator.validerFritekst(bodyAsJson.brevConfig.fritekst)
+                    if (ugyldigeFelt != null) {
+                        FeilVedLukkSøknad.UgyldugInput(ugyldigeFelt).left()
                     } else {
-                        val ugyldigeFelt = InputValidator.validerFritekst(bodyAsJson.brevConfig.fritekst)
-                        if (ugyldigeFelt != null) {
-                            FeilVedLukkSøknad.UgyldugInput(ugyldigeFelt).left()
-                        } else {
-                            LukkSøknadCommand.MedBrev.AvvistSøknad(
-                                søknadId = søknadId,
-                                saksbehandler = saksbehandler,
-                                lukketTidspunkt = Tidspunkt.now(clock),
-                                brevvalg = toBrevvalg(bodyAsJson.brevConfig),
-                            ).right()
-                        }
+                        LukkSøknadCommand.MedBrev.AvvistSøknad(
+                            søknadId = søknadId,
+                            saksbehandler = saksbehandler,
+                            lukketTidspunkt = Tidspunkt.now(clock),
+                            brevvalg = toBrevvalg(bodyAsJson.brevConfig),
+                        ).right()
                     }
                 }
             }

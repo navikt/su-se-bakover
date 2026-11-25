@@ -13,6 +13,6 @@ fun AvvistSøknadDokumentCommand.tilAvvistSøknadPdfInnhold(
         sakstype = sakstype,
         personalia = personalia,
         saksbehandlerNavn = saksbehandlerNavn,
-        fritekst = this.brevvalg.fritekst,
+        fritekst = fritekst,
     )
 }

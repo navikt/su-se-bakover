@@ -31,16 +31,6 @@ fun avvisSøknadMedBrev(
     brevvalg = brevvalg,
 )
 
-fun avvisSøknadUtenBrev(
-    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    lukketTidspunkt: Tidspunkt = fixedTidspunkt,
-) = LukkSøknadCommand.UtenBrev.AvvistSøknad(
-    søknadId = søknadId,
-    saksbehandler = saksbehandler,
-    lukketTidspunkt = lukketTidspunkt,
-)
-
 fun bortfallSøknad(
     søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
