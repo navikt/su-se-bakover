@@ -41,3 +41,4 @@ jobs:
         uses: ./.github/actions/build-and-test
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          gradle-arguments: build --rerun-tasks
