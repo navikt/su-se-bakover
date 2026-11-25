@@ -115,10 +115,12 @@ fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: Strin
         paragraph(
             "Boet kan klage innen 6 uker fra den datoen boet mottok vedtaket. Boet finner skjema og informasjon på www.nav.no/klage.",
         )
+        paragraph("Klagen kan sendes digitalt via innlogging på nettsiden vår www.nav.no, eller i posten. ")
     } else {
         title2("Du har rett til å klage")
         paragraph("Du kan klage innen 6 uker fra den datoen du mottok vedtaket. Du finner skjema og informasjon på www.nav.no/klage.")
     }
+    // TODO: PdfBygger ryddejobb
     ekstraVedtaksInfoForKlage?.let {
         paragraph(it)
     }
@@ -141,8 +143,7 @@ fun Innhold.harDuSpørsmål(sakstype: Sakstype, dødsbo: Boolean = false) {
         title2("Har boet spørsmål?")
         paragraph("Boet finner nyttig informasjon på www.nav.no")
         paragraph(
-            "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontaktoss. " +
-                "Boet kan også kontakte Nav Klageinstans på telefon 21 07 17 30.",
+            "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontaktoss. ",
         )
     } else {
         title2("Har du spørsmål?")

@@ -6,7 +6,6 @@ import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
-import dokument.domain.generer.bygger.harDuSpørsmål
 import dokument.domain.generer.bygger.hilsen
 import dokument.domain.generer.bygger.rettTilInnsyn
 import no.nav.brev.brevbaker.markup.dsl.paragraph
@@ -62,7 +61,14 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
                     "Klageinstans på www.nav.no eller på telefon 21 07 17 30.",
             )
             rettTilInnsyn(true)
-            harDuSpørsmål(pdfInnhold.sakstype, dødsbo = true)
+            title2("Har boet spørsmål?")
+            paragraph(
+                "Boet finner nyttig informasjon på www.nav.no",
+            )
+            paragraph(
+                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontaktoss. " +
+                    "Boet kan også kontakte Nav Klageinstans på telefon 21 07 17 30.",
+            )
         } else {
             paragraph(
                 "Vi har mottatt klagen din på vedtaket om supplerende stønad $vedtakDato, og kommet " +
