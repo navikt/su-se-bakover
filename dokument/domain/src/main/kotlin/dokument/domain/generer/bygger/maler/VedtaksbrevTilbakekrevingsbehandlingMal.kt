@@ -174,17 +174,17 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
                 "På fakturaen står det informasjon om nøyaktig beløp, kontonummer og forfallsdato. " +
                 "Boet trenger ikke å gjøre noe før boet får fakturaen. ",
         )
-        paragraph("Boet finner mer informasjon på skatteetaten.no/betale. ")
+        paragraph("Boet finner mer informasjon på www.skatteetaten.no/betale. ")
         title3("Boet har rett til å klage ")
         paragraph(
             " Hvis boet mener at vedtaket er feil, kan boet klage innen 6 uker fra den datoen boet mottok vedtaket. " +
-                "Skjema og informasjon finnes på nav.no/klage.",
+                "Skjema og informasjon finnes på www.nav.no/klage.",
         )
-        paragraph("Klagen kan sendes digitalt via innlogging på nettsiden vår nav.no, eller i posten.")
+        paragraph("Klagen kan sendes digitalt via innlogging på nettsiden vår www.nav.no, eller i posten.")
         paragraph(
             "Skriftlig klage som sendes i posten må inneholde navn, fødselsnummer og adresse, " +
                 "og den må være underskrevet av representant for boet. " +
-                "Klagen må sendes til Nav Familie- og pensjonsytelser Ålesund sammen med forside fra nav.no. ",
+                "Klagen må sendes til Nav Familie- og pensjonsytelser Ålesund sammen med forside fra www.nav.no. ",
         )
         paragraph("Nav kan hjelpe med å skrive ned klagen. ")
         paragraph("Boet må skrive")
