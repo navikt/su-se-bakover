@@ -16,6 +16,7 @@ enum class KontrollsamtaleHendelseRolle {
     SAKSBEHANDLER,
     VEILEDER,
     DRIFT,
+    STATISTIKK,
     ;
 
     fun toNavIdentBruker(navIdent: String): NavIdentBruker {
@@ -24,6 +25,7 @@ enum class KontrollsamtaleHendelseRolle {
             SAKSBEHANDLER -> NavIdentBruker.Saksbehandler(navIdent)
             VEILEDER -> NavIdentBruker.Veileder(navIdent)
             DRIFT -> NavIdentBruker.Drift(navIdent)
+            STATISTIKK -> NavIdentBruker.Statistikk(navIdent)
         }
     }
 
@@ -34,6 +36,7 @@ enum class KontrollsamtaleHendelseRolle {
                 is NavIdentBruker.Saksbehandler -> SAKSBEHANDLER
                 is NavIdentBruker.Veileder -> VEILEDER
                 is NavIdentBruker.Drift -> DRIFT
+                is NavIdentBruker.Statistikk -> STATISTIKK
             }
         }
     }
