@@ -126,7 +126,7 @@ fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: Strin
     harDuSpørsmål(sakstype, dødsbo)
 }
 
-private fun Innhold.rettTilInnsyn(dødsbo: Boolean) {
+fun Innhold.rettTilInnsyn(dødsbo: Boolean) {
     if (dødsbo) {
         title2("Boet har rett til innsyn")
         paragraph("På www.nav.no/minside kan boet se dokumentene i saken til den avdøde.")

@@ -6,7 +6,9 @@ import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
+import dokument.domain.generer.bygger.harDuSpørsmål
 import dokument.domain.generer.bygger.hilsen
+import dokument.domain.generer.bygger.rettTilInnsyn
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.title2
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -59,18 +61,8 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
                 "Har boet nye opplysninger eller ønsker å komme med en uttalelse, kontakt Nav " +
                     "Klageinstans på nav.no eller på telefon 21 07 17 30.",
             )
-            title2("Boet har rett til innsyn")
-            paragraph("På nav.no/minside kan boet se dokumentene i saken til den avdøde.")
-            title2("Har boet spørsmål?")
-            paragraph(
-                "Boet finner mer informasjon på " +
-                    "www.nav.no",
-            )
-            paragraph(
-                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på " +
-                    "www.nav.no/kontaktoss" +
-                    " Boet kan også kontakte Nav Klageinstans på telefon 21 07 17 30.",
-            )
+            rettTilInnsyn(true)
+            harDuSpørsmål(pdfInnhold.sakstype, dødsbo = true)
         } else {
             paragraph(
                 "Vi har mottatt klagen din på vedtaket om supplerende stønad $vedtakDato, og kommet " +
@@ -86,8 +78,7 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
                 "Har du nye opplysninger eller ønsker å uttale deg, kontakt Nav " +
                     "Klageinstans på nav.no eller på telefon 21 07 17 30.",
             )
-            title2("Du har rett til innsyn")
-            paragraph("På nav.no/minside kan du se dokumentene i saken din.")
+            rettTilInnsyn(false)
             title2("Har du spørsmål?")
             paragraph(
                 "Du finner nyttig informasjon på " +

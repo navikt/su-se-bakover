@@ -11,6 +11,7 @@ import dokument.domain.generer.bygger.kroner
 import dokument.domain.generer.bygger.linjer
 import dokument.domain.generer.bygger.postadresse
 import dokument.domain.generer.bygger.punktliste
+import dokument.domain.generer.bygger.rettTilInnsyn
 import dokument.domain.generer.bygger.telefonnummer
 import no.nav.brev.brevbaker.markup.Attachment
 import no.nav.brev.brevbaker.markup.dsl.attachment
@@ -216,10 +217,7 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
             "Boet kan ha krav på fri rettshjelp etter rettshjelploven. " +
                 "Informasjon om denne ordningen kan boet få hos Statsforvalteren, advokater eller Nav. ",
         )
-        title3("Boet har rett til innsyn")
-        paragraph(
-            "På nav.no/dittnav kan boet se dokumentene i saken til den avdøde. ",
-        )
+        rettTilInnsyn(true)
         title3("Har boet spørsmål?")
         paragraph(
             "Boet finner mer informasjon på nav.no. " +
