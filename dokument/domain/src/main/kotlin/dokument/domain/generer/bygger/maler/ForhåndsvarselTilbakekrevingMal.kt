@@ -158,25 +158,30 @@ private val forhåndsvarselDødsbo =
             paragraph("Dette følger av lov om supplerende stønad § 13.")
             title3("Slik uttaler boet seg")
             paragraph(
-                "Dødsboet har rett til å uttale seg, skriftlig eller muntlig, " +
+                "Boet har rett til å uttale seg, skriftlig eller muntlig, " +
                     "før vi tar den endelige avgjørelsen om tilbakebetaling. " +
                     "Fristen for å gi uttale er 14 dager etter at boet har mottatt dette brevet.",
             )
-            paragraph(
-                "Dødsboet kan uttale seg muntlig ved fremmøte hos det lokale Nav-kontoret, " +
-                    "ved å ringe telefonnummeret nedenfor, eller det kan sende et skriftlig svar sammen med forside. " +
-                    "Boet finner forsiden under \"Skjema og søknad\" ved å velge \"Pensjon\" og deretter " +
-                    "\"Supplerende stønad til personer med kort botid i Norge\". Bruk valget \"Ettersendelse\", \"Ettersend på papir\" " +
-                    "og \"Annet\". Fyll ut aktuelle punkter og fødselsnummeret til avdøde før boet velger \"Neste\". " +
-                    "Last ned \"Førsteside til saken din\" og skriv ut denne.",
+            paragraph("Boet har rett til å se sakens dokumenter etter bestemmelsene i forvaltningsloven § 18.")
+            paragraph("Slik kan boet komme med en uttalelse:")
+            punktliste(
+                "Boet kan gi tilbakemelding via Nav sin nettside www.nav.no/melde. " +
+                    "Velg tema «Pensjon» og aktuell tjeneste.",
+                "Send et skriftlig svar ved å bruke vedlagte forside " +
+                    if (pdfInnhold.sakstype == Sakstype.UFØRE) {
+                        "(Ettersendelse til Søknad om supplerende stønad til ufør flyktning)"
+                    } else {
+                        "(Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge)"
+                    } +
+                    " eller du kan sende inn dokumentasjon i tjenesten www.nav.no/ettersende.",
             )
+            paragraph("Boet kan få hjelp ved å ringe ${telefonnummer(pdfInnhold.sakstype)} eller boet kan kontakte det nærmeste Nav-kontor.")
+
             title3("Hva skjer videre i saken?")
             paragraph(
                 "Vi vil vurdere saken og sende boet et vedtak. Hvis boet må betale tilbake hele eller deler av beløpet, får " +
                     "boet beskjed i vedtaket om hvordan tilbakebetalingen skal skje.",
             )
-            title3("Boet har rett til innsyn")
-            paragraph("Boet har som hovedregel rett til å se dokumentene i saken etter reglene i forvaltningsloven § 18.")
             title3("Har boet spørsmål?")
             paragraph(
                 "Kontakt oss gjerne på nav.no eller på telefon ${telefonnummer(pdfInnhold.sakstype)}. " +
