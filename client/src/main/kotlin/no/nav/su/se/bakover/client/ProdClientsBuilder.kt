@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.c
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.createJournalførKontrollnotatHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.createJournalførSøknadHttpClient
 import vilkår.skatt.infrastructure.client.SkatteClient
-import økonomi.domain.simulering.SimuleringClient
 import java.time.Clock
 
 data class ProdClientsBuilder(
@@ -54,7 +53,7 @@ data class ProdClientsBuilder(
         applicationConfig: ApplicationConfig,
         azure: AzureAd,
         clock: Clock,
-    ): SimuleringClient =
+    ): SimuleringProxyClientGcp =
         SimuleringProxyClientGcp(
             config = applicationConfig.clientsConfig.suProxyConfig,
             azureAd = azure,
@@ -115,6 +114,7 @@ data class ProdClientsBuilder(
             antivirusUrl = clientsConfig.antivirusConfig.url,
         )
 
+        val simuleringClient = createSimuleringClient(applicationConfig, azureAd, clock)
         return Clients(
             azureAd = azureAd,
             personOppslag = personOppslag,
@@ -147,11 +147,8 @@ data class ProdClientsBuilder(
                 exchange = azureAd,
             ),
             kodeverk = kodeverk,
-            simuleringClient = createSimuleringClient(
-                applicationConfig = applicationConfig,
-                azure = azureAd,
-                clock = clock,
-            ),
+            simuleringClient = simuleringClient,
+            historiskSimuleringClient = simuleringClient,
             utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = applicationConfig.oppdrag.let {
                     IbmMqPublisher(

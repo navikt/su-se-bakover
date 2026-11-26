@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -48,6 +49,7 @@ data class Clients(
     val oppgaveV2Client: OppgaveV2Client,
     val kodeverk: Kodeverk,
     val simuleringClient: SimuleringClient,
+    val historiskSimuleringClient: HistoriskSimuleringClient,
     val utbetalingPublisher: UtbetalingPublisher,
     val dokDistFordeling: DokDistFordeling,
     val avstemmingPublisher: AvstemmingPublisher,

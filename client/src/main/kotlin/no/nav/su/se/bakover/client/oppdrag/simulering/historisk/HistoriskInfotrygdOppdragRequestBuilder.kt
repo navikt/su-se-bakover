@@ -50,15 +50,11 @@ internal fun byggHistoriskInfotrygdOppdragRequest(
     saksnummer: Saksnummer,
     fnr: Fnr,
     utbetalingId: UUID30,
-    attestant: NavIdentBruker.Attestant,
+    attestant: NavIdentBruker,
     avstemmingsnøkkel: Avstemmingsnøkkel,
     kjøreplan: Oppdragslinje.Kjøreplan,
-    harEksisterendeSuOppdrag: Boolean,
     format: UverifisertHistoriskOppdragsformat,
 ): Either<KunneIkkeByggeHistoriskInfotrygdOppdragRequest, UtbetalingRequest.OppdragRequest> {
-    if (harEksisterendeSuOppdrag) {
-        return KunneIkkeByggeHistoriskInfotrygdOppdragRequest.EksisterendeSuOppdragIkkeStøttet.left()
-    }
     if (format.kodeEndring == UtbetalingRequest.KodeEndring.UENDRET) {
         return KunneIkkeByggeHistoriskInfotrygdOppdragRequest.UendretOppdragIkkeStøttet.left()
     }
@@ -171,7 +167,6 @@ internal fun byggHistoriskInfotrygdOppdragRequest(
 }
 
 internal sealed interface KunneIkkeByggeHistoriskInfotrygdOppdragRequest {
-    data object EksisterendeSuOppdragIkkeStøttet : KunneIkkeByggeHistoriskInfotrygdOppdragRequest
     data object UendretOppdragIkkeStøttet : KunneIkkeByggeHistoriskInfotrygdOppdragRequest
     data object OpphørslinjevalgDekkerIkkePerioden : KunneIkkeByggeHistoriskInfotrygdOppdragRequest
     data object ErstatningslinjevalgStemmerIkkeMedBeregningen : KunneIkkeByggeHistoriskInfotrygdOppdragRequest

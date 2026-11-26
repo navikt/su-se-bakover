@@ -27,17 +27,20 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBereg
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.beregnRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskInfotrygdSimulering
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.historisk.HistoriskInfotrygdOppdragTestdata
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.simulering.simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -152,7 +155,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
-    fun `lagrer henter og nullstiller simulering`(lagreVedOpprettelse: Boolean) {
+    fun `lagrer og gjenleser simulering før attestering`(lagreVedOpprettelse: Boolean) {
         val helper = TestDataHelper(dataSource)
         val sakId = UUID.randomUUID()
         val fnr = Fnr.generer()
@@ -181,9 +184,18 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             saksbehandler = saksbehandler,
             tidspunkt = opprettet.plusUnits(1),
         ).shouldBeRight()
-        val medSimulering = beregnet.copy(
-            simulering = simulering(fnr = fnr, måneder = periode.måneder()),
-        )
+        val simulert = opprettet.plusUnits(2)
+        val medSimulering = beregnet.simuler(
+            resultat = HistoriskInfotrygdSimulering(
+                grunnlag = beregning,
+                simuleringsperiode = periode,
+                simulert = simulert,
+                harEksisterendeSuOppdrag = false,
+                respons = HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode),
+            ),
+            saksbehandler = saksbehandler,
+            tidspunkt = simulert,
+        ).shouldBeRight()
 
         if (lagreVedOpprettelse) {
             repo.opprett(medSimulering).shouldBeRight()
@@ -197,11 +209,68 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         hentet shouldBe medSimulering
         repo.hentForSak(sakId) shouldBe listOf(medSimulering)
 
-        val utenSimulering = hentet.copy(simulering = null)
+        val klarTilAttestering = hentet.oppdaterVedtaksbrev(
+            HistoriskInfotrygdVedtaksbrevvalg.IKKE_SEND,
+            null,
+            saksbehandler,
+            simulert.plusUnits(1),
+        ).shouldBeRight().velgÅIkkeSendeForhåndsvarsel(
+            saksbehandler,
+            simulert.plusUnits(2),
+        ).shouldBeRight()
+        repo.lagre(klarTilAttestering)
+        val gjenlest = requireNotNull(repo.hent(hentet.id))
+        val tilAttestering = gjenlest.sendTilAttestering(
+            saksbehandler,
+            simulert.plusUnits(3),
+            krevSimulering = true,
+        ).shouldBeRight()
+        repo.lagre(tilAttestering)
+        repo.hent(hentet.id)?.status shouldBe HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
+
+        repo.hent(hentet.id) shouldBe tilAttestering
+    }
+
+    @Test
+    fun `ny beregning fjerner persistert simulering`() {
+        val helper = TestDataHelper(dataSource)
+        val sakId = UUID.randomUUID()
+        val fnr = Fnr.generer()
+        helper.sakRepo.opprettSak(SakInfoNy(sakId = sakId, fnr = fnr, type = Sakstype.ALDER))
+        val projeksjonId = fullførtProjeksjon(helper)
+        val gjeldende = gjeldendeVedtaksdata(projeksjonId)
+        val data = HistoriskInfotrygdOppdragTestdata
+        val beregning = gjeldende.beregnRevurdering(
+            periode.måneder().map {
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = it,
+                    bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
+                    fradrag = emptyList(),
+                )
+            },
+        ).shouldBeRight()
+        val beregnet = HistoriskInfotrygdRevurdering.opprett(
+            sakId = sakId,
+            projeksjonId = projeksjonId,
+            periode = periode,
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet,
+            gjeldendeVedtaksdata = gjeldende,
+        ).shouldBeRight().oppdaterGrunnlag(beregning, saksbehandler, opprettet).shouldBeRight()
+        val simulert = beregnet.simuler(
+            HistoriskInfotrygdSimulering(beregning, periode, opprettet, false, data.simuleringsrespons(fnr, periode)),
+            saksbehandler,
+            opprettet,
+        ).shouldBeRight()
+        val repo = HistoriskInfotrygdRevurderingPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        repo.opprett(simulert).shouldBeRight()
+        val hentet = requireNotNull(repo.hent(simulert.id))
+        val utenSimulering = hentet.oppdaterGrunnlag(beregning, saksbehandler, opprettet.plusUnits(1)).shouldBeRight()
         repo.lagre(utenSimulering)
 
         repo.hent(utenSimulering.id) shouldBe utenSimulering
         repo.hentForSak(sakId) shouldBe listOf(utenSimulering)
+        repo.hent(utenSimulering.id)?.simulering shouldBe null
     }
 
     @Test

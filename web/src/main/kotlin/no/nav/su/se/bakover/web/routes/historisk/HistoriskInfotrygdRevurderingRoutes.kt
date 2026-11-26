@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringsrespons
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.historisk.revurdering.BeregnHistoriskInfotrygdRevurderingCommand
 import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdBeregningResultat
@@ -52,6 +53,7 @@ import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeLageHistorisk
 import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeLageHistoriskInfotrygdVedtaksbrevutkast
 import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeSimulereHistoriskRevurderingService
 import no.nav.su.se.bakover.service.historisk.revurdering.OpprettHistoriskInfotrygdRevurderingCommand
 import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.person.tilResultat
@@ -87,8 +89,19 @@ internal data class HistoriskInfotrygdRevurderingResponse(
     val vedtaksbrevFritekst: String?,
     val forhåndsvarsel: HistoriskInfotrygdForhåndsvarselResponse,
     val sperregrunnerForAttestering: List<String>,
+    val simuleringTilgjengelig: Boolean,
+    val simulering: HistoriskSimuleringResponse?,
     val opprettet: String,
     val oppdatert: String,
+)
+
+internal data class HistoriskSimuleringResponse(
+    val simuleringsperiode: PeriodeJson,
+    val simulert: String,
+    val harEksisterendeSuOppdrag: Boolean,
+    val erUtprøving: Boolean,
+    val resultat: HistoriskSimuleringsrespons.Beregning,
+    val infomelding: String?,
 )
 
 internal data class BegrunnelseRequest(
@@ -268,8 +281,15 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
     personService: PersonService,
     historiskAlderTestmodus: Boolean,
+    simuleringTilgjengelig: Boolean,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
+
+    fun HistoriskInfotrygdRevurdering.toResponse() =
+        toResponse(service.krevSimuleringForAttestering, simuleringTilgjengelig)
+
+    fun HistoriskInfotrygdBeregningResultat.toResponse() =
+        toResponse(service.krevSimuleringForAttestering, simuleringTilgjengelig)
 
     fun sjekkTilgangTilHistoriskRevurdering(fnr: Fnr) =
         sjekkTilgangTilHistoriskPerson(
@@ -440,8 +460,28 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 )
             }
         }
-        // TODO(HISTORISK_SIMULERING): Legg til POST /{revurderingId}/simuler som kaller service.simuler(...).
-        // Bruk historisk rolle-/persontilgang og CEF-audit. Kalles etter beregning, før sending til attestering.
+        post("/{revurderingId}/simuler") {
+            authorize(Brukerrolle.Saksbehandler) {
+                val id = call.parameters["revurderingId"].tilRevurderingId()
+                    ?: return@authorize call.svar(ugyldigRevurderingId())
+                val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
+                    ?: return@authorize call.svar(fantIkkeRevurdering())
+                either {
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).mapLeft {
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
+                        it.tilResultat()
+                    }.bind()
+                    val oppdatert = service.simuler(id, call.suUserContext.saksbehandler)
+                        .mapLeft {
+                            call.audit(sakInfo.fnr, AuditLogEvent.Action.ACCESS, eksisterende.id.value)
+                            it.tilResultat()
+                        }.bind()
+                    call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
+                    Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse()))
+                }.merge().let { call.svar(it) }
+            }
+        }
+
         post("/{revurderingId}/send-til-attestering") {
             authorize(Brukerrolle.Saksbehandler) {
                 val id = call.parameters["revurderingId"].tilRevurderingId()
@@ -762,7 +802,10 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     }
 }
 
-private fun HistoriskInfotrygdRevurdering.toResponse() = HistoriskInfotrygdRevurderingResponse(
+internal fun HistoriskInfotrygdRevurdering.toResponse(
+    krevSimulering: Boolean,
+    simuleringTilgjengelig: Boolean = false,
+) = HistoriskInfotrygdRevurderingResponse(
     id = id.value,
     sakId = sakId,
     periode = periode.toJson(),
@@ -771,12 +814,23 @@ private fun HistoriskInfotrygdRevurdering.toResponse() = HistoriskInfotrygdRevur
     vedtaksbrevvalg = vedtaksbrevvalg.toResponseverdi(),
     vedtaksbrevFritekst = vedtaksbrevFritekst,
     forhåndsvarsel = forhåndsvarsel.toResponse(),
-    sperregrunnerForAttestering = sperregrunnerForAttestering(),
+    sperregrunnerForAttestering = sperregrunnerForAttestering(krevSimulering),
+    simuleringTilgjengelig = simuleringTilgjengelig,
+    simulering = simulering?.let {
+        HistoriskSimuleringResponse(
+            simuleringsperiode = it.simuleringsperiode.toJson(),
+            simulert = it.simulert.toString(),
+            harEksisterendeSuOppdrag = it.harEksisterendeSuOppdrag,
+            erUtprøving = true,
+            resultat = requireNotNull(it.respons.beregning),
+            infomelding = it.respons.infomelding,
+        )
+    },
     opprettet = opprettet.toString(),
     oppdatert = oppdatert.toString(),
 )
 
-private fun HistoriskInfotrygdRevurdering.sperregrunnerForAttestering(): List<String> = buildList {
+private fun HistoriskInfotrygdRevurdering.sperregrunnerForAttestering(krevSimulering: Boolean): List<String> = buildList {
     val gjeldendeBeregning = beregning
     if (gjeldendeBeregning == null) add("MANGLER_BEREGNING")
     if (gjeldendeBeregning != null && gjeldendeBeregning.månedsresultater.keys.toList() != periode.måneder()) {
@@ -792,7 +846,7 @@ private fun HistoriskInfotrygdRevurdering.sperregrunnerForAttestering(): List<St
     ) {
         add("MANGLER_FRITEKST_TIL_VEDTAKSBREV")
     }
-    if (simulering == null) add("MANGLER_SIMULERING")
+    if (krevSimulering && !harGyldigSimulering()) add("MANGLER_SIMULERING")
 }
 
 private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdForhåndsvarselResponse = when (this) {
@@ -1027,9 +1081,9 @@ private fun Fradragstype.erSystemtype(): Boolean = when (this) {
     else -> false
 }
 
-private fun HistoriskInfotrygdBeregningResultat.toResponse() =
+private fun HistoriskInfotrygdBeregningResultat.toResponse(krevSimulering: Boolean, simuleringTilgjengelig: Boolean) =
     HistoriskInfotrygdBeregningResponse(
-        behandling = requireNotNull(revurdering).toResponse(),
+        behandling = requireNotNull(revurdering).toResponse(krevSimulering, simuleringTilgjengelig),
         økonomiskRetning = økonomiskRetning.name,
         måneder = måneder.map {
             HistoriskInfotrygdBeregningForMånedResponse(
@@ -1068,6 +1122,34 @@ private fun ugyldigRevurderingId() = HttpStatusCode.BadRequest.errorJson(
     message = "Ugyldig revurderings-ID",
     code = "ugyldig_historisk_infotrygd_revurdering_id",
 )
+
+private fun KunneIkkeSimulereHistoriskRevurderingService.tilResultat(): Resultat = when (this) {
+    KunneIkkeSimulereHistoriskRevurderingService.FantIkkeBehandling -> fantIkkeRevurdering()
+    KunneIkkeSimulereHistoriskRevurderingService.IkkeAktivert -> HttpStatusCode.Conflict.errorJson(
+        "Historisk simulering er ikke aktivert i dette miljøet",
+        "historisk_simulering_ikke_aktivert",
+    )
+    KunneIkkeSimulereHistoriskRevurderingService.EndretUnderSimulering -> HttpStatusCode.Conflict.errorJson(
+        "Behandlingen eller utbetalingsgrunnlaget ble endret under simuleringen. Hent behandlingen på nytt.",
+        "historisk_simulering_grunnlag_endret",
+    )
+    is KunneIkkeSimulereHistoriskRevurderingService.UgyldigOppdragsgrunnlag -> HttpStatusCode.Conflict.errorJson(
+        "Kan ikke simulere med dette vedtaksgrunnlaget: $feil",
+        "historisk_simulering_ugyldig_vedtaksgrunnlag",
+    )
+    is KunneIkkeSimulereHistoriskRevurderingService.UgyldigTilstand -> HttpStatusCode.Conflict.errorJson(
+        "Behandlingen kan ikke simuleres: $feil",
+        "historisk_simulering_ugyldig_tilstand",
+    )
+    is KunneIkkeSimulereHistoriskRevurderingService.SimuleringFeilet -> HttpStatusCode.BadGateway.errorJson(
+        "Simuleringen feilet: $feil",
+        "historisk_simulering_klientfeil",
+    )
+    KunneIkkeSimulereHistoriskRevurderingService.UgyldigResultat -> HttpStatusCode.BadGateway.errorJson(
+        "Oppdrag returnerte ikke et gyldig beregningsresultat for personen. Det nye resultatet er ikke lagret.",
+        "historisk_simulering_ugyldig_resultat",
+    )
+}
 
 private fun fantIkkeRevurdering() = HttpStatusCode.NotFound.errorJson(
     message = "Fant ikke historisk Infotrygd-revurdering",

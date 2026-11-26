@@ -8,6 +8,8 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import no.nav.su.se.bakover.client.oppdrag.simulering.historisk.byggMeldingskandidat
+import no.nav.su.se.bakover.client.oppdrag.simulering.historisk.tilHistoriskRespons
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -15,7 +17,12 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Clien
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringClient
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringsforespørsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringsrespons
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.KunneIkkeSimulereHistoriskUtbetaling
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
@@ -57,16 +64,12 @@ data class SimuleringErrorDto(
     val code: SimuleringErrorCode,
 )
 
-internal class HistoriskSimuleringsrespons(
-    val respons: SimulerBeregningResponse,
-    val råRespons: String,
-)
-
 class SimuleringProxyClientGcp(
     private val config: SuProxyConfig,
     private val azureAd: AzureAd,
     private val clock: Clock,
-) : SimuleringClient {
+) : SimuleringClient,
+    HistoriskSimuleringClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private fun bearerToken(): String {
@@ -93,8 +96,16 @@ class SimuleringProxyClientGcp(
         }
     }
 
-    // TODO(HISTORISK_SIMULERING): Koble til historisk service gjennom en avklart klientkontrakt.
-    // Behold OppdragRequest og XML i klientmodulen; ikke eksponer denne interne metoden direkte.
+    override fun simulerHistorisk(
+        forespørsel: HistoriskSimuleringsforespørsel,
+    ): Either<KunneIkkeSimulereHistoriskUtbetaling, HistoriskSimuleringsrespons> =
+        forespørsel.byggMeldingskandidat(Tidspunkt.now(clock))
+            .mapLeft<KunneIkkeSimulereHistoriskUtbetaling> { KunneIkkeSimulereHistoriskUtbetaling.UgyldigMeldingskandidat }
+            .flatMap { request ->
+                simulerHistoriskUtbetaling(request, forespørsel.grunnlag.periode)
+                    .mapLeft { KunneIkkeSimulereHistoriskUtbetaling.Klientfeil(it) }
+            }
+
     internal fun simulerHistoriskUtbetaling(
         request: UtbetalingRequest.OppdragRequest,
         simuleringsperiode: Periode,
@@ -103,10 +114,8 @@ class SimuleringProxyClientGcp(
         val saksnummer = request.saksnummer()
         return sendSimuleringsforespørsel(soapRequest, saksnummer).flatMap { soapResponse ->
             Either.catch {
-                HistoriskSimuleringsrespons(
-                    respons = xmlMapper.readValue<Envelope>(soapResponse).body.simulerBeregningResponse,
-                    råRespons = soapResponse,
-                )
+                xmlMapper.readValue<Envelope>(soapResponse).body.simulerBeregningResponse
+                    .tilHistoriskRespons(soapResponse)
             }.mapLeft { throwable ->
                 log.error("Kunne ikke lese historisk simuleringsrespons for saksnummer $saksnummer. Se sikkerlogg for context.")
                 sikkerLogg.error(

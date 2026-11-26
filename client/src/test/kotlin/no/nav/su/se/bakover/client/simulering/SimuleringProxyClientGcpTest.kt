@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskInfotrygdOppdragsgrunnlag
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringsforespørsel
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -45,6 +46,7 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -56,6 +58,77 @@ import økonomi.domain.utbetaling.Utbetaling
 import java.math.BigDecimal
 
 class SimuleringProxyClientGcpTest {
+    @ParameterizedTest
+    @CsvSource("false, false", "true, false", "false, true", "true, true")
+    fun `historisk klientkontrakt beholder andre oppdrag og støtter rent opphør med og uten SU-historikk`(
+        harEksisterendeSuOppdrag: Boolean,
+        rentOpphør: Boolean,
+    ) {
+        val data = HistoriskInfotrygdOppdragTestdata
+        val gjeldende = data.gjeldende()
+        val grunnlag = HistoriskInfotrygdOppdragsgrunnlag.bygg(
+            data.revurdering(gjeldende, data.beregning(opphør = rentOpphør)),
+            gjeldende,
+        ).shouldBeRight()
+        val simuleringsperiode = data.periode
+        val simuleringspath = "/simulerberegning"
+        val egetFagsystemId = saksnummer.toString()
+        val annetFagsystemId = "annet-test-oppdrag"
+        val ukjentFagområde = "UKJENT_FAGOMRAADE"
+        val ukjentKlassekode = "UKJENT_KLASSEKODE"
+        val ukjentKlassetype = "UKJENT_KLASSETYPE"
+        val rawResponse = simuleringXml {
+            periode {
+                periodeFom = data.februar.fraOgMed.toString()
+                periodeTom = data.februar.tilOgMed.toString()
+                stoppnivå {
+                    fagsystemId = egetFagsystemId
+                    ordinær(1_000)
+                }
+                stoppnivå {
+                    fagsystemId = annetFagsystemId
+                    kodeFagomraade = ukjentFagområde
+                    ordinær(2_000, klassekode = ukjentKlassekode, typeKlasse = ukjentKlassetype)
+                }
+            }
+        }
+        startedWireMockServerWithCorrelationId {
+            stubFor(post(urlPathEqualTo(simuleringspath)).willReturn(aResponse().withStatus(200).withBody(rawResponse)))
+            val resultat = createClient(baseUrl()).simulerHistorisk(
+                HistoriskSimuleringsforespørsel(
+                    grunnlag = grunnlag,
+                    saksnummer = saksnummer,
+                    fnr = utbetaling.fnr,
+                    saksbehandler = data.saksbehandler,
+                    harEksisterendeSuOppdrag = harEksisterendeSuOppdrag,
+                ),
+            ).shouldBeRight()
+            resultat.råRespons shouldBe rawResponse
+            val utbetalinger = requireNotNull(resultat.beregning).perioder.single().utbetalinger
+            utbetalinger.map { it.fagsystemId } shouldBe listOf(egetFagsystemId, annetFagsystemId)
+            val annetOppdrag = utbetalinger.last()
+            annetOppdrag.fagområde shouldBe ukjentFagområde
+            annetOppdrag.detaljer.single().let {
+                it.klassekode shouldBe ukjentKlassekode
+                it.klasseType shouldBe ukjentKlassetype
+            }
+            val oppdragskode = if (harEksisterendeSuOppdrag) "ENDR" else "NY"
+            verify(
+                1,
+                postRequestedFor(urlPathEqualTo(simuleringspath))
+                    .withRequestBody(containing("<kodeEndring>$oppdragskode</kodeEndring>"))
+                    .withRequestBody(containing("<fagsystemId>$egetFagsystemId</fagsystemId>"))
+                    .withRequestBody(containing("<datoSimulerTom>${simuleringsperiode.tilOgMed}</datoSimulerTom>"))
+                    .withRequestBody(containing("<kodeStatusLinje>OPPH</kodeStatusLinje>")),
+            )
+            verify(
+                if (rentOpphør) 0 else 1,
+                postRequestedFor(urlPathEqualTo(simuleringspath))
+                    .withRequestBody(containing("<kodeEndringLinje>ENDR</kodeEndringLinje>")),
+            )
+        }
+    }
+
     private val oboToken = "obo-token"
     private val systemToken = "system-token"
 
@@ -97,7 +170,7 @@ class SimuleringProxyClientGcpTest {
         val forventetToken = if (medBrukertoken) oboToken else systemToken
         val request = historiskRequest()
         val data = HistoriskInfotrygdOppdragTestdata
-        val simuleringsperiode = data.januar..data.februar.plusMonths(1)
+        val simuleringsperiode = data.periode
         val egetFagsystemId = saksnummer.toString()
         val fagområde = Sakstype.ALDER.toFagområde().toString()
         val gammeltFagsystemId = "gammelt-infotrygd-oppdrag"
@@ -140,13 +213,13 @@ class SimuleringProxyClientGcpTest {
                 .shouldBeRight()
 
             svar.råRespons shouldBe rawResponse
-            val beregning = requireNotNull(svar.respons.response?.simulering)
-            val oppdrag = beregning.beregningsPeriode.single().beregningStoppnivaa
+            val beregning = requireNotNull(svar.beregning)
+            val oppdrag = beregning.perioder.single().utbetalinger
             oppdrag.map { it.fagsystemId } shouldBe listOf(egetFagsystemId, egetFagsystemId, gammeltFagsystemId)
-            oppdrag.map { it.kodeFagomraade } shouldBe listOf(fagområde, fagområde, ukjentFagområde)
-            oppdrag.last().beregningStoppnivaaDetaljer.single().let {
+            oppdrag.map { it.fagområde } shouldBe listOf(fagområde, fagområde, ukjentFagområde)
+            oppdrag.last().detaljer.single().let {
                 it.klassekode shouldBe ukjentKlassekode
-                it.typeKlasse shouldBe ukjentKlassetype
+                it.klasseType shouldBe ukjentKlassetype
             }
             if (medBrukertoken) {
                 org.mockito.kotlin.verify(azureAd).onBehalfOfToken(requireNotNull(brukertoken), clientId)
@@ -184,9 +257,8 @@ class SimuleringProxyClientGcpTest {
 
             val svar = createClient(baseUrl()).simulerHistoriskUtbetaling(request, periode).shouldBeRight()
 
-            val respons = requireNotNull(svar.respons.response)
-            respons.simulering shouldBe null
-            requireNotNull(respons.infomelding).beskrMelding shouldBe infomelding
+            svar.beregning shouldBe null
+            svar.infomelding shouldBe infomelding
             svar.råRespons shouldBe rawResponse
         }
     }
@@ -247,7 +319,6 @@ class SimuleringProxyClientGcpTest {
             attestant = NavIdentBruker.Attestant("A123456"),
             avstemmingsnøkkel = Avstemmingsnøkkel(data.tidspunkt),
             kjøreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
-            harEksisterendeSuOppdrag = false,
             format = UverifisertHistoriskOppdragsformat(
                 kodeEndring = UtbetalingRequest.KodeEndring.NY,
                 opphørslinjer = data.periode.måneder().associateWith { måned ->

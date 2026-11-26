@@ -156,6 +156,10 @@ spec:
       #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicerbruker
   env:
+    - name: HISTORISK_SIMULERING_AKTIVERT
+      value: "false"
+    - name: HISTORISK_SIMULERING_KREVES_FOR_ATTESTERING
+      value: "false"
     - name: AAP_API_INTERN_URL
       value: "http://api-intern.aap"
     - name: AAP_API_INTERN_CLIENT_ID

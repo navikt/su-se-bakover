@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test.historisk
 import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMåne
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringsrespons
 import no.nav.su.se.bakover.test.getOrFail
 import java.math.BigDecimal
 import java.time.Instant
@@ -38,6 +40,75 @@ object HistoriskInfotrygdOppdragTestdata {
     val nyttBeløp = BigDecimal(12_000)
     val tidspunkt: Tidspunkt = Tidspunkt.create(Instant.parse("2026-11-13T10:00:00Z"))
     val saksbehandler = NavIdentBruker.Saksbehandler("S123456")
+    private val testnavn = "Testperson"
+    private val enhet = "8020"
+
+    fun simuleringsrespons(fnr: Fnr, periode: Periode = HistoriskInfotrygdOppdragTestdata.periode) =
+        HistoriskSimuleringsrespons(
+            beregning = HistoriskSimuleringsrespons.Beregning(
+                gjelderId = fnr,
+                gjelderNavn = testnavn,
+                datoBeregnet = periode.tilOgMed,
+                faggruppe = "TEST_FAGGRUPPE",
+                beløp = nyttBeløp,
+                perioder = periode.måneder().map { måned ->
+                    val detalj = HistoriskSimuleringsrespons.Detalj(
+                        faktiskFraOgMed = måned.fraOgMed,
+                        faktiskTilOgMed = måned.tilOgMed,
+                        konto = "TESTKONTO",
+                        behandlingskode = "TESTKODE",
+                        beløp = nyttBeløp,
+                        trekkVedtakId = "1",
+                        stønadId = null,
+                        korrigering = null,
+                        tilbakeføring = false,
+                        linjeId = "2",
+                        sats = nyttBeløp,
+                        typeSats = "MND",
+                        antallSats = BigDecimal.ONE,
+                        saksbehandlerId = "SU",
+                        uføregrad = BigDecimal.ZERO,
+                        kravhaverId = null,
+                        delytelseId = "3",
+                        bostedsenhet = enhet,
+                        skyldnerId = null,
+                        klassekode = "UKJENT_KLASSEKODE",
+                        klassekodeBeskrivelse = "Ukjent klassekode skal bevares",
+                        klasseType = "UKJENT_KLASSETYPE",
+                        klasseTypeBeskrivelse = "Ukjent klassetype skal bevares",
+                        refunderesOrgNr = null,
+                    )
+                    val utbetaling = HistoriskSimuleringsrespons.Utbetaling(
+                        fagområde = "UKJENT_FAGOMRAADE",
+                        stoppnivåId = "4",
+                        behandlendeEnhet = enhet,
+                        oppdragsId = "5",
+                        fagsystemId = "test-oppdrag",
+                        kid = null,
+                        utbetalesTilId = fnr.value,
+                        utbetalesTilNavn = testnavn,
+                        bilagstype = "TEST",
+                        forfall = måned.tilOgMed,
+                        feilkonto = false,
+                        detaljer = listOf(detalj),
+                    )
+                    HistoriskSimuleringsrespons.Beregningsperiode(
+                        fraOgMed = måned.fraOgMed,
+                        tilOgMed = måned.tilOgMed,
+                        utbetalinger = listOf(
+                            utbetaling,
+                            utbetaling.copy(
+                                fagområde = "ANNET_UKJENT_FAGOMRAADE",
+                                fagsystemId = "annet-test-oppdrag",
+                                detaljer = listOf(detalj.copy(beløp = -gammeltBeløp, tilbakeføring = true)),
+                            ),
+                        ),
+                    )
+                },
+            ),
+            infomelding = "Syntetisk testrespons",
+            råRespons = "<syntetisk-testrespons/>",
+        )
 
     fun original() = OriginalHistoriskInfotrygdYtelsestidslinje(
         projeksjonId = projeksjonId,

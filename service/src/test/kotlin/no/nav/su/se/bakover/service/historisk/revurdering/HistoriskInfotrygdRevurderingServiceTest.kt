@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.historisk.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.revurdering.domain.Opphørsgrunn
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdFradragsgrunnlag
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
@@ -50,12 +52,16 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedta
 import no.nav.su.se.bakover.domain.historisk.revurdering.IverksatteMånedsresultater
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringClient
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.KunneIkkeByggeHistoriskInfotrygdOppdragsgrunnlag
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.KunneIkkeSimulereHistoriskUtbetaling
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.historisk.HistoriskInfotrygdOppdragTestdata
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -77,6 +83,9 @@ import org.mockito.kotlin.whenever
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.UtbetalingRepo
+import økonomi.domain.utbetaling.Utbetalinger
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -86,6 +95,209 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 internal class HistoriskInfotrygdRevurderingServiceTest {
+    @Test
+    fun `deaktivert simulering gjør ingen klientkall eller databaseendringer`() {
+        val repo = mock<HistoriskInfotrygdRevurderingRepo>()
+        val klient = mock<HistoriskSimuleringClient>()
+        val service = service(
+            projeksjonRepo = mock(),
+            revurderingRepo = repo,
+            simuleringClient = klient,
+            simuleringAktivert = false,
+        )
+        service.simuler(HistoriskInfotrygdRevurderingId.generer(), saksbehandler).shouldBeLeft() shouldBe
+            KunneIkkeSimulereHistoriskRevurderingService.IkkeAktivert
+        verifyNoInteractions(repo, klient)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `beregning simulering gjenlesing og attestering uten løpende ytelse`(rentOpphør: Boolean) {
+        val repo = HistoriskInfotrygdRevurderingRepoFake()
+        val sessionFactory = mock<SessionFactory>()
+        val respons = HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode)
+        val klient = HistoriskSimuleringClient { forespørsel ->
+            verifyNoInteractions(sessionFactory)
+            forespørsel.harEksisterendeSuOppdrag shouldBe false
+            forespørsel.grunnlag.periode shouldBe periode
+            forespørsel.grunnlag.månedsresultater.values.all {
+                it is HistoriskInfotrygdRevurdertMånedsresultat.Opphør
+            } shouldBe rentOpphør
+            respons.right()
+        }
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = repo,
+            simuleringClient = klient,
+            krevSimuleringForAttestering = true,
+            sessionFactory = sessionFactory,
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val beregningskommando = beregningskommando().let { command ->
+            command.copy(
+                månedsgrunnlag = command.månedsgrunnlag.map {
+                    it.copy(manueltOpphør = if (rentOpphør) HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE) else null)
+                },
+            )
+        }
+        service.beregn(opprettet.id, beregningskommando, saksbehandler).shouldBeRight()
+        service.oppdaterVedtaksbrev(opprettet.id, HistoriskInfotrygdVedtaksbrevvalg.IKKE_SEND, null, saksbehandler)
+            .shouldBeRight()
+        service.velgÅIkkeSendeForhåndsvarsel(opprettet.id, saksbehandler).shouldBeRight()
+        service.sendTilAttestering(opprettet.id, saksbehandler).shouldBeLeft() shouldBe
+            KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(
+                KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerGyldigSimulering.toString(),
+            )
+
+        val simulert = service.simuler(opprettet.id, saksbehandler).shouldBeRight()
+        simulert.status shouldBe HistoriskInfotrygdRevurderingStatus.SIMULERT
+        simulert.simulering?.respons shouldBe respons
+        service.hent(opprettet.id) shouldBe simulert
+        service.sendTilAttestering(opprettet.id, saksbehandler).shouldBeRight().status shouldBe
+            HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
+    }
+
+    @Test
+    fun `klientfeil og svar uten beregning gir ikke simulert behandling`() {
+        val repo = HistoriskInfotrygdRevurderingRepoFake()
+        val klient = mock<HistoriskSimuleringClient>()
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = repo,
+            simuleringClient = klient,
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val beregnet = service.beregn(opprettet.id, beregningskommando(), saksbehandler).shouldBeRight().revurdering
+        val feil = KunneIkkeSimulereHistoriskUtbetaling.Klientfeil(SimuleringFeilet.TekniskFeil)
+        whenever(klient.simulerHistorisk(any())).thenReturn(feil.left())
+
+        service.simuler(opprettet.id, saksbehandler).shouldBeLeft() shouldBe
+            KunneIkkeSimulereHistoriskRevurderingService.SimuleringFeilet(feil)
+        service.hent(opprettet.id) shouldBe beregnet
+
+        val respons = HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode)
+        val responsberegning = requireNotNull(respons.beregning)
+        listOf(
+            respons.copy(beregning = null),
+            respons.copy(beregning = responsberegning.copy(gjelderId = Fnr.generer())),
+            respons.copy(beregning = responsberegning.copy(perioder = emptyList())),
+        ).forEach { ugyldigRespons ->
+            whenever(klient.simulerHistorisk(any())).thenReturn(ugyldigRespons.right())
+            service.simuler(opprettet.id, saksbehandler).shouldBeLeft() shouldBe
+                KunneIkkeSimulereHistoriskRevurderingService.UgyldigResultat
+            service.hent(opprettet.id) shouldBe beregnet
+        }
+    }
+
+    @Test
+    fun `endret beregning under klientkallet blir ikke overskrevet av gammel simulering`() {
+        val repo = HistoriskInfotrygdRevurderingRepoFake()
+        val klient = mock<HistoriskSimuleringClient>()
+        val endretGrunnlag = beregningskommando().let { command ->
+            command.copy(
+                månedsgrunnlag = command.månedsgrunnlag.map {
+                    it.copy(manueltOpphør = HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE))
+                },
+            )
+        }
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = repo,
+            simuleringClient = klient,
+        )
+        val id = service.opprett(command()).shouldBeRight().id
+        service.beregn(id, beregningskommando(), saksbehandler).shouldBeRight()
+        whenever(klient.simulerHistorisk(any())).thenAnswer {
+            service.beregn(id, endretGrunnlag, saksbehandler).shouldBeRight()
+            HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode).right()
+        }
+        service.simuler(id, saksbehandler).shouldBeLeft() shouldBe
+            KunneIkkeSimulereHistoriskRevurderingService.EndretUnderSimulering
+        val hentet = requireNotNull(service.hent(id))
+        hentet.simulering shouldBe null
+        hentet.status shouldBe HistoriskInfotrygdRevurderingStatus.BEREGNET
+        hentet.beregning?.erOpphør shouldBe true
+    }
+
+    @Test
+    fun `ny beregning ugyldiggjør simulering selv ved samme beløp`() {
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            simuleringClient = HistoriskSimuleringClient {
+                HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode).right()
+            },
+        )
+        val id = service.opprett(command()).shouldBeRight().id
+        val command = beregningskommando()
+        service.beregn(id, command, saksbehandler).shouldBeRight()
+        service.simuler(id, saksbehandler).shouldBeRight()
+        service.beregn(id, command, saksbehandler).shouldBeRight()
+        val hentet = requireNotNull(service.hent(id))
+        hentet.simulering shouldBe null
+        hentet.harGyldigSimulering() shouldBe false
+        hentet.status shouldBe HistoriskInfotrygdRevurderingStatus.BEREGNET
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `endret vedtaksgrunnlag avvises før og etter klientkallet`(endresUnderKallet: Boolean) {
+        val repo = spy(HistoriskInfotrygdRevurderingRepoFake())
+        val klient = mock<HistoriskSimuleringClient>()
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = repo,
+            simuleringClient = klient,
+        )
+        val id = service.opprett(command()).shouldBeRight().id
+        val beregnet = requireNotNull(service.beregn(id, beregningskommando(), saksbehandler).shouldBeRight().revurdering)
+        val nyttVedtak = IverksatteMånedsresultater(
+            vedtakId = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID()),
+            iverksatt = Tidspunkt.now(clock),
+            månedsresultater = requireNotNull(beregnet.beregning).månedsresultater,
+        )
+        fun endreVedtak() {
+            whenever(repo.hentIverksatteMånedsresultater(sakId, periode)).thenReturn(listOf(nyttVedtak))
+        }
+        if (endresUnderKallet) {
+            whenever(klient.simulerHistorisk(any())).thenAnswer {
+                endreVedtak()
+                HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode).right()
+            }
+        } else {
+            endreVedtak()
+        }
+        val feil = service.simuler(id, saksbehandler).shouldBeLeft()
+        (feil is KunneIkkeSimulereHistoriskRevurderingService.UgyldigOppdragsgrunnlag) shouldBe true
+        require(feil is KunneIkkeSimulereHistoriskRevurderingService.UgyldigOppdragsgrunnlag)
+        (feil.feil is KunneIkkeByggeHistoriskInfotrygdOppdragsgrunnlag.EndretVedtaksgrunnlag) shouldBe true
+        service.hent(id) shouldBe beregnet
+        if (!endresUnderKallet) verifyNoInteractions(klient)
+    }
+
+    @Test
+    fun `senere SU-utbetaling hindrer ikke simulering av historisk periode`() {
+        val utbetalinger = mock<Utbetalinger> {
+            on { isEmpty() } doReturn false
+        }
+        val utbetalingRepo = mock<UtbetalingRepo> {
+            on { hentOversendteUtbetalinger(sakId) } doReturn utbetalinger
+        }
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { januar(2025) },
+            utbetalingRepo = utbetalingRepo,
+            simuleringClient = HistoriskSimuleringClient {
+                it.harEksisterendeSuOppdrag shouldBe true
+                it.grunnlag.periode shouldBe periode
+                HistoriskInfotrygdOppdragTestdata.simuleringsrespons(fnr, periode).right()
+            },
+        )
+        val id = service.opprett(command()).shouldBeRight().id
+        service.beregn(id, beregningskommando(), saksbehandler).shouldBeRight()
+        service.simuler(id, saksbehandler).shouldBeRight().status shouldBe
+            HistoriskInfotrygdRevurderingStatus.SIMULERT
+    }
+
     @Test
     fun `oppretter behandling med fastlåste vedtaksreferanser`() {
         val projeksjonRepo = TidslinjeRepoFake(
@@ -532,6 +744,12 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         brevService: BrevService = mock(),
         mottakerService: MottakerService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
+        simuleringClient: HistoriskSimuleringClient = mock(),
+        utbetalingRepo: UtbetalingRepo = mock {
+            on { hentOversendteUtbetalinger(sakId) } doReturn Utbetalinger()
+        },
+        krevSimuleringForAttestering: Boolean = false,
+        simuleringAktivert: Boolean = true,
     ) = HistoriskInfotrygdRevurderingService(
         sakRepo = sakRepo,
         tidslinjeRepo = projeksjonRepo,
@@ -541,6 +759,10 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         mottakerService = mottakerService,
         sessionFactory = sessionFactory,
         clock = clock,
+        simuleringClient = simuleringClient,
+        utbetalingRepo = utbetalingRepo,
+        simuleringAktivert = simuleringAktivert,
+        krevSimuleringForAttestering = krevSimuleringForAttestering,
     )
 
     private fun sakRepo(): SakRepo = mock {

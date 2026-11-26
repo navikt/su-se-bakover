@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.Duration
@@ -17,6 +18,22 @@ import java.time.Duration
 // Environment bruker static context og er ikke thread safe
 @Execution(value = ExecutionMode.SAME_THREAD)
 class ApplicationConfigTest {
+    @Test
+    fun `historisk meldingskandidat kan ikke aktiveres i produksjon`() {
+        assertThrows<IllegalArgumentException> {
+            expectedApplicationConfig.copy(historiskSimuleringAktivert = true)
+        }
+    }
+
+    @Test
+    fun `attesteringskrav kan ikke aktiveres uten simuleringsflyten`() {
+        assertThrows<IllegalArgumentException> {
+            expectedApplicationConfig.copy(
+                historiskSimuleringAktivert = false,
+                historiskSimuleringKrevesForAttestering = true,
+            )
+        }
+    }
 
     private val statistikkgruppe = "statistikk"
 
@@ -50,6 +67,8 @@ class ApplicationConfigTest {
         pdfgenLocal = false,
         pdfByggerLocal = false,
         historiskAlderTestmodus = false,
+        historiskSimuleringAktivert = false,
+        historiskSimuleringKrevesForAttestering = false,
         serviceUser = ServiceUserConfig(
             username = "username",
             password = "password",
