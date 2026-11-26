@@ -45,7 +45,9 @@ class PdfByggerKlientImpl(
                 .header("X-Request-ID", korrelasjonsId)
                 .header("Nav-Callid", korrelasjonsId)
                 .header(CORRELATION_ID_HEADER, korrelasjonsId)
+                // timeout() gjelder bare tilkoblingen. Uten timeoutRead() bruker Fuel 15 sekunder for svaret.
                 .timeout(timeout.toMillis().toInt())
+                .timeoutRead(timeout.toMillis().toInt())
                 .body(request).responseString()
 
             result.fold(
