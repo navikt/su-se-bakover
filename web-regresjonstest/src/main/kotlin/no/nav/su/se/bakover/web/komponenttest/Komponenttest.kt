@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgres
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withTestConnectionPool
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -316,21 +317,23 @@ internal fun withKomptestApplication(
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
-    testApplication(
-        appComponents = AppComponents.instance(
-            clock = clock,
-            dataSource = dataSource,
-            satsFactory = satsFactoryTest,
-            repoBuilder = repoBuilder,
-            clientBuilder = clientsBuilder,
-            serviceBuilder = serviceBuilder,
-            applicationConfig = applicationConfig,
-            tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
-            dokumentKomponenterBuilder = dokumentKomponenterBuilder,
-            tilgangstyringBuilder = tilgangstyringBuilder,
-        ),
-        test = test,
-    )
+    withTestConnectionPool(dataSource) { scopedDataSource ->
+        testApplication(
+            appComponents = AppComponents.instance(
+                clock = clock,
+                dataSource = scopedDataSource,
+                satsFactory = satsFactoryTest,
+                repoBuilder = repoBuilder,
+                clientBuilder = clientsBuilder,
+                serviceBuilder = serviceBuilder,
+                applicationConfig = applicationConfig,
+                tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
+                dokumentKomponenterBuilder = dokumentKomponenterBuilder,
+                tilgangstyringBuilder = tilgangstyringBuilder,
+            ),
+            test = test,
+        )
+    }
 }
 
 fun Application.testSusebakover(appComponents: AppComponents) {
