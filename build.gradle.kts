@@ -207,7 +207,7 @@ subprojects {
 
 subprojects {
     val cpus = Runtime.getRuntime().availableProcessors()
-    val parallelism = (cpus - 1).toString()
+    val parallelism = (cpus - 1).coerceAtLeast(1).toString()
     tasks.test.configure {
         sharedTestSetup()
         // denne gir en jvm per modul ikke for hele prosjektet!
