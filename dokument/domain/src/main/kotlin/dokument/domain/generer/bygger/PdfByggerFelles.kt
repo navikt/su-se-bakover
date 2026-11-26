@@ -120,7 +120,7 @@ fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: Strin
         title2("Du har rett til å klage")
         paragraph("Du kan klage innen 6 uker fra den datoen du mottok vedtaket. Du finner skjema og informasjon på www.nav.no/klage.")
     }
-    // TODO: PdfBygger ryddejobb
+    // TODO: PdfBygger ryddejobb.
     ekstraVedtaksInfoForKlage?.let {
         paragraph(it)
     }
