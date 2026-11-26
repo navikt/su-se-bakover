@@ -7,6 +7,7 @@ import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.hilsen
+import dokument.domain.generer.bygger.rettTilInnsyn
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.title2
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -49,7 +50,7 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
                 "Vi har mottatt klage på vedtaket om supplerende stønad $vedtakDato, og kommet " +
                     "frem til at det ikke endres. Nav Klageinstans skal derfor vurdere saken på nytt.",
             )
-            paragraph("Informasjon om saksbehandlingstid finner boet på nav.no.")
+            paragraph("Informasjon om saksbehandlingstid finner boet på www.nav.no.")
             title2("Dette har vi lagt vekt på i vurderingen vår")
             paragraph(
                 "Vi viser til vedtak av $vedtakDato og klagen på dette vedtaket som vi mottok ${pdfInnhold.klageDato}.",
@@ -57,26 +58,23 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
             fritekst(pdfInnhold.fritekst)
             paragraph(
                 "Har boet nye opplysninger eller ønsker å komme med en uttalelse, kontakt Nav " +
-                    "Klageinstans på nav.no eller på telefon 21 07 17 30.",
+                    "Klageinstans på www.nav.no eller på telefon 21 07 17 30.",
             )
-            title2("Boet har rett til innsyn")
-            paragraph("På nav.no/minside kan boet se dokumentene i saken til den avdøde.")
+            rettTilInnsyn(true)
             title2("Har boet spørsmål?")
             paragraph(
-                "Boet finner mer informasjon på " +
-                    "www.nav.no",
+                "Boet finner nyttig informasjon på www.nav.no",
             )
             paragraph(
-                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på " +
-                    "www.nav.no/kontaktoss" +
-                    " Boet kan også kontakte Nav Klageinstans på telefon 21 07 17 30.",
+                "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontaktoss. " +
+                    "Boet kan også kontakte Nav Klageinstans på telefon 21 07 17 30.",
             )
         } else {
             paragraph(
                 "Vi har mottatt klagen din på vedtaket om supplerende stønad $vedtakDato, og kommet " +
                     "frem til at det ikke endres. Nav Klageinstans skal derfor vurdere saken din på nytt.",
             )
-            paragraph("Informasjon om saksbehandlingstid finner du på nav.no.")
+            paragraph("Informasjon om saksbehandlingstid finner du på www.nav.no.")
             title2("Dette har vi lagt vekt på i vurderingen vår")
             paragraph(
                 "Vi viser til vedtak av $vedtakDato og klagen din på dette vedtaket som vi mottok ${pdfInnhold.klageDato}.",
@@ -84,17 +82,16 @@ val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold 
             fritekst(pdfInnhold.fritekst)
             paragraph(
                 "Har du nye opplysninger eller ønsker å uttale deg, kontakt Nav " +
-                    "Klageinstans på nav.no eller på telefon 21 07 17 30.",
+                    "Klageinstans på www.nav.no eller på telefon 21 07 17 30.",
             )
-            title2("Du har rett til innsyn")
-            paragraph("På nav.no/minside kan du se dokumentene i saken din.")
+            rettTilInnsyn(false)
             title2("Har du spørsmål?")
             paragraph(
                 "Du finner nyttig informasjon på " +
-                    if (pdfInnhold.sakstype == Sakstype.ALDER) "www.nav.no/supplerende-stonad-over-67." else "nav.no/supplerende-stonad-flyktninger.",
+                    if (pdfInnhold.sakstype == Sakstype.ALDER) "www.nav.no/supplerende-stonad-over-67." else "www.nav.no/supplerende-stonad-flyktninger.",
             )
             paragraph(
-                "Kontakt gjerne Nav Klageinstans på nav.no eller på telefon 21 07 17 30. " +
+                "Kontakt gjerne Nav Klageinstans på www.nav.no eller på telefon 21 07 17 30. " +
                     "Hvis du oppgir fødselsnummeret ditt når du tar kontakt med Nav, kan de " +
                     "lettere gi deg rask og god hjelp.",
             )
@@ -108,10 +105,10 @@ val avvistKlage = { _: String, pdfInnhold: KlagePdfInnhold.Avvist ->
     } else {
         "Nav har avvist klagen din"
     }
-    dokument(tittel, pdfInnhold.personalia) {
+    dokument(tittel, pdfInnhold.personalia, dødsbo = pdfInnhold.dødsbo) {
         paragraph("Fødselsnummer: ${pdfInnhold.personalia.fødselsnummer}")
         fritekst(pdfInnhold.fritekst)
-        fellesKlageinfo(pdfInnhold.sakstype)
+        fellesKlageinfo(pdfInnhold.sakstype, dødsbo = pdfInnhold.dødsbo)
         hilsen(saksbehandler = pdfInnhold.saksbehandlerNavn, attestant = pdfInnhold.attestantNavn)
     }
 }

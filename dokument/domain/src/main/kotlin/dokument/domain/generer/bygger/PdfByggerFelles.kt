@@ -109,30 +109,51 @@ fun Innhold.postadresse() {
     }
 }
 
-fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: String? = null) {
-    title2("Du har rett til å klage")
-    paragraph("Du kan klage innen 6 uker fra den datoen du mottok vedtaket. Du finner skjema og informasjon på www.nav.no/klage.")
+fun Innhold.fellesKlageinfo(sakstype: Sakstype, ekstraVedtaksInfoForKlage: String? = null, dødsbo: Boolean = false) {
+    if (dødsbo) {
+        title2("Boet har rett til å klage")
+        paragraph(
+            "Boet kan klage innen 6 uker fra den datoen boet mottok vedtaket. Boet finner skjema og informasjon på www.nav.no/klage.",
+        )
+        paragraph("Klagen kan sendes digitalt via innlogging på nettsiden vår www.nav.no, eller i posten. ")
+    } else {
+        title2("Du har rett til å klage")
+        paragraph("Du kan klage innen 6 uker fra den datoen du mottok vedtaket. Du finner skjema og informasjon på www.nav.no/klage.")
+    }
+    // TODO: PdfBygger ryddejobb.
     ekstraVedtaksInfoForKlage?.let {
         paragraph(it)
     }
-    rettTilInnsyn()
-    harDuSpørsmål(sakstype)
+    rettTilInnsyn(dødsbo)
+    harDuSpørsmål(sakstype, dødsbo)
 }
 
-private fun Innhold.rettTilInnsyn() {
-    title2("Du har rett til innsyn")
-    paragraph("På www.nav.no/minside kan du se dokumentene i saken din.")
-}
-
-fun Innhold.harDuSpørsmål(sakstype: Sakstype) {
-    title2("Har du spørsmål?")
-    paragraph {
-        text("Du finner nyttig informasjon på ")
-        text(
-            if (sakstype == Sakstype.ALDER) "www.nav.no/supplerende-stonad-over-67." else "www.nav.no/supplerende-stonad-flyktninger.",
-        )
+fun Innhold.rettTilInnsyn(dødsbo: Boolean) {
+    if (dødsbo) {
+        title2("Boet har rett til innsyn")
+        paragraph("På www.nav.no/minside kan boet se dokumentene i saken til den avdøde.")
+    } else {
+        title2("Du har rett til innsyn")
+        paragraph("På www.nav.no/minside kan du se dokumentene i saken din.")
     }
-    paragraph("Du kan også kontakte oss på ${telefonnummer(sakstype)}.")
+}
+
+fun Innhold.harDuSpørsmål(sakstype: Sakstype, dødsbo: Boolean = false) {
+    if (dødsbo) {
+        title2("Har boet spørsmål?")
+        paragraph("Boet finner nyttig informasjon på www.nav.no")
+        paragraph(
+            "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontaktoss. ",
+        )
+        paragraph("Boet kan også kontakte oss på ${telefonnummer(sakstype)}.")
+    } else {
+        title2("Har du spørsmål?")
+        paragraph(
+            "Du finner nyttig informasjon på " +
+                if (sakstype == Sakstype.ALDER) "www.nav.no/supplerende-stonad-over-67." else "www.nav.no/supplerende-stonad-flyktninger.",
+        )
+        paragraph("Du kan også kontakte oss på ${telefonnummer(sakstype)}.")
+    }
 }
 
 fun Innhold.punktliste(vararg punkter: String) = punktliste(punkter.map { listOf(it) })
