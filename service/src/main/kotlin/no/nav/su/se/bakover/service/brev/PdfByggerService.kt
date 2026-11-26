@@ -13,7 +13,6 @@ import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
-import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
@@ -125,7 +124,6 @@ internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
     is KlagePdfInnhold.Avvist -> dokumentMal.lagBestiling(this)
     is InnvilgetSøknadsbehandlingPdfInnhold -> dokumentMal.lagBestilling(this)
     is AvvistSøknadVedtakPdfInnhold -> dokumentMal.lagBestilling(this)
-    is AvvistSøknadFritekstPdfInnhold -> dokumentMal.lagBestilling(this)
     is SkattegrunnlagsPdfInnhold -> dokumentMal.lagBestilling(this)
     is TrukketSøknadPdfInnhold -> dokumentMal.lagBestilling(this)
     is SøknadPdfInnhold -> dokumentMal.lagBestilling(this)

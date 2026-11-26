@@ -30,7 +30,10 @@ internal fun AppComponents.lukkSøknad(
                 serialize(
                     LukketJson.AvvistJson(
                         type = LukketJson.LukketType.AVSLAG,
-                        brevConfig = null,
+                        brevConfig = LukketJson.AvvistJson.BrevConfigJson(
+                            brevtype = LukketJson.BrevType.VEDTAK,
+                            fritekst = "Søknaden avvises.",
+                        ),
                     ),
                 ),
             )

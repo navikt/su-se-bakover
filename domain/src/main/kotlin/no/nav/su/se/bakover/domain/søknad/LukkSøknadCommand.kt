@@ -37,11 +37,5 @@ sealed interface LukkSøknadCommand {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
         ) : UtenBrev
-
-        data class AvvistSøknad(
-            override val søknadId: UUID,
-            override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val lukketTidspunkt: Tidspunkt,
-        ) : UtenBrev
     }
 }

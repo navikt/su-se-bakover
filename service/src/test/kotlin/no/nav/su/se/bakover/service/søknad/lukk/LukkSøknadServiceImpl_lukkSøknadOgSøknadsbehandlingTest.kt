@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avvisSøknadMedBrev
-import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
@@ -252,23 +251,6 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
     // TODO jah: Slett tilsvarende lukk søknad tester hvis den/de flyttes til regresjonslaget.
     @Test
-    fun `lukker avvist søknad uten brev`() {
-        val (sak, søknadsbehandling) = nySøknadsbehandlingMedStønadsperiode()
-        val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
-        ServiceOgMocks(
-            sak = sak,
-            søknad = søknad,
-            søknadsbehandling = søknadsbehandling,
-            lukkSøknadCommand = avvisSøknadUtenBrev(søknad.id),
-        ).let { serviceAndMocks ->
-            serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
-            serviceAndMocks.verifyAll(
-                includeBrev = false,
-            )
-        }
-    }
-
-    @Test
     fun `lukker avvist søknad med brev`() {
         val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
         val sakMedBehandling = sak.opprettNySøknadsbehandling(
@@ -284,7 +266,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             søknad = søknad,
             lukkSøknadCommand = avvisSøknadMedBrev(
                 søknadId = søknad.id,
-                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("Fritekst"),
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(fritekst = "Fritekst"),
             ),
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
@@ -472,7 +454,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         is LukkSøknadCommand.MedBrev.AvvistSøknad -> AvvistSøknadDokumentCommand(
                             saksnummer = sak!!.saksnummer,
                             sakstype = sak.type,
-                            brevvalg = lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev,
+                            fritekst = (lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
                             fødselsnummer = sak.fnr,
                             saksbehandler = saksbehandler,
                         )
@@ -586,22 +568,6 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         trukketDato = lukkSøknadCommand.trukketDato,
                         innsendtAv = veileder,
                         dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
-                    )
-                }
-
-                is LukkSøknadCommand.UtenBrev.AvvistSøknad -> {
-                    Søknad.Journalført.MedOppgave.Lukket.Avvist(
-                        id = søknad!!.id,
-                        opprettet = søknad.opprettet,
-                        sakId = søknad.sakId,
-                        søknadInnhold = søknad.søknadInnhold,
-                        journalpostId = (søknad as Søknad.Journalført.MedOppgave.IkkeLukket).journalpostId,
-                        oppgaveId = søknad.oppgaveId,
-                        lukketTidspunkt = fixedTidspunkt,
-                        lukketAv = saksbehandler,
-                        brevvalg = Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(),
-                        innsendtAv = veileder,
-                        dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE,
                     )
                 }
 

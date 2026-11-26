@@ -4,7 +4,6 @@ import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
-import dokument.domain.brev.Brevvalg
 import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -105,28 +104,12 @@ fun PdfA.tilDokument(
             }
         }
 
-        is AvvistSøknadDokumentCommand -> when (command.brevvalg) {
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> informasjonAnnet(
-                id = id,
-                clock = clock,
-                pdfInnhold = pdfInnhold,
-                brevtype = Brevtype.AVVIST_SØKNAD,
-            )
-
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
-                id = id,
-                clock = clock,
-                pdfInnhold = pdfInnhold,
-                brevtype = Brevtype.VEDTAK,
-            )
-
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> vedtak(
-                id = id,
-                clock = clock,
-                pdfInnhold = pdfInnhold,
-                brevtype = Brevtype.FRITEKST_VEDTAK,
-            )
-        }
+        is AvvistSøknadDokumentCommand -> vedtak(
+            id = id,
+            clock = clock,
+            pdfInnhold = pdfInnhold,
+            brevtype = Brevtype.FRITEKST_VEDTAK,
+        )
 
         else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
     }

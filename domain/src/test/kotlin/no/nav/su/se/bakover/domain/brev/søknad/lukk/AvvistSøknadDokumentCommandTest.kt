@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import arrow.core.right
-import dokument.domain.brev.Brevvalg
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -47,7 +45,7 @@ internal class AvvistSøknadDokumentCommandTest {
     @Test
     fun `lager vedtaks-brevdata`() {
         AvvistSøknadDokumentCommand(
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(null, "fritekst"),
+            fritekst = "fritekst",
             saksbehandler = saksbehandler,
             fødselsnummer = person.ident.fnr,
             sakstype = Sakstype.UFØRE,
@@ -61,26 +59,6 @@ internal class AvvistSøknadDokumentCommandTest {
             expectedPersonalia,
             "saksbehandler",
             "fritekst",
-        )
-    }
-
-    @Test
-    fun `lager fritekst-brevdata`() {
-        AvvistSøknadDokumentCommand(
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("jeg er fritekst"),
-            saksbehandler = saksbehandler,
-            fødselsnummer = person.ident.fnr,
-            saksnummer = Saksnummer(2021),
-            sakstype = Sakstype.UFØRE,
-        ).tilPdfInnhold(
-            clock = fixedClock,
-            hentPerson = { person.right() },
-            hentNavnForIdent = { "saksbehandler".right() },
-        ).getOrFail() shouldBe AvvistSøknadFritekstPdfInnhold(
-            sakstype = Sakstype.UFØRE,
-            personalia = expectedPersonalia,
-            saksbehandlerNavn = "saksbehandler",
-            fritekst = "jeg er fritekst",
         )
     }
 }

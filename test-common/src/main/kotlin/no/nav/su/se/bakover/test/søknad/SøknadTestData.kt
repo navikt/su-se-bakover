@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.søknad
 
+import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.avvisSøknadMedBrev
-import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -108,14 +108,23 @@ fun bortfaltSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.Bortfalt
     }
 }
 
+/**
+ * Historisk tilstand: avvisning uten brev kan ikke lenger bestilles, men kan finnes i databasen.
+ */
 fun avvistSøknadUtenBrev(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.Avvist> {
     return nySakMedjournalførtSøknadOgOppgave().mapSecond {
-        it.lukk(
-            lukkSøknadCommand = avvisSøknadUtenBrev(
-                søknadId = it.id,
-                lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
-            ),
-        ) as Søknad.Journalført.MedOppgave.Lukket.Avvist
+        (
+            it.lukk(
+                lukkSøknadCommand = avvisSøknadMedBrev(
+                    søknadId = it.id,
+                    lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
+                    brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(fritekst = "fritekst"),
+                ),
+            ) as Søknad.Journalført.MedOppgave.Lukket.Avvist
+            ).copy(
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(),
+            dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE,
+        )
     }
 }
 

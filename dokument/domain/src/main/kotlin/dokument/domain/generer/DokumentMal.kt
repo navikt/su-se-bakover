@@ -3,7 +3,6 @@ package dokument.domain.generer
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
-import dokument.domain.generer.bygger.maler.AvvistSøknadFritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
@@ -21,7 +20,6 @@ import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
-import dokument.domain.generer.bygger.maler.avvistSøknadFritekst
 import dokument.domain.generer.bygger.maler.avvistSøknadVedtak
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekreving
@@ -124,17 +122,6 @@ sealed interface DokumentMal {
 
             fun lagBestilling(innhold: AvvistSøknadVedtakPdfInnhold): PdfBestilling =
                 avvistSøknadVedtak(tittel, innhold)
-        }
-
-        // TODO skal fjernes pga ikke i bruk
-        data object AvvistSøknadFritekst : Søknadsbehandling {
-            override val navn = "avvistSøknadFritekst"
-            override val tittel = "Søknaden din om supplerende stønad er avvist"
-            override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
-
-            fun lagBestilling(innhold: AvvistSøknadFritekstPdfInnhold): PdfBestilling =
-                avvistSøknadFritekst(tittel, innhold)
         }
     }
 
