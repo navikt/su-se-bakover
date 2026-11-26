@@ -151,11 +151,12 @@ internal class KontrollsamtaleNotatIdempotensTest {
         service(pdfGenerator).opprettJournalpost(sakInfo, notat, person(fnr = fnr)) shouldBe journalpostId.right()
 
         when (runtimeEnvironment) {
-            ApplicationConfig.RuntimeEnvironment.Prod, ApplicationConfig.RuntimeEnvironment.Local -> {
+            // Lokalt brukes su-pdfgen så lenge PDFBYGGER_LOCAL ikke er slått på.
+            ApplicationConfig.RuntimeEnvironment.Local -> {
                 verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
                 verifyNoInteractions(nyKlient)
             }
-            ApplicationConfig.RuntimeEnvironment.Test -> {
+            ApplicationConfig.RuntimeEnvironment.Prod, ApplicationConfig.RuntimeEnvironment.Test -> {
                 verify(nyKlient).lagPdf(any())
                 verifyNoInteractions(gammelKlient)
             }

@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.serialize
 interface PdfInnhold {
     fun toJson(): String = serialize(this)
 
-    /** Maler som bygger sin egen bestilling, overstyrer denne. */
-    fun bestilling(): PdfBestilling? = null
+    /** Markup-bestillingen til pdf-bygger. Hver innholdsklasse eier sin egen, så en ny mal uten bestilling kompilerer ikke. */
+    fun bestilling(): PdfBestilling
 
     @get:JsonIgnore
     val dokumentMal: DokumentMal

@@ -3,6 +3,7 @@ package dokument.domain.generer.bygger.maler
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
 import dokument.domain.generer.bygger.hilsen
@@ -18,6 +19,7 @@ data class TrukketSøknadPdfInnhold(
     override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Søknadsbehandling.TrukketSøknad
+    override fun bestilling(): PdfBestilling = søknadTrukket(dokumentMal.tittel, this)
 }
 
 val søknadTrukket = { _: String, pdfInnhold: TrukketSøknadPdfInnhold ->

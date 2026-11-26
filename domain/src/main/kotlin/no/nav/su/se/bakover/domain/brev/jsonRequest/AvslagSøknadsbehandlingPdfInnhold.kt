@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvslagsgrunnBrev
@@ -75,4 +78,15 @@ fun Avslagsgrunn.toBrev(): AvslagsgrunnBrev = when (this) {
     Avslagsgrunn.ALDERSPENSJON_ANDRE_NORSKE_PENSJONSORDNINGER -> AvslagsgrunnBrev.ALDERSPENSJON_ANDRE_NORSKE_PENSJONSORDNINGER
     Avslagsgrunn.ALDERSPENSJON_UTENLANDSKE_PENSJONSORDNINGER -> AvslagsgrunnBrev.ALDERSPENSJON_UTENLANDSKE_PENSJONSORDNINGER
     Avslagsgrunn.FAMILIEGJENFORENING -> AvslagsgrunnBrev.FAMILIEGJENFORENING
+}
+
+val avslåttSøknadsbehandlingBrev = Brevmal<IverksettSøknadsbehandlingDokumentCommand.Avslag>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
 }

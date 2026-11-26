@@ -5,6 +5,7 @@ import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.avslagsparagrafer
 import dokument.domain.generer.bygger.beregning
@@ -43,6 +44,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
 ) : PdfInnhold {
 
     override val dokumentMal = DokumentMal.Søknadsbehandling.AvslagsVedtak
+    override fun bestilling(): PdfBestilling = vedtakAvslag(dokumentMal.tittel, this)
 }
 
 data class FormueForBrev(

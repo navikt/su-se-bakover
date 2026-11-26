@@ -4,6 +4,7 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.dokument
 import no.nav.brev.brevbaker.markup.dsl.paragraph
@@ -20,6 +21,7 @@ data class VedtakVedReguleringPdfInnhold(
     val attestantNavn: String,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.VedtaksbrevReguleringAldersfradrag
+    override fun bestilling(): PdfBestilling = vedtaksbrevReguleringAldersfradrag(dokumentMal.tittel, this)
 }
 
 val vedtaksbrevReguleringAldersfradrag = { _: String, pdfInnhold: VedtakVedReguleringPdfInnhold ->

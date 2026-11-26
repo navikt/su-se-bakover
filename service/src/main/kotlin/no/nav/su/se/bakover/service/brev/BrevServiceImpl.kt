@@ -21,9 +21,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
 import no.nav.su.se.bakover.domain.brev.jsonRequest.hentFelles
-import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import person.domain.IdentClient
 import person.domain.PersonService
 import java.time.Clock
@@ -45,12 +43,15 @@ class BrevServiceImpl(
     override fun lagDokumentPdf(
         command: GenererDokumentCommand,
         id: UUID,
-    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> = when (command) {
-        is BrevmalCommand<*> -> lagBrev(
+    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+        // Alle brevkommandoer er BrevmalCommand. Parameteren får den typen når GenererDokumentCommand fjernes (fase 3).
+        check(command is BrevmalCommand) { "Ukjent dokumentkommando ${command::class.simpleName} for sak ${command.saksnummer}" }
+        return lagBrev(
             command = command,
             hentFelles = { brevmalCommand ->
                 brevmalCommand.hentFelles(
                     clock = clock,
+                    // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
                     hentPerson = { fnr -> personService.hentPersonMedSystembruker(fnr, brevmalCommand.sakstype) },
                     hentNavnForIdent = identClient::hentNavnForNavIdent,
                 ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }
@@ -61,36 +62,6 @@ class BrevServiceImpl(
             id = id,
             opprettet = Tidspunkt.now(clock),
         )
-
-        // Forsvinner når alle maler er flyttet til Brevmal.
-        else -> lagDokumentPdfGammelVei(command, id)
-    }
-
-    // basert på kommandotypen så avjøres typen av Metadata
-    private fun lagDokumentPdfGammelVei(
-        command: GenererDokumentCommand,
-        id: UUID,
-    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-        return command.tilPdfInnhold(
-            clock = clock,
-            // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
-            hentPerson = { personService.hentPersonMedSystembruker(command.fødselsnummer, command.sakstype) },
-            hentNavnForIdent = identClient::hentNavnForNavIdent,
-        ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }
-            .flatMap { pdfInnhold ->
-                pdfGenerator.genererPdf(pdfInnhold).mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
-                    .map { pdfA ->
-                        Pair(pdfA, pdfInnhold)
-                    }
-            }
-            .map { (pdfA, pdfInnhold) ->
-                pdfA.tilDokument(
-                    id = id,
-                    pdfInnhold = pdfInnhold,
-                    command = command,
-                    clock = clock,
-                )
-            }
     }
 
     override fun lagDokumentMedForsideSomVedlegg(

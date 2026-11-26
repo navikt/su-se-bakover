@@ -1,6 +1,9 @@
 package tilbakekreving.domain.forhåndsvarsel
 
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.Felles
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -17,12 +20,15 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
     override val correlationId: CorrelationId?,
     override val sakId: UUID,
     override val sakstype: Sakstype,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val saksbehandler: NavIdentBruker.Saksbehandler,
     val fritekst: String?,
     val kravgrunnlag: Kravgrunnlag?,
     val dødsbo: Boolean,
-) : GenererDokumentCommand,
+) : BrevmalCommand,
     SakshendelseCommand {
+    override val attestant: NavIdentBruker? get() = null
+    override val mal: Brevmal<ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand> get() = forhåndsvarselTilbakekrevingBrev
+    override fun lagInnhold(felles: Felles): PdfInnhold = mal.lagInnhold(felles, this)
     override val utførtAv: NavIdentBruker? = null
     override val brukerroller: List<Brukerrolle> = emptyList()
 }

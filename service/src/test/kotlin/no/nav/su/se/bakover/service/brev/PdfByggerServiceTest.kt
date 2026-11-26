@@ -8,6 +8,7 @@ import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
@@ -53,7 +54,7 @@ import java.util.UUID
 internal class PdfByggerServiceTest {
 
     @Test
-    fun `inntektsrevurdering bruker felles brevmodell mot gammel generator i prod`() {
+    fun `søknad bruker bare pdf-bygger i prod`() {
         val pdfInnhold = lagSøknadPdfInnhold(
             saksnummer = Saksnummer(2021),
             sakstype = Sakstype.UFØRE,
@@ -63,11 +64,11 @@ internal class PdfByggerServiceTest {
             søknadInnhold = søknadinnholdUføre(),
             clock = fixedClock,
         )
-        val pdf = PdfA(lagPdf(antallSider = 1))
-        val klient = mock<PensjonPdfByggerKlient>()
-        val gammelKlient = mock<PdfGenerator> {
-            on { genererPdf(pdfInnhold) } doReturn pdf.right()
+        val bytes = lagPdf(antallSider = 1)
+        val klient = mock<PensjonPdfByggerKlient> {
+            on { lagPdf(any()) } doReturn bytes.right()
         }
+        val gammelKlient = mock<PdfGenerator>()
         val service = PdfByggerService(
             klient,
             gammelKlient,
@@ -75,10 +76,10 @@ internal class PdfByggerServiceTest {
             fixedClock,
         )
 
-        service.genererPdf(pdfInnhold) shouldBe pdf.right()
+        service.genererPdf(pdfInnhold) shouldBe PdfA(bytes).right()
 
-        verify(gammelKlient).genererPdf(pdfInnhold)
-        verifyNoInteractions(klient)
+        verify(klient).lagPdf(any())
+        verifyNoInteractions(gammelKlient)
     }
 
     @Test
@@ -134,27 +135,11 @@ internal class PdfByggerServiceTest {
         verifyNoInteractions(gammelKlient)
     }
 
-    @Test
-    fun `aktivert mal med ukjent innholdstype returnerer Left`() {
-        val klient = mock<PensjonPdfByggerKlient>()
-        val gammelKlient = mock<PdfGenerator>()
-        val service = PdfByggerService(klient, gammelKlient, ApplicationConfig.RuntimeEnvironment.Test, fixedClock)
-
-        listOf(DokumentMal.Lokalkontor.Kontrollnotat, DokumentMal.Lokalkontor.Søknad).forEach { mal ->
-            val innhold = object : PdfInnhold {
-                override val dokumentMal = mal
-                override val sakstype = Sakstype.UFØRE
-            }
-            service.genererPdf(innhold) shouldBe KunneIkkeGenererePdf.left()
-        }
-
-        verifyNoInteractions(klient, gammelKlient)
-    }
-
     private val pdfInnhold = object : PdfInnhold {
         // Mal med både pdfByggerDev = false og pdfByggerProd = false
         override val dokumentMal = DokumentMal.VedtaksbrevReguleringAldersfradrag
         override val sakstype: Sakstype = Sakstype.UFØRE
+        override fun bestilling(): PdfBestilling = error("Malen er ikke aktivert for pdf-bygger, så bestillingen skal ikke lages")
     }
 
     @ParameterizedTest
@@ -386,7 +371,7 @@ internal class PdfByggerServiceTest {
         brukPdfByggerLokalt: Boolean = false,
         brukPdfgenLokalt: Boolean = false,
     ) {
-        // Ingen ekte mal har pdfByggerProd = true ennå, så vi overstyrer flaggene i testen.
+        // Overstyrer flaggene, slik at alle kombinasjoner kan testes uavhengig av de ekte malene.
         val mal = spy(DokumentMal.Lokalkontor.Kontrollnotat)
         doReturn(pdfByggerDev).whenever(mal).pdfByggerDev
         doReturn(pdfByggerProd).whenever(mal).pdfByggerProd
@@ -411,7 +396,6 @@ internal class PdfByggerServiceTest {
             brukPdfgenLokalt = brukPdfgenLokalt,
         ).genererPdf(innhold)
 
-        verify(mal).lagBestilling(innhold)
         verify(klient).lagPdf(bestilling)
         if (forventGammelKlient) {
             verify(gammelKlient).genererPdf(innhold)

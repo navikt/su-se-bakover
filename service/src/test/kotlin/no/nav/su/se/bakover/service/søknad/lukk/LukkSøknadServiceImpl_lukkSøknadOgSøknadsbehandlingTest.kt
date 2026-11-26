@@ -7,8 +7,7 @@ import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
-import dokument.domain.generer.BrevmalCommand
-import dokument.domain.generer.bygger.maler.avvistSøknadVedtakBrev
+import dokument.domain.generer.bygger.maler.AvvistSøknadDokumentCommand
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -452,14 +451,12 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             verify(brevService).lagDokumentPdf(
                 argThat {
                     it shouldBe when (lukkSøknadCommand) {
-                        is LukkSøknadCommand.MedBrev.AvvistSøknad -> BrevmalCommand(
-                            mal = avvistSøknadVedtakBrev,
-                            fakta = (lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
+                        is LukkSøknadCommand.MedBrev.AvvistSøknad -> AvvistSøknadDokumentCommand(
                             fødselsnummer = sak!!.fnr,
                             saksnummer = sak.saksnummer,
                             sakstype = sak.type,
                             saksbehandler = saksbehandler,
-                            attestant = null,
+                            fritekst = (lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
                         )
 
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> TrukketSøknadDokumentCommand(

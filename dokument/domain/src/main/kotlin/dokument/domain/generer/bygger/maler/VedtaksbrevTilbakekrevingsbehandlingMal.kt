@@ -3,6 +3,7 @@ package dokument.domain.generer.bygger.maler
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.brev
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
@@ -43,6 +44,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
     val bruttoSkalIkkeTilbakekreveSummert: Int,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Tilbakekreving.Vedtaksbrev(dødsbo)
+    override fun bestilling(): PdfBestilling = vedtaksbrevTilbakekrevingsbehandling(dokumentMal.tittel, this)
 }
 
 data class MånedsoversiktMedSum(

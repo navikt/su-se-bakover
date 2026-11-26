@@ -3,6 +3,7 @@ package dokument.domain.generer.bygger.maler
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
@@ -21,6 +22,7 @@ data class AvsluttRevurderingPdfInnhold(
     val fritekst: String?,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Revurdering.Avslutt
+    override fun bestilling(): PdfBestilling = avsluttRevurdering(dokumentMal.tittel, this)
 }
 
 val avsluttRevurdering = { _: String, pdfInnhold: AvsluttRevurderingPdfInnhold ->

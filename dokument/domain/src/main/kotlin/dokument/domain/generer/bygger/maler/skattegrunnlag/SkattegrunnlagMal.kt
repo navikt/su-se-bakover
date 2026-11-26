@@ -3,6 +3,7 @@ package dokument.domain.generer.bygger.maler.skattegrunnlag
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.maler.seksjon
@@ -37,6 +38,7 @@ data class SkattegrunnlagsPdfInnhold(
     override val dokumentMal = DokumentMal.Skattegrunnlag(
         nyTittel = if (søkers == null && eps != null) "Skattegrunnlag - EPS" else null,
     )
+    override fun bestilling(): PdfBestilling = skattegrunnlag(dokumentMal.tittel, this)
 }
 
 val skattegrunnlag = { _: String, pdfInnhold: SkattegrunnlagsPdfInnhold ->

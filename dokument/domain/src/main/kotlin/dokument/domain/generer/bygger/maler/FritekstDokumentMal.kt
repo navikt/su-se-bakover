@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.harDuSpørsmål
@@ -26,6 +27,7 @@ data class FritekstPdfInnhold(
     val fritekst: String,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.FritekstDokument(tittel)
+    override fun bestilling(): PdfBestilling = fritekstDokument(dokumentMal.tittel, this)
 }
 
 val fritekstDokument = { _: String, pdfInnhold: FritekstPdfInnhold ->

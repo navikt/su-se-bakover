@@ -1,13 +1,17 @@
 @file:Suppress("PackageDirectoryMismatch")
-// Må ligge i samme pakke som GenererDokumentCommand (siden det er et sealed interface), men trenger ikke ligge i samme mappe.
+// Ligger i samme pakke som de andre brevkommandoene, men i mappen for lukking av søknad.
 
 package no.nav.su.se.bakover.domain.brev.command
 
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.Felles
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.trukketSøknadBrev
 import java.time.LocalDate
 
 /**
@@ -20,5 +24,9 @@ data class TrukketSøknadDokumentCommand(
     override val sakstype: Sakstype,
     val søknadMottatt: LocalDate,
     val trukketDato: LocalDate,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
-) : GenererDokumentCommand
+    override val saksbehandler: NavIdentBruker.Saksbehandler,
+) : BrevmalCommand {
+    override val attestant: NavIdentBruker? get() = null
+    override val mal: Brevmal<TrukketSøknadDokumentCommand> get() = trukketSøknadBrev
+    override fun lagInnhold(felles: Felles): PdfInnhold = mal.lagInnhold(felles, this)
+}

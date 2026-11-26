@@ -3,167 +3,35 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.right
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.BrevmalCommand
 import dokument.domain.generer.Felles
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.toPdfInnhold
-import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
-import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
-import tilbakekreving.domain.forhåndsvarsel.fromBrevCommand
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
-import tilbakekreving.domain.vedtaksbrev.fromBrevCommand
 import java.time.Clock
-
-fun GenererDokumentCommand.tilPdfInnhold(
-    clock: Clock,
-    hentPerson: (Fnr) -> Either<KunneIkkeHentePerson, Person>,
-    hentNavnForIdent: (NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-): Either<FeilVedHentingAvInformasjon, PdfInnhold> {
-    return fromBrevCommand(
-        command = this,
-        hentPerson = hentPerson,
-        hentNavnForIdent = hentNavnForIdent,
-        clock = clock,
-    )
-}
+import java.time.LocalDate
 
 /**
- * Dersom vi skal ha en generell måte å forholde oss til [GenererDokumentCommand] på, må vi ha noe som dette.
+ * Innholdet en brevkommando gir, med personalia og navn hentet.
+ * Samme vei som [dokument.domain.generer.lagBrev] bruker, uten PDF-generering.
  */
-fun fromBrevCommand(
-    command: GenererDokumentCommand,
+fun BrevmalCommand.tilPdfInnhold(
+    clock: Clock,
     hentPerson: (Fnr) -> Either<KunneIkkeHentePerson, Person>,
     hentNavnForIdent: (NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-    clock: Clock,
-): Either<FeilVedHentingAvInformasjon, PdfInnhold> {
-    val hentNavnMappedLeft: (NavIdentBruker?) -> Either<FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> =
-        { ident -> hentNavn(ident, hentNavnForIdent) }
-
-    val personalia = { hentPersonalia(command, hentPerson, clock) }
-    return either {
-        when (command) {
-            is IverksettSøknadsbehandlingDokumentCommand.Avslag -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is AvsluttRevurderingDokumentCommand -> command.toPdfInnhold(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-            )
-
-            is ForhåndsvarselDokumentCommand -> command.toPdfInnhold(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-            )
-
-            is FritekstDokumentCommand -> command.toPdfInnhold(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-            )
-
-            is InnkallingTilKontrollsamtaleDokumentCommand -> InnkallingTilKontrollsamtalePdfInnhold(
-                personalia = personalia().bind(),
-                sakstype = command.sakstype,
-            )
-
-            is IverksettSøknadsbehandlingDokumentCommand.Innvilgelse -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is KlageDokumentCommand.Avvist -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is IverksettRevurderingDokumentCommand.Opphør -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is PåminnelseNyStønadsperiodeDokumentCommand -> command.fromBrevCommand(personalia().bind())
-
-            is IverksettRevurderingDokumentCommand.Inntekt -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is TrukketSøknadDokumentCommand -> command.toPdfInnhold(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-            )
-
-            is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                clock = clock,
-            )
-
-            is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = command.attestant?.let { hentNavnMappedLeft(it).bind() },
-                clock = clock,
-            )
-
-            is HistoriskInfotrygdRevurderingDokumentCommand.Inntekt -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is HistoriskInfotrygdRevurderingDokumentCommand.Opphør -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is VedtaksbrevVedReguleringCommand -> command.fromBrevCommand(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
-        }
-    }
-}
+): Either<FeilVedHentingAvInformasjon, PdfInnhold> =
+    hentFelles(clock, hentPerson, hentNavnForIdent).map { lagInnhold(it) }
 
 /**
  * Effektene i [dokument.domain.generer.lagBrev]: henter personalia og navn på saksbehandler og attestant.
- * Manglende saksbehandler eller attestant gir "-", slik som for de øvrige kommandoene.
+ * Manglende saksbehandler gir `"-"`. Manglende attestant gir `null`, og malen bestemmer hva som vises.
  */
-fun BrevmalCommand<*>.hentFelles(
+fun BrevmalCommand.hentFelles(
     clock: Clock,
     hentPerson: (Fnr) -> Either<KunneIkkeHentePerson, Person>,
     hentNavnForIdent: (NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
@@ -172,7 +40,8 @@ fun BrevmalCommand<*>.hentFelles(
         sakstype = sakstype,
         personalia = hentPersonalia(this@hentFelles, hentPerson, clock).bind(),
         saksbehandlerNavn = hentNavn(saksbehandler, hentNavnForIdent).bind(),
-        attestantNavn = hentNavn(attestant, hentNavnForIdent).bind(),
+        attestantNavn = attestant?.let { hentNavn(it, hentNavnForIdent).bind() },
+        idag = LocalDate.now(clock),
     )
 }
 
@@ -188,7 +57,7 @@ private fun hentNavn(
 }
 
 private fun hentPersonalia(
-    command: GenererDokumentCommand,
+    command: BrevmalCommand,
     hentPerson: (Fnr) -> Either<KunneIkkeHentePerson, Person>,
     clock: Clock,
 ): Either<FeilVedHentingAvInformasjon.KunneIkkeHentePerson, PersonaliaPdfInnhold> =

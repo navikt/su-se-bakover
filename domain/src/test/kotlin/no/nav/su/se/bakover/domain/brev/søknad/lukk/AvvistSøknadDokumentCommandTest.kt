@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import arrow.core.right
-import dokument.domain.generer.BrevmalCommand
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.maler.AvvistSøknadDokumentCommand
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
-import dokument.domain.generer.bygger.maler.avvistSøknadVedtakBrev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -45,14 +44,12 @@ internal class AvvistSøknadDokumentCommandTest {
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        val command = BrevmalCommand(
-            mal = avvistSøknadVedtakBrev,
-            fakta = "fritekst",
+        val command = AvvistSøknadDokumentCommand(
             fødselsnummer = person.ident.fnr,
             saksnummer = Saksnummer(2021),
             sakstype = Sakstype.UFØRE,
             saksbehandler = saksbehandler,
-            attestant = null,
+            fritekst = "fritekst",
         )
         command.hentFelles(
             clock = fixedClock,

@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
@@ -13,3 +16,10 @@ fun AvsluttRevurderingDokumentCommand.toPdfInnhold(
     saksbehandlerNavn = saksbehandlerNavn,
     fritekst = fritekst,
 )
+
+val avsluttRevurderingBrev = Brevmal<AvsluttRevurderingDokumentCommand>(
+    dokumenttype = Dokumenttype.INFORMASJON_ANNET,
+    brevtype = Brevtype.REVURDERING_AVSLUTTET,
+) { felles, kommando ->
+    kommando.toPdfInnhold(personalia = felles.personalia, saksbehandlerNavn = felles.saksbehandlerNavn)
+}

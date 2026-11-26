@@ -133,7 +133,7 @@ private fun vedtaksbrevTilbakekreving(dødsbo: Boolean): PdfInnhold = Vedtaksbre
     personalia = personalia,
     saksbehandlerNavn = SAKSBEHANDLER,
     attestantNavn = ATTESTANT,
-    clock = fixedClock,
+    idag = LocalDate.now(fixedClock),
 )
 
 private fun regulering(): PdfInnhold = VedtakVedReguleringPdfInnhold(

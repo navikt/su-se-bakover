@@ -1,7 +1,12 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import beregning.domain.Beregning
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.Dokumenttype
+import dokument.domain.generer.Felles
+import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -19,11 +24,25 @@ data class VedtaksbrevVedReguleringCommand(
     override val saksnummer: Saksnummer,
     override val sakstype: Sakstype,
     val fraOgMed: LocalDate,
-    val saksbehandler: NavIdentBruker,
-    val attestant: NavIdentBruker.Attestant?,
+    override val saksbehandler: NavIdentBruker,
+    override val attestant: NavIdentBruker.Attestant?,
     val beregning: Beregning,
     val satsoversikt: Satsoversikt,
-) : GenererDokumentCommand
+) : BrevmalCommand {
+    override val mal: Brevmal<VedtaksbrevVedReguleringCommand> get() = reguleringBrev
+    override fun lagInnhold(felles: Felles): PdfInnhold = mal.lagInnhold(felles, this)
+}
+
+val reguleringBrev = Brevmal<VedtaksbrevVedReguleringCommand>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
+}
 
 fun VedtaksbrevVedReguleringCommand.fromBrevCommand(
     personalia: PersonaliaPdfInnhold,

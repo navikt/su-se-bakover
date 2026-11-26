@@ -1,5 +1,8 @@
 package tilbakekreving.domain.forhåndsvarsel
 
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.BeregningFeilutbetaltBeløp
@@ -8,14 +11,13 @@ import dokument.domain.generer.bygger.maler.KravgrunnlagBrev
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import java.time.Clock
 import java.time.LocalDate
 import javax.jms.IllegalStateException
 
 fun ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand.fromBrevCommand(
     personalia: PersonaliaPdfInnhold,
     saksbehandlerNavn: String,
-    clock: Clock,
+    idag: LocalDate,
 ): PdfInnhold {
     if (dødsbo) {
         kravgrunnlag?.periode
@@ -25,7 +27,7 @@ fun ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand.fromBrevCommand(
         personalia = personalia,
         saksbehandlerNavn = saksbehandlerNavn,
         fritekst = fritekst,
-        dato = LocalDate.now(clock).toBrevformat(),
+        dato = idag.toBrevformat(),
         kravgrunnlag = kravgrunnlag?.toBrev(),
         sakstype = sakstype,
         dødsbo = dødsbo,
@@ -45,3 +47,14 @@ private fun Kravgrunnlag.toBrev() = KravgrunnlagBrev(
     },
     periode = periode,
 )
+
+val forhåndsvarselTilbakekrevingBrev = Brevmal<ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand>(
+    dokumenttype = Dokumenttype.INFORMASJON_VIKTIG,
+    brevtype = Brevtype.FORHANDSVARSEL,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        idag = felles.idag,
+    )
+}

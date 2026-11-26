@@ -5,8 +5,8 @@ import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.generer.bygger.maler.AvvistSøknadDokumentCommand
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
-import dokument.domain.generer.bygger.maler.avvistSøknadVedtakBrev
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class LagBrevTest {
@@ -23,14 +24,12 @@ internal class LagBrevTest {
     private val fritekst = "fritekst"
     private val saksbehandlerNavn = "Sak Behandler"
 
-    private val command = BrevmalCommand(
-        mal = avvistSøknadVedtakBrev,
-        fakta = fritekst,
+    private val command = AvvistSøknadDokumentCommand(
         fødselsnummer = Fnr("12345678901"),
         saksnummer = Saksnummer(2021),
         sakstype = Sakstype.UFØRE,
         saksbehandler = saksbehandler,
-        attestant = null,
+        fritekst = fritekst,
     )
 
     private val felles = Felles(
@@ -43,7 +42,8 @@ internal class LagBrevTest {
             saksnummer = 2021,
         ),
         saksbehandlerNavn = saksbehandlerNavn,
-        attestantNavn = "-",
+        attestantNavn = null,
+        idag = LocalDate.of(2021, 1, 1),
     )
 
     private val pdf = PdfA("%PDF".toByteArray())

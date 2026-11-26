@@ -7,14 +7,11 @@ import no.nav.brev.brevbaker.markup.Markup
 import no.nav.brev.brevbaker.markup.Saksinformasjon
 import no.nav.brev.brevbaker.markup.outline.Block
 import no.nav.brev.brevbaker.markup.outline.Text
-import no.nav.su.se.bakover.service.brev.tilPdfBestilling
 
 // Hjelpefunksjoner for å lese markup-treet som en mal bygger.
 // Testene ser på struktur og data, ikke på ordlyd.
 
-/** Bytt til `innhold.bestilling()` når alle maler eier bestillingen sin (fase 0 i planen). */
-internal fun bestillingFor(innhold: PdfInnhold): PdfBestilling =
-    requireNotNull(innhold.tilPdfBestilling()) { "Mangler PdfBestilling for ${innhold::class.simpleName}" }
+internal fun bestillingFor(innhold: PdfInnhold): PdfBestilling = innhold.bestilling()
 
 /** Det klienten sender til pdf-bygger. */
 internal fun PdfBestilling.forespørsel(): Any = when (this) {

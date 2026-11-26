@@ -3,6 +3,7 @@ package dokument.domain.generer.bygger.maler
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.linjer
 import no.nav.brev.brevbaker.markup.dsl.ContentBuilder
@@ -38,6 +39,7 @@ data class KontrollnotatPdfInnholdNy(
     val fritekst: String?,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Lokalkontor.Kontrollnotat
+    override fun bestilling(): PdfBestilling = kontrollnotat(dokumentMal.tittel, this)
 }
 
 val kontrollnotat = { tittel: String, pdfInnhold: KontrollnotatPdfInnholdNy ->

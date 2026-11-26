@@ -7,8 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import dokument.domain.Dokumenttilstand
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
-import dokument.domain.generer.BrevmalCommand
-import dokument.domain.generer.bygger.maler.avvistSøknadVedtakBrev
+import dokument.domain.generer.bygger.maler.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -259,14 +258,12 @@ sealed interface Søknad {
                         sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
                         return when (brevvalg) {
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> BrevmalCommand(
-                                mal = avvistSøknadVedtakBrev,
-                                fakta = brevvalg.fritekst,
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> AvvistSøknadDokumentCommand(
                                 fødselsnummer = fnr,
                                 saksnummer = sak.saksnummer,
                                 sakstype = sak.type,
                                 saksbehandler = lukketAv,
-                                attestant = null,
+                                fritekst = brevvalg.fritekst,
                             ).right()
 
                             // Historiske avvisninger uten brev eller med informasjonsbrev får ikke nytt brev. UtenFritekst stoppes i init.
