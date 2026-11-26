@@ -40,11 +40,9 @@ subprojects {
         mavenLocal {
             content {
                 includeGroup("no.nav.brev.brevbaker")
-                includeGroup("no.nav.pdfgen")
             }
         }
         githubPackages("pensjonsbrev", "no.nav.brev.brevbaker")
-        githubPackages("pdfgen-core", "no.nav.pdfgen")
     }
     dependencies {
         implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0:2.16.0-alpha")

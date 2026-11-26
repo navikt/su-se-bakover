@@ -7,9 +7,9 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumenttilstand
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
+import dokument.domain.generer.BrevmalCommand
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -297,7 +297,7 @@ internal class SakServiceImplTest {
         val brevService = mock<BrevService> {
             on {
                 lagDokumentPdf(
-                    any<GenererDokumentCommand>(),
+                    any<BrevmalCommand>(),
                     anyOrNull(),
                 )
             } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
@@ -326,7 +326,7 @@ internal class SakServiceImplTest {
         val brevService = mock<BrevService> {
             on {
                 lagDokumentMedForsideSomVedlegg(
-                    any<GenererDokumentCommand>(),
+                    any<BrevmalCommand>(),
                     anyOrNull(),
                 )
             } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
@@ -346,7 +346,7 @@ internal class SakServiceImplTest {
             ).shouldBeRight()
 
         verify(brevService).lagDokumentMedForsideSomVedlegg(
-            command = any<GenererDokumentCommand>(),
+            command = any<BrevmalCommand>(),
             id = anyOrNull(),
         )
     }
@@ -361,7 +361,7 @@ internal class SakServiceImplTest {
         val brevService = mock<BrevService> {
             on {
                 lagDokumentPdf(
-                    any<GenererDokumentCommand>(),
+                    any<BrevmalCommand>(),
                     anyOrNull(),
                 )
             } doReturn expectedGenerertDokument.right()

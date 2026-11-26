@@ -92,9 +92,6 @@ spec:
         - application: skjermede-personer-pip
           namespace: nom
           cluster: dev-gcp
-        - application: su-pdfgen
-          namespace: supstonad
-          cluster: dev-gcp
         - application: logging
           namespace: nais-system
         - application: kabal-api
@@ -188,8 +185,6 @@ spec:
       value: "true"
     - name: DATABASE_NAME
       value: "supstonad-db-15-dev-q1"
-    - name: PDFGEN_URL
-      value: "http://su-pdfgen"
     - name: DOKARKIV_URL
       value: "https://dokarkiv.dev-fss-pub.nais.io"
     - name: DOKARKIV_CLIENT_ID

@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
@@ -118,7 +117,6 @@ data class ProdClientsBuilder(
         return Clients(
             azureAd = azureAd,
             personOppslag = personOppslag,
-            pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
                 val client = JournalførHttpClient(
                     dokArkivConfig = applicationConfig.clientsConfig.dokArkivConfig,

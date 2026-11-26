@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import dokument.domain.PdfGenerator
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.ClamAVClient
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveV2ClientStub
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.regoppslag.RegoppslagKlientStub
@@ -35,7 +33,6 @@ import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientStub
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
@@ -73,11 +70,6 @@ class StubClientsBuilder(
         return Clients(
             azureAd = oauth,
             personOppslag = PersonOppslagStub().also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
-            pdfGenerator = if (applicationConfig.pdfgenLocal) {
-                PdfClient("http://localhost:8081")
-            } else {
-                PdfGeneratorStub.also { log.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
-            },
             journalførClients = run {
                 val generator = JournalpostIdGeneratorForFakes()
                 JournalførClients(

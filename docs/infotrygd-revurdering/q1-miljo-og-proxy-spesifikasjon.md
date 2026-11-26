@@ -195,11 +195,8 @@ Rolle- og persontilgang gjelder fortsatt.
 | Kontaktregister | Felles `digdir-krr-proxy` i dev-gcp | README ber uttrykkelig om issue med malen `pre-authorize-applikasjon.md`, caller-identitet og lenke til behandlingskatalogen. |
 | Microsoft Graph | Eksisterende Graph-tjeneste, applikasjonstoken | Kontroller q1-appens nødvendige rettigheter for navneoppslag til brev. Dette er ikke et nytt q1/q2-miljø eller en vanlig Nais-allowlist. |
 
-Egne applikasjoner, inkludert `su-pdfgen` og Oppdrag-proxyen, håndteres i eget
-team uten eksterne tilgangsforespørsler. Proxyoppsettet er beskrevet over.
-For `su-pdfgen` legges kalleren til i et dev-avgrenset manifest eller en
-miljøavgrenset mal. Dagens `nais.yml` brukes både i dev og prod; ikke legg inn en
-q1-regel som også deployes til prod. Dagens PDF-klient sender ikke Entra-token.
+Egne applikasjoner, som Oppdrag-proxyen, håndteres i eget team uten eksterne
+tilgangsforespørsler. Proxyoppsettet er beskrevet over.
 
 Historikktjenesten tillater allerede `su-se-bakover-q1` med eksplisitte
 tabellroller. Den trenger ingen ny caller-oppføring ut fra dagens manifest.

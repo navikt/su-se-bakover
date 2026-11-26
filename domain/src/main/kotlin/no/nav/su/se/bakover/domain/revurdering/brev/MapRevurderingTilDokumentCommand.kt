@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -21,7 +21,7 @@ fun Revurdering.lagDokumentKommando(
     satsFactory: SatsFactory,
     clock: Clock,
     fritekst: String,
-): GenererDokumentCommand {
+): BrevmalCommand {
     return when (this) {
         is OpprettetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for opprettet revurdering ${this.id}")
         is BeregnetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for beregnet revurdering ${this.id}")

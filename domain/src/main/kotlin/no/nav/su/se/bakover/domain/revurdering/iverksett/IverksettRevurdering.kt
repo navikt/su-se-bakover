@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.either
 import dokument.domain.Dokument
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -25,7 +25,7 @@ fun Sak.iverksettRevurdering(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-    genererPdf: (command: GenererDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    genererPdf: (command: BrevmalCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     satsFactory: SatsFactory,
     fritekst: String,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {

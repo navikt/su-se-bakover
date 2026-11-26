@@ -14,8 +14,8 @@ import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjonFor
 import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -91,7 +91,7 @@ sealed interface Revurdering :
     fun lagForhåndsvarsel(
         utførtAv: Saksbehandler,
         fritekst: String,
-    ): Either<UgyldigTilstand, GenererDokumentCommand> {
+    ): Either<UgyldigTilstand, BrevmalCommand> {
         return UgyldigTilstand(this::class, this::class).left()
     }
 

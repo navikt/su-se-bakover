@@ -4,11 +4,12 @@ import arrow.core.Either
 import arrow.core.raise.either
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
@@ -75,12 +76,17 @@ class Brevmal<F>(
 }
 
 /**
- * En kommando om å lage et brev. Kommandoen bærer dataene malen trenger, og peker på malen med [mal].
+ * En kommando om å lage et brev. Eies av domenet og bærer domenedataene malen trenger (typisk det vi har
+ * i databasen). Personnavn og navn på saksbehandler og attestant hentes utenfor, i [Felles].
  *
- * Hver kommandoklasse implementerer [lagInnhold] som `mal.lagInnhold(felles, this)`. Det er den eneste
- * koblingen mellom kommando og mal; ingen sentral `when` trenger å kjenne kommandotypene.
+ * Kommandoen peker på malen med [mal]. Hver kommandoklasse implementerer [lagInnhold] som
+ * `mal.lagInnhold(felles, this)`. Det er den eneste koblingen mellom kommando og mal; ingen sentral `when`
+ * trenger å kjenne kommandotypene.
  */
-interface BrevmalCommand : GenererDokumentCommand {
+interface BrevmalCommand {
+    val fødselsnummer: Fnr
+    val saksnummer: Saksnummer
+    val sakstype: Sakstype
     val saksbehandler: NavIdentBruker?
     val attestant: NavIdentBruker?
     val mal: Brevmal<*>

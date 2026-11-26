@@ -16,12 +16,12 @@ import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBositua
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
+import dokument.domain.generer.BrevmalCommand
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagFeil
@@ -571,14 +571,14 @@ open class AccessCheckProxy(
             brev = object : BrevService {
 
                 override fun lagDokumentPdf(
-                    command: GenererDokumentCommand,
+                    command: BrevmalCommand,
                     id: UUID,
                 ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun lagDokumentMedForsideSomVedlegg(
-                    command: GenererDokumentCommand,
+                    command: BrevmalCommand,
                     id: UUID,
                 ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()

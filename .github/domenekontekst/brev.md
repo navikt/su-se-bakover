@@ -7,9 +7,14 @@ bestille distribusjon.
 
 ## Dokumentgenerering
 
-Et use case lager en typed `GenererDokumentCommand`. `BrevService.lagDokumentPdf`
-returnerer et `Dokument.UtenMetadata`, som deretter får metadata og lagres i riktig
-behandlingsflyt.
+Et use case lager en typed `BrevmalCommand`. Kommandoen peker på sin mal (`Brevmal`), som
+sier hvilken dokumenttype og brevtype dokumentet får og hvordan innholdet (`PdfInnhold`) lages.
+`BrevService.lagDokumentPdf` kjører den rene funksjonen `lagBrev`: henter felles data
+(personalia og navn), lager innholdet, ber pdf-bygger om PDF-en og lager et
+`Dokument.UtenMetadata`, som deretter får metadata og lagres i riktig behandlingsflyt.
+
+Innholdsklassen eier sin egen PDF-bestilling (`PdfInnhold.bestilling()`). JSON-en fra
+`PdfInnhold.toJson()` lagres som `generertDokumentJson` og sendes til dokarkiv.
 
 Ikke bygg brevdata som frie JSON-objekter når en typed command eller brevmodell kan
 brukes.
@@ -60,7 +65,8 @@ utbetalingsoperasjoner, ikke ekte vedtak.
 ## Kilder
 
 - `dokument/domain/.../Dokument.kt`
-- `dokument/domain/.../GenererDokumentCommand.kt`
+- `dokument/domain/.../generer/Brevmal.kt`
+- `dokument/domain/.../generer/PdfInnhold.kt`
 - `dokument/domain/.../brev/BrevService.kt`
 - `dokument/domain/.../JournalføringOgBrevdistribusjon.kt`
 - `dokument/domain/.../DokumentHendelseSerie.kt`

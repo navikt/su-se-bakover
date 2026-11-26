@@ -7,7 +7,6 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.PdfGenerator
 import dokument.domain.brev.BrevService
@@ -41,11 +40,9 @@ class BrevServiceImpl(
 ) : BrevService {
 
     override fun lagDokumentPdf(
-        command: GenererDokumentCommand,
+        command: BrevmalCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-        // Alle brevkommandoer er BrevmalCommand. Parameteren får den typen når GenererDokumentCommand fjernes (fase 3).
-        check(command is BrevmalCommand) { "Ukjent dokumentkommando ${command::class.simpleName} for sak ${command.saksnummer}" }
         return lagBrev(
             command = command,
             hentFelles = { brevmalCommand ->
@@ -65,7 +62,7 @@ class BrevServiceImpl(
     }
 
     override fun lagDokumentMedForsideSomVedlegg(
-        command: GenererDokumentCommand,
+        command: BrevmalCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
         return lagDokumentPdf(

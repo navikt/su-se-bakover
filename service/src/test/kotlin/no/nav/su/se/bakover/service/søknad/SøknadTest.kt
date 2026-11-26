@@ -102,8 +102,6 @@ class SøknadTest {
                 azureAd = azureAd,
                 clientId = clientId,
             ),
-            gammelKlient = mock(),
-            clock = fixedClock,
             runtimeEnv = ApplicationConfig.RuntimeEnvironment.Dev,
         )
         val serviceOgMocks = SøknadServiceOgMocks(

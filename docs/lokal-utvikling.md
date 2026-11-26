@@ -31,35 +31,19 @@ Innlogging og bytte av saksbehandlerident lokalt er beskrevet i [Autentisering l
 
 #### PDF-generering lokalt
 
-Lokalt lager appen PDF med su-pdfgen eller en stub. Slik bruker du pdf-bygger for maler med `pdfByggerDev = true`:
+Lokalt lager appen PDF med pdf-bygger eller en stub:
 
 1. Start containerne: `docker compose up -d`
 2. Sett `PDFBYGGER_LOCAL=true` i `.env` i repository-roten. Opprett filen hvis den mangler.
-   Sett også `PDFGEN_LOCAL=true` hvis du vil sammenligne med ekte PDF fra su-pdfgen.
 3. Start appen på nytt.
 
-Begge miljøvariablene har standardverdien `false` hvis de ikke er satt. `PDFBYGGER_LOCAL` velger om
-aktiverte maler bruker lokal pdf-bygger. `PDFGEN_LOCAL` velger mellom lokal su-pdfgen og en stub for gammel
-generator. Flaggene starter ikke tjenestene.
+`PDFBYGGER_LOCAL` har standardverdien `false`. Da får alle maler en stub-PDF, og ingen PDF-tjeneste
+trenger å kjøre. Med `true` lager pdf-bygger på `localhost:8082` alle PDF-er. Flagget starter ikke tjenesten.
 
-| `PDFBYGGER_LOCAL` | `PDFGEN_LOCAL` | Maler med `pdfByggerDev = true` | Andre maler | PDF-tjenester som må kjøre |
-|---|---|---|---|---|
-| `false` | `false` | Bare stub-PDF | Bare stub-PDF | Ingen |
-| `false` | `true` | PDF fra su-pdfgen | PDF fra su-pdfgen | su-pdfgen på 8081 |
-| `true` | `false` | Bare PDF fra pdf-bygger, uten stub-vedlegg | Bare stub-PDF | pdf-bygger på 8082 |
-| `true` | `true` | PDF fra pdf-bygger med PDF fra su-pdfgen som vedlegg | PDF fra su-pdfgen | pdf-bygger på 8082 og su-pdfgen på 8081 |
+Hvis pdf-bygger returnerer feil, feiler PDF-genereringen. Backend-loggen oppgir hvilken mal som feilet,
+med lokale tips om port og oppstart. Feilmeldingen til frontend er generell.
 
-Sammenligning skjer lokalt bare når begge flaggene er `true`. Da legges sidene fra su-pdfgen etter sidene
-fra pdf-bygger i samme PDF, slik at du kan kontrollere dem manuelt. Appen sammenligner ikke innholdet
-automatisk. `docker compose up -d` starter Postgres og pdf-bygger, men ikke su-pdfgen. Su-pdfgen må
-startes separat hvis `PDFGEN_LOCAL=true`.
-
-Hvis en nødvendig generator returnerer feil, feiler hele PDF-genereringen. Backend-loggen oppgir hvilken
-generator som feilet, med lokale tips om port, oppstart eller flagg. Feilmeldingen til frontend er fortsatt
-generell. I dev sammenlignes fortsatt begge ekte dokumenter, uavhengig av de lokale flaggene.
-
-Pdf-bygger svarer på `localhost:8082`, fordi su-pdfgen bruker 8081. Imaget finnes bare for AMD64, så Colima
-må kunne emulere AMD64 på Mac med ARM.
+Imaget for pdf-bygger finnes bare for AMD64, så Colima må kunne emulere AMD64 på Mac med ARM.
 
 I `docker-compose.yml`, under `services.pdf-bygger.environment`, står:
 

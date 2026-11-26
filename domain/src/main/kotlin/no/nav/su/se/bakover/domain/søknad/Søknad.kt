@@ -5,8 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dokument.domain.Dokumenttilstand
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
+import dokument.domain.generer.BrevmalCommand
 import dokument.domain.generer.bygger.maler.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.Avsluttet
@@ -183,7 +183,7 @@ sealed interface Søknad {
                 fun toBrevRequest(
                     lukkSøknadCommand: LukkSøknadCommand,
                     sak: SakInfo,
-                ): Either<Lukket.KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
+                ): Either<Lukket.KanIkkeLageBrevRequestForDenneTilstanden, BrevmalCommand> =
                     this.lukk(lukkSøknadCommand).lagGenererDokumentKommando(
                         sak = sak,
                     )
@@ -214,7 +214,7 @@ sealed interface Søknad {
                  */
                 fun lagGenererDokumentKommando(
                     sak: SakInfo,
-                ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand>
+                ): Either<KanIkkeLageBrevRequestForDenneTilstanden, BrevmalCommand>
 
                 data object KanIkkeLageBrevRequestForDenneTilstanden
 
@@ -256,7 +256,7 @@ sealed interface Søknad {
 
                     override fun lagGenererDokumentKommando(
                         sak: SakInfo,
-                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
+                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, BrevmalCommand> {
                         return when (brevvalg) {
                             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> AvvistSøknadDokumentCommand(
                                 fødselsnummer = fnr,
@@ -315,7 +315,7 @@ sealed interface Søknad {
 
                     override fun lagGenererDokumentKommando(
                         sak: SakInfo,
-                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
+                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, BrevmalCommand> =
                         TrukketSøknadDokumentCommand(
                             søknadMottatt = mottaksdato,
                             trukketDato = trukketDato,
@@ -349,7 +349,7 @@ sealed interface Søknad {
 
                     override fun lagGenererDokumentKommando(
                         sak: SakInfo,
-                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
+                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, BrevmalCommand> =
                         KanIkkeLageBrevRequestForDenneTilstanden.left()
 
                     init {

@@ -149,8 +149,8 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
     eller ugyldige persistensverdier. Navngi slike verdier som historiske eller
     ukjente i testen. Fasiten i kontraktstester er unntatt, se neste punkt.
 - **Teamregel for kontraktstester:** En kontraktstest låser JSON-formen som en
-  annen part leser eller skriver: frontend, lagrede JSON-kolonner, su-pdfgen og
-  Kafka-statistikk. Fasiten er fast JSON skrevet for hånd, også for gjeldende
+  annen part leser eller skriver: frontend, lagrede JSON-kolonner, dokarkiv
+  (`originalJson` fra `PdfInnhold`) og Kafka-statistikk. Fasiten er fast JSON skrevet for hånd, også for gjeldende
   enumverdier. Mapper produksjonskoden en enum til en egen streng, er det strengen
   som er fasit. Oppsettet bygges fortsatt med produksjonstyper. En typet
   sammenligning mot samme DTO oppdager ikke omdøpte felt og erstatter ikke en

@@ -3,8 +3,8 @@ package dokument.domain.brev
 import arrow.core.Either
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -12,12 +12,12 @@ import java.util.UUID
 
 interface BrevService {
     fun lagDokumentPdf(
-        command: GenererDokumentCommand,
+        command: BrevmalCommand,
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
     fun lagDokumentMedForsideSomVedlegg(
-        command: GenererDokumentCommand,
+        command: BrevmalCommand,
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
