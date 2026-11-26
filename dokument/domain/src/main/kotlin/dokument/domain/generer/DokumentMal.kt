@@ -142,7 +142,7 @@ sealed interface DokumentMal {
             override val navn = "revurderingAvInntekt"
             override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: RevurderingAvInntektPdfInnhold): PdfBestilling =
                 revurderingAvInntekt(tittel, innhold)
@@ -152,7 +152,7 @@ sealed interface DokumentMal {
             override val navn = "opphørsvedtak"
             override val tittel = "Vedtak om opphør av supplerende stønad"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: OpphørsvedtakPdfInnhold): PdfBestilling =
                 opphørsvedtak(tittel, innhold)
@@ -162,7 +162,7 @@ sealed interface DokumentMal {
             override val navn = "avsluttRevurdering"
             override val tittel = "Ikke grunnlag for revurdering"
             override val pdfByggerDev: Boolean = true
-            override val pdfByggerProd: Boolean = false
+            override val pdfByggerProd: Boolean = true
 
             fun lagBestilling(innhold: AvsluttRevurderingPdfInnhold): PdfBestilling =
                 avsluttRevurdering(tittel, innhold)
