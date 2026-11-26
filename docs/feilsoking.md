@@ -216,7 +216,7 @@ Kjør PDF-testen eksplisitt mot den nye profilen uten API-overstyring:
 env -u 'api.version' \
   DOCKER_HOST="unix://$HOME/.colima/pdf-test/docker.sock" \
   TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
-  ./gradlew :service:test --tests '*PdfByggerMigreringTest' --rerun --info
+  ./gradlew :service:test --tests '*MalRenderTest' --rerun --info
 ```
 
 Testloggen skal vise `pdf-test/docker.sock` og den nye serverversjonen.

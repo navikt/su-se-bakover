@@ -32,6 +32,19 @@ internal fun variasjoner(eksempel: PdfInnhold): Arb<PdfInnhold> = Arb.choice(
     arbitrary { kilde -> varier(eksempel, Profil.TILFELDIG, kilde.random) as PdfInnhold },
 )
 
+/**
+ * Faste varianter for tregere tester mot pdf-bygger: eksempelet, tom, full og [antallTilfeldige]
+ * tilfeldige med fast seed. Samme kode gir alltid de samme variantene.
+ */
+internal fun fasteVarianter(eksempel: PdfInnhold, antallTilfeldige: Int = 1): List<Pair<String, PdfInnhold>> =
+    listOf(
+        "eksempel" to eksempel,
+        "tom" to varier(eksempel, Profil.TOM, Random(0)) as PdfInnhold,
+        "full" to varier(eksempel, Profil.FULL, Random(0)) as PdfInnhold,
+    ) + (1..antallTilfeldige).map { seed ->
+        "tilfeldig $seed" to varier(eksempel, Profil.TILFELDIG, Random(seed)) as PdfInnhold
+    }
+
 internal enum class Profil {
     /** Alt valgfritt er borte: `null`, tomme lister, `false`, `0` og tom fritekst. */
     TOM,

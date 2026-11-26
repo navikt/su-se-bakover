@@ -86,7 +86,7 @@ private fun fjernIder(node: JsonNode) {
 private fun PdfInnhold.personalia(): PersonaliaPdfInnhold? =
     feltverdier().firstNotNullOfOrNull { it as? PersonaliaPdfInnhold }
 
-private fun PdfInnhold.fritekst(): String? =
+internal fun PdfInnhold.fritekst(): String? =
     this::class.memberProperties.firstOrNull { it.name == "fritekst" }?.let { egenskap ->
         egenskap.isAccessible = true
         egenskap.getter.call(this) as? String
