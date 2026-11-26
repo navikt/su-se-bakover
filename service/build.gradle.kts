@@ -58,4 +58,5 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:2.0.5")
     testImplementation(rootProject.libs.brevbaker.markup.model)
     testImplementation(rootProject.libs.brevbaker.markup.dsl)
+    testImplementation(rootProject.libs.kotest.property)
 }
