@@ -15,14 +15,32 @@ runs:
   steps:
     - uses: actions/checkout@v7
     - uses: ./.github/actions/setup-java
-    - name: Run gradle build
+    - name: Restore Gradle cache
+      id: gradle-cache
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-build-v1-${{ runner.os }}-${{ runner.arch }}-java25-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'buildSrc/**/Versions.kt', 'buildSrc/**/Dependencies.kt', 'gradle/*.versions.toml', '**/versions.properties') }}-${{ github.sha }}
+        restore-keys: |
+          gradle-build-v1-${{ runner.os }}-${{ runner.arch }}-java25-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'buildSrc/**/Versions.kt', 'buildSrc/**/Dependencies.kt', 'gradle/*.versions.toml', '**/versions.properties') }}-
+          gradle-build-v1-${{ runner.os }}-${{ runner.arch }}-java25-
+    - name: Setup Gradle
       uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
       with:
         gradle-version: wrapper
         cache-provider: basic
-        cache-read-only: false
-        gradle-home-cache-cleanup: true
+        cache-disabled: true
     - shell: bash
       env:
         GITHUB_PACKAGES_READ_TOKEN: ${{ inputs.github-token }}
       run: ./gradlew ${{ inputs.gradle-arguments }} --build-cache
+    - name: Save Gradle cache
+      if: ${{ success() && github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && steps.gradle-cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
