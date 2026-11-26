@@ -26,6 +26,7 @@ jobs:
           languages: java-kotlin
           queries: security-extended
           setup-python-dependencies: false
+          dependency-caching: false
           ram: 16000
           threads: 8
           config-file: ./.github/codeql/codeql-config.yml
