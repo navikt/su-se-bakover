@@ -54,10 +54,19 @@ internal class PdfByggerServiceTest {
 
     @Test
     fun `inntektsrevurdering bruker felles brevmodell mot gammel generator i prod`() {
+        val pdfInnhold = lagSøknadPdfInnhold(
+            saksnummer = Saksnummer(2021),
+            sakstype = Sakstype.UFØRE,
+            søknadsId = UUID.randomUUID(),
+            navn = Person.Navn("Test", null, "Testesen"),
+            søknadOpprettet = fixedTidspunkt,
+            søknadInnhold = søknadinnholdUføre(),
+            clock = fixedClock,
+        )
         val pdf = PdfA(lagPdf(antallSider = 1))
         val klient = mock<PensjonPdfByggerKlient>()
         val gammelKlient = mock<PdfGenerator> {
-            on { genererPdf(revurderingAvInntektPdf) } doReturn pdf.right()
+            on { genererPdf(pdfInnhold) } doReturn pdf.right()
         }
         val service = PdfByggerService(
             klient,
@@ -66,9 +75,9 @@ internal class PdfByggerServiceTest {
             fixedClock,
         )
 
-        service.genererPdf(revurderingAvInntektPdf) shouldBe pdf.right()
+        service.genererPdf(pdfInnhold) shouldBe pdf.right()
 
-        verify(gammelKlient).genererPdf(revurderingAvInntektPdf)
+        verify(gammelKlient).genererPdf(pdfInnhold)
         verifyNoInteractions(klient)
     }
 
