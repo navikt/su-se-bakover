@@ -46,6 +46,7 @@ data class FradragForBrev(
     )
 }
 
+// TODO PdfBygger ryddejobb - type bør være Fradragstype og mapping til tekst bør skje i malene
 data class MånedsfradragForBrev(
     val type: String,
     val beløp: Int,
