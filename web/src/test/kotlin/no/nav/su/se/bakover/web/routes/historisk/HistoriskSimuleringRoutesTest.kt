@@ -5,6 +5,7 @@ import arrow.core.right
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -67,8 +67,10 @@ internal class HistoriskSimuleringRoutesTest {
             on { sjekkTilgangTilPerson(fnr, Sakstype.ALDER) } doReturn Unit.right()
         }
         val logger = LoggerFactory.getLogger(auditLogger) as Logger
+        val applikasjonslogger = LoggerFactory.getLogger("io.ktor.test") as Logger
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         logger.addAppender(appender)
+        applikasjonslogger.addAppender(appender)
         try {
             testApplication {
                 application {
@@ -76,9 +78,19 @@ internal class HistoriskSimuleringRoutesTest {
                         services = TestServicesBuilder.services(person = personService, historiskInfotrygdRevurderingService = service),
                     )
                 }
-                val response = defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Saksbehandler))
-                response.status shouldBe HttpStatusCode.OK
+                val response = defaultRequest(
+                    method = HttpMethod.Post,
+                    uri = path,
+                    roller = listOf(Brukerrolle.Saksbehandler),
+                    navIdent = data.saksbehandler.navIdent,
+                )
                 val body = response.bodyAsText()
+                val serverfeil = appender.list.mapNotNull { event ->
+                    event.throwableProxy?.let { "${it.className}: ${it.message?.take(400)}" }
+                }
+                withClue("POST $path svarte ${response.status}. Respons: ${body.take(1_000)}. Serverfeil: $serverfeil") {
+                    response.status shouldBe HttpStatusCode.OK
+                }
                 deserialize<HistoriskInfotrygdRevurderingResponse>(body) shouldBe simulert.toResponse(false)
                 body shouldNotContain "råRespons"
                 body shouldNotContain requireNotNull(simulert.simulering).respons.råRespons
@@ -87,9 +99,10 @@ internal class HistoriskSimuleringRoutesTest {
             audit.formattedMessage shouldContain AuditLogEvent.Action.UPDATE.value
             audit.formattedMessage shouldContain "duid=$fnr"
             verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
-            verify(service).simuler(eq(beregnet.id), any())
+            verify(service).simuler(beregnet.id, data.saksbehandler)
         } finally {
             logger.detachAppender(appender)
+            applikasjonslogger.detachAppender(appender)
             appender.stop()
         }
     }
@@ -165,6 +178,6 @@ internal class HistoriskSimuleringRoutesTest {
 
     private fun service(): HistoriskInfotrygdRevurderingService = mock {
         on { hentMedSakInfo(beregnet.id) } doReturn (sakInfo to beregnet)
-        on { simuler(eq(beregnet.id), any()) } doReturn simulert.right()
+        on { simuler(beregnet.id, data.saksbehandler) } doReturn simulert.right()
     }
 }

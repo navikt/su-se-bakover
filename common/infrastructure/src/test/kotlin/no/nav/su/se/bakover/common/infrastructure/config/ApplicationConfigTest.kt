@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.config
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.kotest.assertions.withClue
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
@@ -282,10 +283,12 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_STATISTIKK" to statistikkgruppe,
             ),
         ) {
-            ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
+            val faktisk = ApplicationConfig.createLocalConfig()
+            val forventet = expectedApplicationConfig.copy(
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
                 naisCluster = null,
                 leaderPodLookupPath = "",
+                historiskSimuleringAktivert = true,
                 serviceUser = ServiceUserConfig(
                     username = "unused",
                     password = "unused",
@@ -374,6 +377,10 @@ class ApplicationConfigTest {
                     "INSTITUSJONSOPPHOLD_TOPIC",
                 ),
             )
+            withClue("Lokalt skal historisk simulering være aktivert slik at frontendflyten kan prøves med stub.") {
+                faktisk.historiskSimuleringAktivert shouldBe forventet.historiskSimuleringAktivert
+            }
+            faktisk shouldBe forventet
         }
     }
 }
