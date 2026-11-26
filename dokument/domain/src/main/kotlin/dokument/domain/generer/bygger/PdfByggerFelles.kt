@@ -145,6 +145,7 @@ fun Innhold.harDuSpørsmål(sakstype: Sakstype, dødsbo: Boolean = false) {
         paragraph(
             "Hvis boet ikke finner svar på spørsmålet, kontakt oss gjerne via kanalene som oppgis på www.nav.no/kontaktoss. ",
         )
+        paragraph("Boet kan også kontakte oss på ${telefonnummer(sakstype)}.")
     } else {
         title2("Har du spørsmål?")
         paragraph(
