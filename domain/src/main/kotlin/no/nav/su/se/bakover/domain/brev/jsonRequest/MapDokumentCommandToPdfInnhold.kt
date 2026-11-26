@@ -55,29 +55,9 @@ fun fromBrevCommand(
     clock: Clock,
 ): Either<FeilVedHentingAvInformasjon, PdfInnhold> {
     val hentNavnMappedLeft: (NavIdentBruker?) -> Either<FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> =
-        { ident ->
-            when {
-                ident == null -> "-".right()
-                ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> SU_SE_BAKOVER_CONSUMER_ID.right()
-                else -> hentNavnForIdent(ident).mapLeft {
-                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it)
-                }
-            }
-        }
+        { ident -> hentNavn(ident, hentNavnForIdent) }
 
-    val personalia = {
-        hentPerson(command.fødselsnummer).mapLeft {
-            FeilVedHentingAvInformasjon.KunneIkkeHentePerson(it)
-        }.map {
-            PersonaliaPdfInnhold.lagPersonalia(
-                fødselsnummer = command.fødselsnummer,
-                saksnummer = command.saksnummer,
-                fornavn = it.navn.fornavn,
-                etternavn = it.navn.etternavn,
-                clock = clock,
-            )
-        }
-    }
+    val personalia = { hentPersonalia(command, hentPerson, clock) }
     return either {
         when (command) {
             is IverksettSøknadsbehandlingDokumentCommand.Avslag -> command.fromBrevCommand(
@@ -174,16 +154,52 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is BrevmalCommand<*> -> command.lagInnhold(
-                Felles(
-                    sakstype = command.sakstype,
-                    personalia = personalia().bind(),
-                    saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                    attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-                ),
-            )
-
             else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
         }
     }
 }
+
+/**
+ * Effektene i [dokument.domain.generer.lagBrev]: henter personalia og navn på saksbehandler og attestant.
+ * Manglende saksbehandler eller attestant gir "-", slik som for de øvrige kommandoene.
+ */
+fun BrevmalCommand<*>.hentFelles(
+    clock: Clock,
+    hentPerson: (Fnr) -> Either<KunneIkkeHentePerson, Person>,
+    hentNavnForIdent: (NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+): Either<FeilVedHentingAvInformasjon, Felles> = either {
+    Felles(
+        sakstype = sakstype,
+        personalia = hentPersonalia(this@hentFelles, hentPerson, clock).bind(),
+        saksbehandlerNavn = hentNavn(saksbehandler, hentNavnForIdent).bind(),
+        attestantNavn = hentNavn(attestant, hentNavnForIdent).bind(),
+    )
+}
+
+private fun hentNavn(
+    ident: NavIdentBruker?,
+    hentNavnForIdent: (NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+): Either<FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> = when {
+    ident == null -> "-".right()
+    ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> SU_SE_BAKOVER_CONSUMER_ID.right()
+    else -> hentNavnForIdent(ident).mapLeft {
+        FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it)
+    }
+}
+
+private fun hentPersonalia(
+    command: GenererDokumentCommand,
+    hentPerson: (Fnr) -> Either<KunneIkkeHentePerson, Person>,
+    clock: Clock,
+): Either<FeilVedHentingAvInformasjon.KunneIkkeHentePerson, PersonaliaPdfInnhold> =
+    hentPerson(command.fødselsnummer).mapLeft {
+        FeilVedHentingAvInformasjon.KunneIkkeHentePerson(it)
+    }.map {
+        PersonaliaPdfInnhold.lagPersonalia(
+            fødselsnummer = command.fødselsnummer,
+            saksnummer = command.saksnummer,
+            fornavn = it.navn.fornavn,
+            etternavn = it.navn.etternavn,
+            clock = clock,
+        )
+    }

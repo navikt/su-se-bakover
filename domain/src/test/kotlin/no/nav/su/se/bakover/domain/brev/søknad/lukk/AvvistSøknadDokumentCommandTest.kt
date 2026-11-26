@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.hentFelles
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail
@@ -45,7 +45,7 @@ internal class AvvistSøknadDokumentCommandTest {
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        BrevmalCommand(
+        val command = BrevmalCommand(
             mal = avvistSøknadVedtakBrev,
             fakta = "fritekst",
             fødselsnummer = person.ident.fnr,
@@ -53,11 +53,12 @@ internal class AvvistSøknadDokumentCommandTest {
             sakstype = Sakstype.UFØRE,
             saksbehandler = saksbehandler,
             attestant = null,
-        ).tilPdfInnhold(
+        )
+        command.hentFelles(
             clock = fixedClock,
             hentPerson = { person.right() },
             hentNavnForIdent = { "saksbehandler".right() },
-        ).getOrFail() shouldBe AvvistSøknadVedtakPdfInnhold(
+        ).map { command.lagInnhold(it) }.getOrFail() shouldBe AvvistSøknadVedtakPdfInnhold(
             Sakstype.UFØRE,
             expectedPersonalia,
             "saksbehandler",

@@ -14,11 +14,15 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.generer.BrevmalCommand
 import dokument.domain.generer.SammenslåPdf
+import dokument.domain.generer.lagBrev
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
+import no.nav.su.se.bakover.domain.brev.jsonRequest.hentFelles
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import person.domain.IdentClient
 import person.domain.PersonService
@@ -38,8 +42,32 @@ class BrevServiceImpl(
     private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : BrevService {
 
-    // basert på kommandotypen så avjøres typen av Metadata
     override fun lagDokumentPdf(
+        command: GenererDokumentCommand,
+        id: UUID,
+    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> = when (command) {
+        is BrevmalCommand<*> -> lagBrev(
+            command = command,
+            hentFelles = { brevmalCommand ->
+                brevmalCommand.hentFelles(
+                    clock = clock,
+                    hentPerson = { fnr -> personService.hentPersonMedSystembruker(fnr, brevmalCommand.sakstype) },
+                    hentNavnForIdent = identClient::hentNavnForNavIdent,
+                ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }
+            },
+            lagPdf = { innhold ->
+                pdfGenerator.genererPdf(innhold).mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
+            },
+            id = id,
+            opprettet = Tidspunkt.now(clock),
+        )
+
+        // Forsvinner når alle maler er flyttet til Brevmal.
+        else -> lagDokumentPdfGammelVei(command, id)
+    }
+
+    // basert på kommandotypen så avjøres typen av Metadata
+    private fun lagDokumentPdfGammelVei(
         command: GenererDokumentCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
