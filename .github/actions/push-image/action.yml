@@ -26,7 +26,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - uses: nais/docker-build-push@v0
+    - uses: nais/docker-build-push@v1
       id: docker-build-push
       with:
         team: supstonad
