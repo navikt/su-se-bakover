@@ -271,7 +271,6 @@ Feltet `simulering` er `null` før simulering og etter ny beregning. Når result
 | `simuleringsperiode` | Perioden forespørselen ba Oppdrag simulere. |
 | `simulert` | Tidspunktet resultatet ble mottatt og knyttet til beregningen. |
 | `harEksisterendeSuOppdrag` | Om saken hadde oversendte SU-utbetalinger ved simuleringen. |
-| `erUtprøving` | `true` for denne meldingskandidaten. |
 | `resultat` | Person, beregningsdato, faggruppe, Oppdrags samlede beløp og alle beregningsperioder. |
 | `resultat.perioder[].utbetalinger[]` | Alle fagområder og `fagsystemId`, oppdragsreferanser, mottaker, forfall, feilkonto og detaljer. |
 | `infomelding` | Eventuell infomelding, også når beregningen finnes. |

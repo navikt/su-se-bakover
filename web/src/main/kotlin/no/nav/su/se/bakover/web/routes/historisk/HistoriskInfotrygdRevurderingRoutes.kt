@@ -99,7 +99,6 @@ internal data class HistoriskSimuleringResponse(
     val simuleringsperiode: PeriodeJson,
     val simulert: String,
     val harEksisterendeSuOppdrag: Boolean,
-    val erUtprøving: Boolean,
     val resultat: HistoriskSimuleringsrespons.Beregning,
     val infomelding: String?,
 )
@@ -821,7 +820,6 @@ internal fun HistoriskInfotrygdRevurdering.toResponse(
             simuleringsperiode = it.simuleringsperiode.toJson(),
             simulert = it.simulert.toString(),
             harEksisterendeSuOppdrag = it.harEksisterendeSuOppdrag,
-            erUtprøving = true,
             resultat = requireNotNull(it.respons.beregning),
             infomelding = it.respons.infomelding,
         )
