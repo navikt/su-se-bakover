@@ -7,6 +7,8 @@ import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.bygger.maler.avvistSøknadVedtakBrev
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -18,7 +20,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -451,12 +452,14 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             verify(brevService).lagDokumentPdf(
                 argThat {
                     it shouldBe when (lukkSøknadCommand) {
-                        is LukkSøknadCommand.MedBrev.AvvistSøknad -> AvvistSøknadDokumentCommand(
-                            saksnummer = sak!!.saksnummer,
+                        is LukkSøknadCommand.MedBrev.AvvistSøknad -> BrevmalCommand(
+                            mal = avvistSøknadVedtakBrev,
+                            fakta = (lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
+                            fødselsnummer = sak!!.fnr,
+                            saksnummer = sak.saksnummer,
                             sakstype = sak.type,
-                            fritekst = (lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
-                            fødselsnummer = sak.fnr,
                             saksbehandler = saksbehandler,
+                            attestant = null,
                         )
 
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> TrukketSøknadDokumentCommand(

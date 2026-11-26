@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.Felles
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
@@ -11,7 +13,6 @@ import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.tilAvvistSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.toPdfInnhold
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 import person.domain.KunneIkkeHenteNavnForNavIdent
@@ -138,11 +138,6 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is AvvistSøknadDokumentCommand -> command.tilAvvistSøknadPdfInnhold(
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-            )
-
             is TrukketSøknadDokumentCommand -> command.toPdfInnhold(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
@@ -177,6 +172,15 @@ fun fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
+            )
+
+            is BrevmalCommand<*> -> command.lagInnhold(
+                Felles(
+                    sakstype = command.sakstype,
+                    personalia = personalia().bind(),
+                    saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                    attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
+                ),
             )
 
             else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")

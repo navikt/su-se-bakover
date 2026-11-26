@@ -4,11 +4,12 @@ import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
@@ -104,12 +105,11 @@ fun PdfA.tilDokument(
             }
         }
 
-        is AvvistSøknadDokumentCommand -> vedtak(
-            id = id,
-            clock = clock,
-            pdfInnhold = pdfInnhold,
-            brevtype = Brevtype.FRITEKST_VEDTAK,
-        )
+        is BrevmalCommand<*> -> when (command.mal.dokumenttype) {
+            Dokumenttype.VEDTAK -> vedtak(id, clock, pdfInnhold, command.mal.brevtype)
+            Dokumenttype.INFORMASJON_VIKTIG -> informasjonViktig(id, clock, pdfInnhold, command.mal.brevtype)
+            Dokumenttype.INFORMASJON_ANNET -> informasjonAnnet(id, clock, pdfInnhold, command.mal.brevtype)
+        }
 
         else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
     }

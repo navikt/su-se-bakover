@@ -3,7 +3,6 @@ package dokument.domain.generer
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.AvsluttRevurderingPdfInnhold
-import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
@@ -20,7 +19,6 @@ import dokument.domain.generer.bygger.maler.VedtakVedReguleringPdfInnhold
 import dokument.domain.generer.bygger.maler.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
-import dokument.domain.generer.bygger.maler.avvistSøknadVedtak
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekreving
 import dokument.domain.generer.bygger.maler.fritekstDokument
@@ -119,9 +117,6 @@ sealed interface DokumentMal {
             override val tittel = "Søknaden din om supplerende stønad er avvist"
             override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = true
-
-            fun lagBestilling(innhold: AvvistSøknadVedtakPdfInnhold): PdfBestilling =
-                avvistSøknadVedtak(tittel, innhold)
         }
     }
 

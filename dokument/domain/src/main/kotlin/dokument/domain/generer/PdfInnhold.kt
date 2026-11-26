@@ -3,6 +3,7 @@ package dokument.domain.generer
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 
@@ -15,6 +16,9 @@ import no.nav.su.se.bakover.common.serialize
 )
 interface PdfInnhold {
     fun toJson(): String = serialize(this)
+
+    /** Maler som bygger sin egen bestilling, overstyrer denne. */
+    fun bestilling(): PdfBestilling? = null
 
     @get:JsonIgnore
     val dokumentMal: DokumentMal
