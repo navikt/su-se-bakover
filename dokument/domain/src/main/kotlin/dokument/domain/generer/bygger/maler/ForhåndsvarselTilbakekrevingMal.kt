@@ -71,7 +71,7 @@ private val forhåndsvarselBruker = { pdfInnhold: ForhåndsvarselTilbakekrevingP
         fødselsnummerAvsnitt(pdfInnhold.personalia)
         pdfInnhold.kravgrunnlag?.let { kravgrunnlag ->
             paragraph("Du har fått utbetalt for mye supplerende stønad. Vi vurderer å kreve tilbake dette beløpet.")
-            paragraph("Beløpet er ${kravgrunnlag.sumBruttoSkalTilbakekreve} kroner før skatt.")
+            paragraph("Beløpet er ${kravgrunnlag.sumBruttoSkalTilbakekreve.kroner(utenDesimaler = true)} kroner før skatt.")
             paragraph("Du finner flere detaljer om feilutbetalt beløp lenger ned i brevet.")
             title3("Hva har skjedd")
         }
