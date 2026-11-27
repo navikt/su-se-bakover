@@ -122,7 +122,6 @@ internal class ForhåndsvarselTilbakekrevingPdfTest(private val klient: PdfBygge
         val nyPdf = klient.lagPdf(bestilling).getOrElse {
             throw IllegalStateException("PdfBygger feilet")
         }
-        // return PdfTekst.ord(nyPdf).joinToString(" ") { it.ord }
         return PdfTekst.tekst(nyPdf)
     }
 
