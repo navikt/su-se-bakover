@@ -71,7 +71,7 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   tidligere historiske revurderingsvedtak fra SU-appen. En periode med begge kildetyper skal avvises og
   behandles i separate revurderinger. Vedtakene kan ha ulike ID-er så lenge kildetypen er den samme.
 - Bare revurdering med Infotrygd som gjeldende kilde trenger det særskilte opphøret mot Infotrygd.
-  Utkastet sender dette sammen med eventuelle erstatningslinjer med `kodeEndringLinje = ENDR` og fullt
+  Utkastet sender dette sammen med eventuelle nye erstatningslinjer med `kodeEndringLinje = NY` og fullt
   korrekt månedsbeløp. Når vårt iverksatte vedtak har overtatt månedene, skal senere revurdering korrigere
   vår egen utbetaling uten å gjenta det innledende Infotrygd-opphøret. Oppdrags aksept av meldingsformatet
   er fortsatt ikke verifisert.

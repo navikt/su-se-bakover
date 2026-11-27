@@ -32,7 +32,7 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
         "NY, NY, NY, NY",
         "ENDRING, ENDR, ENDRING, ENDR",
     )
-    fun `utforskende XML har OPPH og ENDR erstatningslinje med fullt nytt beløp`(
+    fun `utforskende XML har OPPH og NY erstatningslinje med fullt nytt beløp`(
         oppdragskode: UtbetalingRequest.KodeEndring,
         forventetOppdragskode: String,
         opphørskode: Oppdragslinje.KodeEndringLinje,
@@ -94,7 +94,7 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
                             <ns3:attestant><attestantId>SU</attestantId></ns3:attestant>
                         </oppdragslinje>
                         <oppdragslinje>
-                            <kodeEndringLinje>ENDR</kodeEndringLinje>
+                            <kodeEndringLinje>NY</kodeEndringLinje>
                             <delytelseId>$erstatningId</delytelseId>
                             <kodeKlassifik>SUALDER</kodeKlassifik>
                             <datoVedtakFom>2018-01-01</datoVedtakFom>

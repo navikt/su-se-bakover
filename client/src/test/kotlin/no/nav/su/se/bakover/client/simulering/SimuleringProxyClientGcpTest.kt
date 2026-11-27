@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.containing
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToXml
 import com.github.tomakehurst.wiremock.client.WireMock.matching
+import com.github.tomakehurst.wiremock.client.WireMock.matchingXPath
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
@@ -124,7 +125,7 @@ class SimuleringProxyClientGcpTest {
             verify(
                 if (rentOpphør) 0 else 1,
                 postRequestedFor(urlPathEqualTo(simuleringspath))
-                    .withRequestBody(containing("<kodeEndringLinje>ENDR</kodeEndringLinje>")),
+                    .withRequestBody(matchingXPath("//oppdragslinje[kodeEndringLinje='NY' and not(kodeStatusLinje)]")),
             )
         }
     }

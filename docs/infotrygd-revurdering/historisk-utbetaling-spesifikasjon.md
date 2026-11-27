@@ -25,7 +25,7 @@ Vedtak fra Infotrygd for valgte måneder
                   v
 Første historiske revurdering
   Teknisk opphør mot Infotrygd
-  + eventuelle ENDR-erstatningslinjer fra vårt system
+  + eventuelle NY-erstatningslinjer fra vårt system
                   |
              iverksettelse
                   |
@@ -56,8 +56,8 @@ som gjeldende kilde.
 - Før videre behandling av utbetalingen må ferske gjeldende vedtaksdata kontrolleres mot de låste
   månedsreferansene. Før iverksettelse må kontrollen gjentas.
 - Første korrigering skal kunne sendes som ett samlet oppdrag med teknisk opphør og eventuell erstatningsytelse.
-  Erstatningslinjene skal ha `kodeEndringLinje = ENDR`, også når de får nye linje-ID-er. Dette er et
-  eksplisitt valgt meldingsformat for utkastet, ikke en bekreftet kontrakt med Oppdrag.
+  Erstatningslinjer med nye linje-ID-er skal ha `kodeEndringLinje = NY`. Oppdragets `kodeEndring`
+  er et separat felt og kan være `ENDR` selv om de nye linjene har `NY`.
   Den nye ytelsen skal inneholde fullt korrekt månedsbeløp, ikke en løs differansebetaling.
 - Ved faktisk opphør av ytelsen skal det ikke sendes erstatningsytelse for månedene som opphører.
 - Den valgte perioden består av hele kalendermåneder. Flere sammenhengende måneder kan bare grupperes
@@ -70,6 +70,24 @@ ytelse og opphør i én beregning. Dagens begrensninger mot blandet faglig resul
 etterbetaling og feilutbetaling beholdes.
 Vanlig korrigering av en SU-utbetaling kan fortsatt bruke opphørslinjer når resultatet krever det.
 Det som ikke skal gjentas, er det innledende særskilte opphøret mot Infotrygd.
+
+### Korreksjon etter Q1-utprøving og sammenligning med BA
+
+Det tidligere forsøksformatet brukte `ENDR` på erstatningslinjer med nye ID-er. Et Q1-forsøk ble
+avvist med «DELYTELSE-ID/LINJE-ID ved endring finnes ikke». Nye erstatningslinjer er derfor endret
+til `NY`, etter verifisering av samme skille i BA og ordinær SU-mapping.
+
+I [familie-oppdrags simuleringsmapper](https://github.com/navikt/familie-oppdrag/blob/94c163d5ea1659facec1bba27ab66ecc7e3b26bb/src/main/kotlin/no/nav/familie/oppdrag/simulering/SimulerBeregningRequestMapper.kt)
+styres linjens `NY`/`ENDR` av `erEndringPåEksisterendePeriode`, uavhengig av oppdragets endringskode.
+[BA-testen for endret migreringsdato](https://github.com/navikt/familie-ba-sak/blob/fff4fe2c642d9ea1fc4edd329f752864c4fed80b/src/test/resources/cucumber/oppdrag/endretMigreringsdato.feature)
+gjenbruker en eksisterende periode-ID for opphøret og lager en ny periode-ID for erstatningen.
+Kolonnen «Kode endring» i denne testen gjelder oppdraget, ikke den enkelte linjen.
+
+Opphørsformatet i SU-kandidaten er ikke endret av denne korreksjonen.
+[Generatorversjonen BA bruker](https://github.com/navikt/familie-utbetalingsgenerator/blob/49defa2ff9d7ec324d7ce5e459a84873db5bc3b3/src/main/kotlin/no/nav/familie/felles/utbetalingsgenerator/Utbetalingsgenerator.kt)
+opphører ikke en kjede uten en eksisterende siste andel. Det verifiserte BA-eksempelet bekrefter derfor ikke
+førstegangsoppdrag med nye opphørs-ID-er i SU. Opphør, referanser og virkning utenfor revurderingsperioden
+må fortsatt prøves i Q1 før hele meldingsformatet kan regnes som avklart.
 
 ## Arbeidsforutsetninger om Oppdrag
 
@@ -147,7 +165,7 @@ Utbetalings-ID-en skal brukes som felles `henvisning` i meldingen.
 Ukjente felt skal ikke få standardverdier som ser verifiserte ut. En kandidat skal merkes som
 utforskende. Manglende nødvendige valg skal gi typed feil, ikke en delvis eller tilsynelatende gyldig melding.
 Oppdragets endringskode og opphørslinjenes endringskode, datoer og sats er eksplisitte innverdier uten
-standardverdier. Erstatningslinjenes kode er derimot fast `ENDR`. Linje-ID-er og eventuelle referanser til
+standardverdier. Erstatningslinjenes kode er derimot fast `NY`. Linje-ID-er og eventuelle referanser til
 foregående linjer i samme meldingskandidat må velges eksplisitt. Utkastet lager én opphørslinje per valgt måned.
 Opphørslinjens statusdato følger valgt måned; oppgitte vedtaksdatoer er uverifiserte formatvalg og beviser
 ikke hvilken periode Oppdrag påvirker.
@@ -240,7 +258,7 @@ har riktig økonomisk virkning.
 
 Meldingskandidaten bruker saksnummeret som `fagsystemId`. Oppdragets endringskode er `NY` uten tidligere
 SU-utbetaling og `ENDR` med tidligere SU-utbetaling. Opphørslinjene har `NY`, nullsats og den enkelte
-revurderingsmåneden som vedtaksperiode og statusdato. Eventuelle erstatningslinjer har `ENDR`, fullt
+revurderingsmåneden som vedtaksperiode og statusdato. Eventuelle erstatningslinjer har `NY`, fullt
 nytt månedsbeløp og ingen referanse til tidligere linjer. Dette er eksplisitte valg for utprøving.
 De beviser ikke at kobling til eksisterende linjer er unødvendig eller at senere utbetalinger er upåvirket.
 Det bygges ikke nye linjer for senere måneder.
@@ -358,7 +376,7 @@ Bakoverkompatibilitet og eventuelle datamigreringer må vurderes mot faktisk pro
 
 | Tema | Konkret spørsmål |
 | --- | --- |
-| Meldingsformat | Godtar Oppdrag valgte `ENDR`-erstatningslinjer med nye ID-er og kombinasjonen av oppdragets `NY`/`ENDR`, opphørslinjens endringskode, `OPPH`, datoer og sats? |
+| Meldingsformat | Godtar Oppdrag kombinasjonen av nye erstatningslinjer med `NY`, oppdragets `NY`/`ENDR`, opphørslinjens endringskode, `OPPH`, datoer og sats? |
 | Periodeeffekt | Hvordan avgrenses korrigeringen til valgte måneder, og trengs det tekniske linjer utenfor dem? |
 | Eksisterende SU-oppdrag | Hvordan kobles historisk korrigering til eksisterende SU-linjer på samme saksnummer? |
 | Ingen økonomisk endring | Når kreves betalingsoppdrag eller teknisk opphør ved uendret beløp eller allerede opphørt måned? |
@@ -379,7 +397,7 @@ Kodeutkastet inneholder disse testene:
 - Domenetestene avviser også endret vedtaksgrunnlag, uendret beløp, allerede opphørt gammel ytelse og
   beregning som ikke dekker hele valgt periode.
 - `HistoriskInfotrygdOppdragRequestBuilderTest` låser XML-kandidater med teknisk `OPPH` og
-  erstatningslinjer med `ENDR` og fullt nytt beløp. Den tester også rent opphør uten erstatningslinjer,
+  erstatningslinjer med `NY` og fullt nytt beløp. Den tester også rent opphør uten erstatningslinjer,
   felles henvisning, manglende formatvalg, kolliderende linje-ID-er og ukjente linjereferanser.
 - `SimuleringProxyClientGcpTest` sender meldingskandidater gjennom klienten til lokal WireMock.
   De nye testene dekker OBO- og systemtoken, bredere simuleringsperiode, rent opphør, infomelding uten

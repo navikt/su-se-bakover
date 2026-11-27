@@ -138,7 +138,7 @@ internal fun byggHistoriskInfotrygdOppdragRequest(
                         id = valg.id,
                         periode = måned,
                         sats = resultat.beløp,
-                        kodeEndringLinje = Oppdragslinje.KodeEndringLinje.ENDRING,
+                        kodeEndringLinje = Oppdragslinje.KodeEndringLinje.NY,
                         opphørFra = null,
                         refDelytelseId = valg.refDelytelseId,
                     ),
