@@ -106,7 +106,6 @@ private val forhåndsvarselBruker = { pdfInnhold: ForhåndsvarselTilbakekrevingP
         )
         paragraph("Du har rett til å se sakens dokumenter etter bestemmelsene i forvaltningsloven § 18.")
         slikKanDuUttaleDeg(pdfInnhold.sakstype)
-        postadresse()
     }
 }
 
@@ -169,9 +168,9 @@ private val forhåndsvarselDødsbo =
                     "Velg tema «Pensjon» og aktuell tjeneste.",
                 "Send et skriftlig svar ved å bruke vedlagte forside " +
                     if (pdfInnhold.sakstype == Sakstype.UFØRE) {
-                        "(Ettersendelse til Søknad om supplerende stønad til ufør flyktning)"
+                        forsideEttersendelseUføre
                     } else {
-                        "(Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge)"
+                        forsideEttersendelseAlder
                     } +
                     " eller du kan sende inn dokumentasjon i tjenesten www.nav.no/ettersende.",
             )
@@ -192,21 +191,18 @@ private val forhåndsvarselDødsbo =
         }
     }
 
+private val forsideEttersendelseUføre = "(Ettersendelse til Søknad om supplerende stønad til ufør flyktning)"
+private val forsideEttersendelseAlder = "(Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge)"
+
 private fun Innhold.slikKanDuUttaleDeg(sakstype: Sakstype) {
+    val forside = if (sakstype == Sakstype.UFØRE) forsideEttersendelseUføre else forsideEttersendelseAlder
     paragraph("Slik kan du uttale deg:")
     punktliste(
-        "Logg deg inn på nav.no eller",
-        "Send et skriftlig svar",
-        "Du kan få hjelp ved å ringe ${telefonnummer(sakstype)} eller henvende deg til Nav-kontoret ditt",
+        "Du kan gi tilbakemelding via Nav sin nettside nav.no/melde. Velg tema «Pensjon» og aktuell tjeneste.",
+        "Send et skriftlig svar ved å bruke vedlagte forside $forside " +
+            "eller du kan sende inn dokumentasjon i tjenesten nav.no/ettersende.",
     )
-    paragraph(
-        "Hvis du vil sende skriftlig svar, må du bruke forsiden fra " +
-            if (sakstype == Sakstype.UFØRE) {
-                "https://www.nav.no/ettersende#supplerende-stonad-for-ufore-flyktninger-under-67-ar"
-            } else {
-                "https://www.nav.no/ettersende#supplerende-stonad-for-personer-over-67-ar-med-kort-botid-i-norge"
-            },
-    )
+    paragraph("Du kan få hjelp ved å ringe 55 55 33 34 eller henvende deg til Nav-kontoret ditt.")
 }
 
 fun vedleggOmFeilutbetaltBeløp(kravgrunnlag: KravgrunnlagBrev?): List<Attachment> {
