@@ -22,8 +22,9 @@ import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.desember
-import no.nav.su.se.bakover.common.domain.tid.førsteDagINesteMåned
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -86,6 +87,9 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest(priva
         val tikkendeKlokke = TikkendeKlokke()
         val stønadStart = 1.januar(2021)
         val stønadSlutt = 31.desember(2021)
+        val forventetInnkallingsdato = 1.mai(2021)
+        val forventetFrist = 31.mai(2021)
+        val forventetStansdato = 1.juni(2021)
 
         val statistikkCaptor = argumentCaptor<String>()
         val kafkaPublisherMock = mock<KafkaPublisher> {
@@ -188,7 +192,20 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest(priva
                 tikkendeKlokke = tikkendeKlokke,
                 kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
             )
-            tikkendeKlokke.spolTil(testController.utløpsfrist)
+            testController.kontrollsamtaler.forEach {
+                it.kontrollsamtale.innkallingsdato shouldBe forventetInnkallingsdato
+                it.kontrollsamtale.frist shouldBe forventetFrist
+            }
+            tikkendeKlokke.spolTil(30.mai(2021))
+            utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist() shouldBe null
+            assertUendret(
+                saker = testController.kontrollsamtaler.map { it.sakId },
+                periode = Periode.create(stønadStart, stønadSlutt),
+                sakService = appComponents.services.sak,
+                kontrollsamtaleService = kontrollsamtaleService,
+            )
+
+            tikkendeKlokke.spolTil(forventetFrist)
             (0 until antallKjøringer).forEach { kjøring ->
                 val utløpsfristKontrollsamtale = testController.utløpsfrist
                 utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
@@ -242,7 +259,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest(priva
                 assertIkkeMøttTilSamtale(
                     saker = testController.kontrollsamtaler.filterNot { it.erFeil(kjøring) }.filterNot { it.data.møtt }
                         .map { it.sakId },
-                    periode = Periode.create(utløpsfristKontrollsamtale.førsteDagINesteMåned(), stønadSlutt),
+                    periode = Periode.create(forventetStansdato, stønadSlutt),
                     sakService = appComponents.services.sak,
                     kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
                 )

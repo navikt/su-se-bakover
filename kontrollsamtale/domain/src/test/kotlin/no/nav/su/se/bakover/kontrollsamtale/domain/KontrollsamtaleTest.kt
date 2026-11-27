@@ -21,6 +21,28 @@ class KontrollsamtaleTest {
     private val todayClock = Clock.fixed(20.desember(2021).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
     @Test
+    fun `ny kontrollsamtale får frist siste dag i innkallingsmåneden`() {
+        val sakId = UUID.randomUUID()
+        val innkallingsdatoOgForventetFrist = listOf(
+            1.januar(2021) to 31.januar(2021),
+            1.februar(2021) to 28.februar(2021),
+            1.februar(2024) to 29.februar(2024),
+            1.april(2021) to 30.april(2021),
+            1.desember(2021) to 31.desember(2021),
+        )
+
+        innkallingsdatoOgForventetFrist.forEach { (innkallingsdato, forventetFrist) ->
+            val kontrollsamtale = Kontrollsamtale.opprettNyKontrollsamtale(
+                sakId = sakId,
+                innkallingsdato = innkallingsdato,
+                clock = fixedClock,
+            )
+
+            kontrollsamtale.frist shouldBe forventetFrist
+        }
+    }
+
+    @Test
     fun `innkallingsdato skal være 4 måneder etter stønadsstart`() {
         val vedtaksdato = 15.desember(2021)
         val periode = Periode.create(1.desember(2021), 30.november(2022))

@@ -16,12 +16,14 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleJobRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
@@ -40,8 +42,72 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import java.time.Clock
+import java.util.UUID
 
 internal class UtløptFristForKontrollsamtaleServiceImplTest {
+
+    @Test
+    fun `manglende oppmøte gir stans fra måneden etter beregnet frist også ved forsinket kjøring`() {
+        val innkallingsdato = 1.januar(2021)
+        val forventetFrist = 31.januar(2021)
+        val forventetStansdato = 1.februar(2021)
+
+        listOf(forventetFrist, forventetStansdato).forEach { kjøredato ->
+            val clock = TikkendeKlokke(fixedClockAt(kjøredato))
+            val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
+            val sak = sakOgVedtak.first
+            val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                clock = clock,
+                sakOgVedtakSomKanRevurderes = sakOgVedtak,
+            ).second
+            val kontrollsamtale = Kontrollsamtale.opprettNyKontrollsamtale(
+                sakId = sak.id,
+                innkallingsdato = innkallingsdato,
+                clock = fixedClockAt(innkallingsdato),
+            ).settInnkalt(UUID.randomUUID()).getOrFail()
+            kontrollsamtale.frist shouldBe forventetFrist
+
+            val kode6Vurdering = Kode6Vurdering(false)
+            val iverksettResponse = mock<IverksettStansAvYtelseITransaksjonResponse>()
+            val services = ServiceOgMocks(
+                sakService = mock {
+                    on { hentSak(sak.id) } doReturn sak.right()
+                },
+                personService = mock {
+                    on { hentPersonMedSystembruker(sak.fnr, sak.type) } doReturn person(fnr = sak.fnr).right()
+                },
+                kontrollsamtaleService = mock {
+                    on { hentFristUtløptFørEllerPåDato(kjøredato) } doReturn kontrollsamtale.frist
+                    on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
+                },
+                queryJournalpostClient = mock {
+                    on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
+                },
+                stansYtelseService = mock {
+                    on { vurderKode6ForAutomatiskStans(any(), any()) } doReturn kode6Vurdering
+                    on { stansAvYtelseITransaksjon(any(), any(), any()) } doReturn simulertStans
+                    on { iverksettStansAvYtelseITransaksjon(any(), any(), any(), any()) } doReturn iverksettResponse
+                },
+                clock = clock,
+            )
+
+            services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
+
+            val requestCaptor = argumentCaptor<StansYtelseRequest>()
+            verify(services.stansYtelseService).stansAvYtelseITransaksjon(
+                requestCaptor.capture(),
+                any(),
+                eq(kode6Vurdering),
+            )
+            (requestCaptor.firstValue as StansYtelseRequest.Opprett).fraOgMed.dato shouldBe forventetStansdato
+            verify(services.stansYtelseService).iverksettStansAvYtelseITransaksjon(
+                eq(simulertStans.id),
+                any(),
+                any(),
+                eq(kode6Vurdering),
+            )
+        }
+    }
 
     @Test
     fun `bruker første dag i neste måned som stansdato dersom person er død`() {
