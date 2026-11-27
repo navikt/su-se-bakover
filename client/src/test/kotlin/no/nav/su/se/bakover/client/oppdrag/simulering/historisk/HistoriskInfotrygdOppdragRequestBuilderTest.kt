@@ -32,7 +32,7 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
         "NY, NY, NY, NY",
         "ENDRING, ENDR, ENDRING, ENDR",
     )
-    fun `utforskende XML har OPPH og ENDR erstatningslinje med fullt nytt beløp`(
+    fun `utforskende XML har OPPH og NY erstatningslinje med fullt nytt beløp`(
         oppdragskode: UtbetalingRequest.KodeEndring,
         forventetOppdragskode: String,
         opphørskode: Oppdragslinje.KodeEndringLinje,
@@ -94,7 +94,7 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
                             <ns3:attestant><attestantId>SU</attestantId></ns3:attestant>
                         </oppdragslinje>
                         <oppdragslinje>
-                            <kodeEndringLinje>ENDR</kodeEndringLinje>
+                            <kodeEndringLinje>NY</kodeEndringLinje>
                             <delytelseId>$erstatningId</delytelseId>
                             <kodeKlassifik>SUALDER</kodeKlassifik>
                             <datoVedtakFom>2018-01-01</datoVedtakFom>
@@ -136,11 +136,14 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
     }
 
     @Test
-    fun `eksisterende SU-oppdrag er eksplisitt utenfor utkastet`() {
+    fun `meldingskandidaten kan bruke endret oppdrag uten å ta med senere ytelsesperioder`() {
         val grunnlag = grunnlag()
-
-        bygg(grunnlag, format(grunnlag), harEksisterendeSuOppdrag = true).shouldBeLeft() shouldBe
-            KunneIkkeByggeHistoriskInfotrygdOppdragRequest.EksisterendeSuOppdragIkkeStøttet
+        val format = format(grunnlag).copy(kodeEndring = UtbetalingRequest.KodeEndring.ENDRING)
+        val request = bygg(grunnlag, format).shouldBeRight()
+        request.kodeEndring shouldBe UtbetalingRequest.KodeEndring.ENDRING
+        request.fagsystemId shouldBe saksnummer.toString()
+        request.oppdragslinjer.map { it.datoVedtakTom }.distinct() shouldBe
+            grunnlag.periode.måneder().map { it.tilOgMed.toString() }
     }
 
     @Test
@@ -219,7 +222,6 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
     private fun bygg(
         grunnlag: HistoriskInfotrygdOppdragsgrunnlag,
         format: UverifisertHistoriskOppdragsformat,
-        harEksisterendeSuOppdrag: Boolean = false,
     ) = byggHistoriskInfotrygdOppdragRequest(
         grunnlag = grunnlag,
         saksnummer = saksnummer,
@@ -228,7 +230,6 @@ internal class HistoriskInfotrygdOppdragRequestBuilderTest {
         attestant = attestant,
         avstemmingsnøkkel = Avstemmingsnøkkel(data.tidspunkt),
         kjøreplan = Oppdragslinje.Kjøreplan.NEI,
-        harEksisterendeSuOppdrag = harEksisterendeSuOppdrag,
         format = format,
     )
 }

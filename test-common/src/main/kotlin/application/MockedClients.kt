@@ -25,6 +25,7 @@ fun mockedClients() = Clients(
     oppgaveV2Client = OppgaveV2ClientStub,
     kodeverk = mock(),
     simuleringClient = mock(),
+    historiskSimuleringClient = mock(),
     utbetalingPublisher = mock(),
     dokDistFordeling = mock(),
     avstemmingPublisher = mock(),

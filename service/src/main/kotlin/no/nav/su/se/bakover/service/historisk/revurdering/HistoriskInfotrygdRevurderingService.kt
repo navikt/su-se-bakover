@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.historisk.revurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
@@ -37,10 +38,18 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeBeregneHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeSimulereHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.beregnRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
 import no.nav.su.se.bakover.domain.historisk.revurdering.brev.lagVedtaksbrevkommando
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskInfotrygdOppdragsgrunnlag
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskInfotrygdSimulering
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringClient
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskSimuleringsforespørsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.KunneIkkeByggeHistoriskInfotrygdOppdragsgrunnlag
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.KunneIkkeSimulereHistoriskUtbetaling
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -49,6 +58,7 @@ import no.nav.su.se.bakover.service.brev.lagreForhandsvarselMedKopi
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import økonomi.domain.utbetaling.UtbetalingRepo
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -64,6 +74,10 @@ class HistoriskInfotrygdRevurderingService(
     private val mottakerService: MottakerService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val simuleringClient: HistoriskSimuleringClient,
+    private val utbetalingRepo: UtbetalingRepo,
+    private val simuleringAktivert: Boolean,
+    val krevSimuleringForAttestering: Boolean,
 ) {
     fun opprett(
         command: OpprettHistoriskInfotrygdRevurderingCommand,
@@ -215,14 +229,27 @@ class HistoriskInfotrygdRevurderingService(
                 gjeldende.beregnRevurdering(
                     grunnlag = command.månedsgrunnlag,
                     satsFactory = satsFactory,
-                ).mapLeft {
-                    KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
+                ).mapLeft { feil ->
+                    val begrunnelse = when (feil) {
+                        KunneIkkeBeregneHistoriskInfotrygdRevurdering.BlandetYtelseOgOpphør ->
+                            "Beregningen gir ytelse i noen måneder og opphør i andre. " +
+                                "Fradrag kan gi opphør selv om «Ytelse» er valgt, " +
+                                "når beløpet etter fradrag er 0 kroner eller under minstegrensen. " +
+                                "Kontroller fradragene. Perioder med ulikt utfall må revurderes hver for seg."
+                        KunneIkkeBeregneHistoriskInfotrygdRevurdering.GrunnlagDekkerIkkeHelePerioden,
+                        KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerSatsFactory,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerGjeldendeData,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerVedtak,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerSats,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.EpsUførFlyktningFørJanuar2021,
+                        -> feil.toString()
+                    }
+                    KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(begrunnelse)
                 }
             }.flatMap { beregning ->
                 beregning.lagResultat(gjeldende).mapLeft {
                     KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it)
                 }.flatMap { beregningsresultat ->
-                    // TODO(HISTORISK_SIMULERING): Ugyldiggjør tidligere simulering når beregningsgrunnlaget endres.
                     eksisterende.oppdaterGrunnlag(
                         beregning = beregning,
                         saksbehandler = saksbehandler,
@@ -247,30 +274,90 @@ class HistoriskInfotrygdRevurderingService(
         }
     }
 
-    // TODO(HISTORISK_SIMULERING): Legg til simuler(...) etter beregning, med fersk kilde- og vedtaksvalidering.
-    // Bygg oppdragsgrunnlaget og kall klientkontrakten utenfor database-session/transaksjon.
-    // Knytt resultatet til beregningsgrunnlaget, og krev gyldig simulering før sending til attestering.
     fun sendTilAttestering(
         id: HistoriskInfotrygdRevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
         sjekkSåOppdaterRevurdering(id) { eksisterende ->
+            val sakInfo = sakRepo.hentSakInfo(eksisterende.sakId)
+                ?: return@sjekkSåOppdaterRevurdering KunneIkkeEndreHistoriskInfotrygdRevurdering.FantIkkeBehandling.left()
+            eksisterende.verifiserAtVedtakeneSomRevurderesIkkeHarForandretSeg(
+                byggGjeldendeVedtaksdata(eksisterende, sakInfo.fnr),
+            ).getOrElse {
+                return@sjekkSåOppdaterRevurdering KunneIkkeEndreHistoriskInfotrygdRevurdering
+                    .UgyldigTilstand(it.toString()).left()
+            }
             eksisterende.sendTilAttestering(
                 saksbehandler = saksbehandler,
                 tidspunkt = Tidspunkt.now(clock),
+                krevSimulering = krevSimuleringForAttestering,
             ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
         }
 
     fun simuler(
         id: HistoriskInfotrygdRevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        sjekkSåOppdaterRevurdering(id) { eksisterende ->
-            eksisterende.simuler(
-                saksbehandler = saksbehandler,
-                tidspunkt = Tidspunkt.now(clock),
-            ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
+    ): Either<KunneIkkeSimulereHistoriskRevurderingService, HistoriskInfotrygdRevurdering> {
+        if (!simuleringAktivert) {
+            return KunneIkkeSimulereHistoriskRevurderingService.IkkeAktivert.left()
         }
+        val (sakInfo, eksisterende) = hentMedSakInfo(id)
+            ?: return KunneIkkeSimulereHistoriskRevurderingService.FantIkkeBehandling.left()
+        eksisterende.validerForSimulering().getOrElse {
+            return KunneIkkeSimulereHistoriskRevurderingService.UgyldigTilstand(it).left()
+        }
+        val grunnlag = HistoriskInfotrygdOppdragsgrunnlag.bygg(
+            eksisterende,
+            byggGjeldendeVedtaksdata(eksisterende, sakInfo.fnr),
+        ).getOrElse {
+            return KunneIkkeSimulereHistoriskRevurderingService.UgyldigOppdragsgrunnlag(it).left()
+        }
+        val utbetalinger = utbetalingRepo.hentOversendteUtbetalinger(sakInfo.sakId)
+        val harEksisterendeSuOppdrag = utbetalinger.isNotEmpty()
+        val respons = simuleringClient.simulerHistorisk(
+            HistoriskSimuleringsforespørsel(
+                grunnlag = grunnlag,
+                saksnummer = sakInfo.saksnummer,
+                fnr = sakInfo.fnr,
+                saksbehandler = saksbehandler,
+                harEksisterendeSuOppdrag = harEksisterendeSuOppdrag,
+            ),
+        ).getOrElse { return KunneIkkeSimulereHistoriskRevurderingService.SimuleringFeilet(it).left() }
+        if (!respons.erGyldigFor(sakInfo.fnr)) {
+            return KunneIkkeSimulereHistoriskRevurderingService.UgyldigResultat.left()
+        }
+
+        val gjeldendeBehandling = revurderingRepo.hent(id)
+            ?: return KunneIkkeSimulereHistoriskRevurderingService.FantIkkeBehandling.left()
+        if (
+            gjeldendeBehandling.beregning != eksisterende.beregning ||
+            gjeldendeBehandling.projeksjonId != eksisterende.projeksjonId ||
+            gjeldendeBehandling.vedtakSomRevurderesMånedsvis != eksisterende.vedtakSomRevurderesMånedsvis
+        ) {
+            return KunneIkkeSimulereHistoriskRevurderingService.EndretUnderSimulering.left()
+        }
+        val gjeldende = byggGjeldendeVedtaksdata(gjeldendeBehandling, sakInfo.fnr)
+        HistoriskInfotrygdOppdragsgrunnlag.bygg(gjeldendeBehandling, gjeldende).getOrElse {
+            return KunneIkkeSimulereHistoriskRevurderingService.UgyldigOppdragsgrunnlag(it).left()
+        }
+        if (utbetalingRepo.hentOversendteUtbetalinger(sakInfo.sakId) != utbetalinger) {
+            return KunneIkkeSimulereHistoriskRevurderingService.EndretUnderSimulering.left()
+        }
+        val tidspunkt = Tidspunkt.now(clock)
+        val oppdatert = gjeldendeBehandling.simuler(
+            resultat = HistoriskInfotrygdSimulering(
+                grunnlag = requireNotNull(eksisterende.beregning),
+                simuleringsperiode = eksisterende.periode,
+                simulert = tidspunkt,
+                harEksisterendeSuOppdrag = harEksisterendeSuOppdrag,
+                respons = respons,
+            ),
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt,
+        ).getOrElse { return KunneIkkeSimulereHistoriskRevurderingService.UgyldigTilstand(it).left() }
+        revurderingRepo.lagre(oppdatert)
+        return oppdatert.right()
+    }
 
     fun underkjenn(
         id: HistoriskInfotrygdRevurderingId,
@@ -663,6 +750,22 @@ sealed interface KunneIkkeOppretteHistoriskInfotrygdRevurderingService {
 sealed interface KunneIkkeEndreHistoriskInfotrygdRevurdering {
     data object FantIkkeBehandling : KunneIkkeEndreHistoriskInfotrygdRevurdering
     data class UgyldigTilstand(val begrunnelse: String) : KunneIkkeEndreHistoriskInfotrygdRevurdering
+}
+
+sealed interface KunneIkkeSimulereHistoriskRevurderingService {
+    data object IkkeAktivert : KunneIkkeSimulereHistoriskRevurderingService
+    data object FantIkkeBehandling : KunneIkkeSimulereHistoriskRevurderingService
+    data object EndretUnderSimulering : KunneIkkeSimulereHistoriskRevurderingService
+    data object UgyldigResultat : KunneIkkeSimulereHistoriskRevurderingService
+    data class UgyldigTilstand(
+        val feil: KunneIkkeSimulereHistoriskInfotrygdRevurdering,
+    ) : KunneIkkeSimulereHistoriskRevurderingService
+    data class UgyldigOppdragsgrunnlag(
+        val feil: KunneIkkeByggeHistoriskInfotrygdOppdragsgrunnlag,
+    ) : KunneIkkeSimulereHistoriskRevurderingService
+    data class SimuleringFeilet(
+        val feil: KunneIkkeSimulereHistoriskUtbetaling,
+    ) : KunneIkkeSimulereHistoriskRevurderingService
 }
 
 sealed interface KunneIkkeLageHistoriskInfotrygdVedtaksbrevutkast {

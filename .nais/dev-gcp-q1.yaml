@@ -158,6 +158,10 @@ spec:
   envFrom:
     - secret: supstonad-servicerbruker
   env:
+    - name: HISTORISK_SIMULERING_AKTIVERT
+      value: "true"
+    - name: HISTORISK_SIMULERING_KREVES_FOR_ATTESTERING
+      value: "true"
     - name: AAP_API_INTERN_URL
       value: "http://api-intern.aap"
     - name: AAP_API_INTERN_CLIENT_ID

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
-import økonomi.domain.simulering.Simulering
+import no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.HistoriskInfotrygdSimulering
 import java.util.UUID
 
 @JvmInline
@@ -33,7 +33,7 @@ data class HistoriskInfotrygdRevurdering(
     val vedtaksbrevFritekst: String?,
     val vedtakSomRevurderesMånedsvis: HistoriskeVedtakSomRevurderesMånedsvis,
     val beregning: HistoriskInfotrygdBeregning?,
-    val simulering: Simulering?,
+    val simulering: HistoriskInfotrygdSimulering?,
     val attesteringer: List<HistoriskInfotrygdAttestering>,
     val forhåndsvarsel: HistoriskInfotrygdForhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
 ) {
@@ -63,31 +63,47 @@ data class HistoriskInfotrygdRevurdering(
             saksbehandler = saksbehandler,
             oppdatert = tidspunkt,
             beregning = beregning,
+            simulering = null,
             forhåndsvarsel = forhåndsvarsel.markerUtdatert(),
         ).right()
     }
 
     fun simuler(
+        resultat: HistoriskInfotrygdSimulering,
         saksbehandler: NavIdentBruker.Saksbehandler,
         tidspunkt: Tidspunkt,
-    ): Either<KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering, HistoriskInfotrygdRevurdering> {
-        if (status !in redigerbareStatuser) {
-            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.UgyldigStatus(status).left()
+    ): Either<KunneIkkeSimulereHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> {
+        validerForSimulering().getOrElse { return it.left() }
+        if (resultat.grunnlag != beregning) {
+            return KunneIkkeSimulereHistoriskInfotrygdRevurdering.EndretBeregningsgrunnlag.left()
         }
-        if (beregning == null) {
-            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerBeregning.left()
-        }
-        // TODO: her skal simulering inn
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.SIMULERT,
+            simulering = resultat,
             saksbehandler = saksbehandler,
             oppdatert = tidspunkt,
         ).right()
     }
 
+    fun validerForSimulering(): Either<KunneIkkeSimulereHistoriskInfotrygdRevurdering, Unit> {
+        if (status !in redigerbareStatuser) {
+            return KunneIkkeSimulereHistoriskInfotrygdRevurdering.UgyldigStatus(status).left()
+        }
+        if (beregning == null) {
+            return KunneIkkeSimulereHistoriskInfotrygdRevurdering.ManglerBeregning.left()
+        }
+        if (beregning.månedsresultater.keys.toList() != periode.måneder()) {
+            return KunneIkkeSimulereHistoriskInfotrygdRevurdering.BeregningDekkerIkkeHelePerioden.left()
+        }
+        return Unit.right()
+    }
+
+    fun harGyldigSimulering(): Boolean = beregning != null && simulering?.grunnlag == beregning
+
     fun sendTilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
         tidspunkt: Tidspunkt,
+        krevSimulering: Boolean = false,
     ): Either<KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering, HistoriskInfotrygdRevurdering> {
         if (status !in redigerbareStatuser) {
             return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.UgyldigStatus(status).left()
@@ -113,6 +129,9 @@ data class HistoriskInfotrygdRevurdering(
             return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
                 .ManglerGyldigForhåndsvarsel
                 .left()
+        }
+        if (krevSimulering && !harGyldigSimulering()) {
+            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerGyldigSimulering.left()
         }
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING,
@@ -315,6 +334,15 @@ enum class HistoriskInfotrygdRevurderingStatus {
     AVSLUTTET,
 }
 
+sealed interface KunneIkkeSimulereHistoriskInfotrygdRevurdering {
+    data class UgyldigStatus(
+        val status: HistoriskInfotrygdRevurderingStatus,
+    ) : KunneIkkeSimulereHistoriskInfotrygdRevurdering
+    data object ManglerBeregning : KunneIkkeSimulereHistoriskInfotrygdRevurdering
+    data object BeregningDekkerIkkeHelePerioden : KunneIkkeSimulereHistoriskInfotrygdRevurdering
+    data object EndretBeregningsgrunnlag : KunneIkkeSimulereHistoriskInfotrygdRevurdering
+}
+
 sealed interface HistoriskInfotrygdVedtaksbrevvalg {
     sealed interface Valgt : HistoriskInfotrygdVedtaksbrevvalg
 
@@ -458,6 +486,7 @@ sealed interface KunneIkkeOppdatereHistoriskInfotrygdRevurdering {
 }
 
 sealed interface KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering {
+    data object ManglerGyldigSimulering : KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
     data class UgyldigStatus(
         val status: HistoriskInfotrygdRevurderingStatus,
     ) : KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering

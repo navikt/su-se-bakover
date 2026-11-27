@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.HistoriskSimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
@@ -96,6 +97,7 @@ data class TestClientsBuilder(
         oppgaveV2Client = oppgaveV2Client,
         kodeverk = kodeverk,
         simuleringClient = simuleringClient,
+        historiskSimuleringClient = HistoriskSimuleringStub(clock),
         utbetalingPublisher = utbetalingPublisher,
         dokDistFordeling = dokDistFordeling,
         avstemmingPublisher = avstemmingPublisher,

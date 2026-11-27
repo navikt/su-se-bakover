@@ -93,6 +93,8 @@ internal class HistoriskInfotrygdRevurderingTest {
             tidspunkt = tidspunkt.plusUnits(2),
         ).shouldBeLeft() shouldBe
             KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.BeregningDekkerIkkeHelePerioden
+        delvisBeregnet.validerForSimulering().shouldBeLeft() shouldBe
+            KunneIkkeSimulereHistoriskInfotrygdRevurdering.BeregningDekkerIkkeHelePerioden
     }
 
     @Test

@@ -66,6 +66,8 @@ data class ApplicationConfig(
     val pdfgenLocal: Boolean,
     val pdfByggerLocal: Boolean,
     val historiskAlderTestmodus: Boolean,
+    val historiskSimuleringAktivert: Boolean,
+    val historiskSimuleringKrevesForAttestering: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
@@ -75,6 +77,15 @@ data class ApplicationConfig(
     val kabalKafkaConfig: KabalKafkaConfig,
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
 ) {
+    init {
+        require(!historiskSimuleringAktivert || runtimeEnvironment != RuntimeEnvironment.Prod) {
+            "Historisk meldingskandidat kan ikke aktiveres i produksjon"
+        }
+        require(!historiskSimuleringKrevesForAttestering || historiskSimuleringAktivert) {
+            "Krav om historisk simulering kan ikke aktiveres uten simuleringsflyten"
+        }
+    }
+
     enum class RuntimeEnvironment {
         Test, // unittester
         Local,
@@ -696,6 +707,9 @@ data class ApplicationConfig(
             pdfgenLocal = false,
             pdfByggerLocal = false,
             historiskAlderTestmodus = historiskAlderTestmodus(),
+            historiskSimuleringAktivert = historiskSimuleringAktivert(),
+            historiskSimuleringKrevesForAttestering =
+            getEnvironmentVariableOrDefault("HISTORISK_SIMULERING_KREVES_FOR_ATTESTERING", "false").toBooleanStrict(),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
@@ -714,6 +728,8 @@ data class ApplicationConfig(
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
             pdfByggerLocal = getEnvironmentVariableOrDefault("PDFBYGGER_LOCAL", "false").toBooleanStrict(),
             historiskAlderTestmodus = false,
+            historiskSimuleringAktivert = true,
+            historiskSimuleringKrevesForAttestering = false,
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(::getEnvironmentVariableOrDefault),
             oppdrag = OppdragConfig.createLocalConfig(),
@@ -734,6 +750,16 @@ data class ApplicationConfig(
                     else -> null
                 }
             }
+
+        private fun historiskSimuleringAktivert(): Boolean {
+            val aktivert = getEnvironmentVariableOrDefault("HISTORISK_SIMULERING_AKTIVERT", "false").toBooleanStrict()
+            if (aktivert) {
+                require(naisCluster() == NaisCluster.Dev && getEnvironmentVariableOrNull("NAIS_APP_NAME") == "su-se-bakover-q1") {
+                    "Historisk meldingskandidat kan bare prøves i su-se-bakover-q1 i dev-gcp"
+                }
+            }
+            return aktivert
+        }
 
         private fun historiskAlderTestmodus(): Boolean {
             val aktivert = getEnvironmentVariableOrDefault("HISTORISK_ALDER_TESTMODUS", "false").toBooleanStrict()

@@ -71,7 +71,7 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   tidligere historiske revurderingsvedtak fra SU-appen. En periode med begge kildetyper skal avvises og
   behandles i separate revurderinger. Vedtakene kan ha ulike ID-er så lenge kildetypen er den samme.
 - Bare revurdering med Infotrygd som gjeldende kilde trenger det særskilte opphøret mot Infotrygd.
-  Utkastet sender dette sammen med eventuelle erstatningslinjer med `kodeEndringLinje = ENDR` og fullt
+  Utkastet sender dette sammen med eventuelle nye erstatningslinjer med `kodeEndringLinje = NY` og fullt
   korrekt månedsbeløp. Når vårt iverksatte vedtak har overtatt månedene, skal senere revurdering korrigere
   vår egen utbetaling uten å gjenta det innledende Infotrygd-opphøret. Oppdrags aksept av meldingsformatet
   er fortsatt ikke verifisert.
@@ -190,7 +190,8 @@ Ferdig eller koblet inn:
 - sammenligning av gammelt og nytt månedsbeløp med én økonomisk retning per behandling
 - månedsvis varselflagg ved mulig historisk forsørgingstillegg, uten lagret bekreftelse
 - forhåndsvarsel med valg, PDF-utkast, sending og utdateringsstatus
-- attestering av behandlingsgrunnlaget uten simulering eller iverksettelse
+- historisk simulering med egen resultatmodell og lagring, avgrenset til utprøving i Q1
+- attestering med et foreløpig avslått krav om gyldig simulering; iverksettelse er fortsatt sperret
 - tidligere iverksatte historiske revurderinger lagt over originaltidslinjen
 - historisk revurderingsvedtak med egen tabell, månedsresultater og unik kobling til `utbetalingId`
 - egen brevkommando for historisk vedtaksbrev, uten endringer i ordinær brevflyt
@@ -198,7 +199,7 @@ Ferdig eller koblet inn:
 
 Gjenstår:
 
-- simulering mot Oppdragssystemet
+- utprøving mot Oppdragssystemet, frontend-støtte for simulering og deretter aktivering av simuleringskravet
 - opprettelse av historisk revurderingsvedtak i den faktiske iverksettelsesflyten
 - kontroll mot endret vedtaksgrunnlag i den faktiske iverksettelsesflyten
 - oppslag fra `utbetalingId` til historisk vedtak, som trengs når kravgrunnlag skal kobles til Infotrygd-kanalen

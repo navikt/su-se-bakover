@@ -84,6 +84,7 @@ internal class ServiceBuilderTest {
                 oppgaveV2Client = mock(),
                 kodeverk = mock(),
                 simuleringClient = mock(),
+                historiskSimuleringClient = mock(),
                 utbetalingPublisher = mock(),
                 dokDistFordeling = mock(),
                 avstemmingPublisher = mock(),

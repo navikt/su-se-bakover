@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.HistoriskSimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
@@ -104,6 +105,7 @@ class StubClientsBuilder(
                 utbetalingerKjørtTilOgMed = { LocalDate.now(clock) },
                 utbetalingRepo = databaseRepos.utbetaling,
             ).also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
+            historiskSimuleringClient = HistoriskSimuleringStub(clock),
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },

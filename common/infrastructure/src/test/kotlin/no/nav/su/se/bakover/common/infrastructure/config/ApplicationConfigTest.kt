@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.config
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.kotest.assertions.withClue
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.Duration
@@ -17,6 +19,22 @@ import java.time.Duration
 // Environment bruker static context og er ikke thread safe
 @Execution(value = ExecutionMode.SAME_THREAD)
 class ApplicationConfigTest {
+    @Test
+    fun `historisk meldingskandidat kan ikke aktiveres i produksjon`() {
+        assertThrows<IllegalArgumentException> {
+            expectedApplicationConfig.copy(historiskSimuleringAktivert = true)
+        }
+    }
+
+    @Test
+    fun `attesteringskrav kan ikke aktiveres uten simuleringsflyten`() {
+        assertThrows<IllegalArgumentException> {
+            expectedApplicationConfig.copy(
+                historiskSimuleringAktivert = false,
+                historiskSimuleringKrevesForAttestering = true,
+            )
+        }
+    }
 
     private val statistikkgruppe = "statistikk"
 
@@ -50,6 +68,8 @@ class ApplicationConfigTest {
         pdfgenLocal = false,
         pdfByggerLocal = false,
         historiskAlderTestmodus = false,
+        historiskSimuleringAktivert = false,
+        historiskSimuleringKrevesForAttestering = false,
         serviceUser = ServiceUserConfig(
             username = "username",
             password = "password",
@@ -263,10 +283,12 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_STATISTIKK" to statistikkgruppe,
             ),
         ) {
-            ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
+            val faktisk = ApplicationConfig.createLocalConfig()
+            val forventet = expectedApplicationConfig.copy(
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
                 naisCluster = null,
                 leaderPodLookupPath = "",
+                historiskSimuleringAktivert = true,
                 serviceUser = ServiceUserConfig(
                     username = "unused",
                     password = "unused",
@@ -355,6 +377,10 @@ class ApplicationConfigTest {
                     "INSTITUSJONSOPPHOLD_TOPIC",
                 ),
             )
+            withClue("Lokalt skal historisk simulering være aktivert slik at frontendflyten kan prøves med stub.") {
+                faktisk.historiskSimuleringAktivert shouldBe forventet.historiskSimuleringAktivert
+            }
+            faktisk shouldBe forventet
         }
     }
 }

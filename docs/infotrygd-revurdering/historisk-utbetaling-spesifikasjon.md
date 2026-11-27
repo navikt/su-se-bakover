@@ -1,9 +1,9 @@
 # Utbetaling ved historisk revurdering
 
-Status: Avklarte krav og kodeutkast for meldingsbygger og simuleringstransport.
-Domene- og XML-testene fra første utkast er bekreftet grønne. Det nye transportutkastet er ikke
-kompilert eller testkjørt. Dette dokumentet beskriver ikke en ferdig produksjonsimplementasjon eller
-en verifisert meldingskontrakt med Oppdrag.
+Status: Meldingsbygger og transport fra del 1 er koblet til historisk behandlingsflyt for utprøving i Q1.
+Endringene i del 2 er ikke kompilert, testkjørt eller prøvd mot Oppdrag. Dokumentet beskriver ikke
+en ferdig produksjonsimplementasjon eller en verifisert meldingskontrakt med Oppdrag.
+Domene- og XML-testene fra første utkast var tidligere bekreftet grønne; det bekrefter ikke del 2.
 
 Spesifikasjonen bygger videre på kildevalideringen i branchen
 `bau/valider-kildetype-historisk-revurdering`. Den endrer ikke reglene for ordinær revurdering.
@@ -25,7 +25,7 @@ Vedtak fra Infotrygd for valgte måneder
                   v
 Første historiske revurdering
   Teknisk opphør mot Infotrygd
-  + eventuelle ENDR-erstatningslinjer fra vårt system
+  + eventuelle NY-erstatningslinjer fra vårt system
                   |
              iverksettelse
                   |
@@ -56,8 +56,8 @@ som gjeldende kilde.
 - Før videre behandling av utbetalingen må ferske gjeldende vedtaksdata kontrolleres mot de låste
   månedsreferansene. Før iverksettelse må kontrollen gjentas.
 - Første korrigering skal kunne sendes som ett samlet oppdrag med teknisk opphør og eventuell erstatningsytelse.
-  Erstatningslinjene skal ha `kodeEndringLinje = ENDR`, også når de får nye linje-ID-er. Dette er et
-  eksplisitt valgt meldingsformat for utkastet, ikke en bekreftet kontrakt med Oppdrag.
+  Erstatningslinjer med nye linje-ID-er skal ha `kodeEndringLinje = NY`. Oppdragets `kodeEndring`
+  er et separat felt og kan være `ENDR` selv om de nye linjene har `NY`.
   Den nye ytelsen skal inneholde fullt korrekt månedsbeløp, ikke en løs differansebetaling.
 - Ved faktisk opphør av ytelsen skal det ikke sendes erstatningsytelse for månedene som opphører.
 - Den valgte perioden består av hele kalendermåneder. Flere sammenhengende måneder kan bare grupperes
@@ -70,6 +70,24 @@ ytelse og opphør i én beregning. Dagens begrensninger mot blandet faglig resul
 etterbetaling og feilutbetaling beholdes.
 Vanlig korrigering av en SU-utbetaling kan fortsatt bruke opphørslinjer når resultatet krever det.
 Det som ikke skal gjentas, er det innledende særskilte opphøret mot Infotrygd.
+
+### Korreksjon etter Q1-utprøving og sammenligning med BA
+
+Det tidligere forsøksformatet brukte `ENDR` på erstatningslinjer med nye ID-er. Et Q1-forsøk ble
+avvist med «DELYTELSE-ID/LINJE-ID ved endring finnes ikke». Nye erstatningslinjer er derfor endret
+til `NY`, etter verifisering av samme skille i BA og ordinær SU-mapping.
+
+I [familie-oppdrags simuleringsmapper](https://github.com/navikt/familie-oppdrag/blob/94c163d5ea1659facec1bba27ab66ecc7e3b26bb/src/main/kotlin/no/nav/familie/oppdrag/simulering/SimulerBeregningRequestMapper.kt)
+styres linjens `NY`/`ENDR` av `erEndringPåEksisterendePeriode`, uavhengig av oppdragets endringskode.
+[BA-testen for endret migreringsdato](https://github.com/navikt/familie-ba-sak/blob/fff4fe2c642d9ea1fc4edd329f752864c4fed80b/src/test/resources/cucumber/oppdrag/endretMigreringsdato.feature)
+gjenbruker en eksisterende periode-ID for opphøret og lager en ny periode-ID for erstatningen.
+Kolonnen «Kode endring» i denne testen gjelder oppdraget, ikke den enkelte linjen.
+
+Opphørsformatet i SU-kandidaten er ikke endret av denne korreksjonen.
+[Generatorversjonen BA bruker](https://github.com/navikt/familie-utbetalingsgenerator/blob/49defa2ff9d7ec324d7ce5e459a84873db5bc3b3/src/main/kotlin/no/nav/familie/felles/utbetalingsgenerator/Utbetalingsgenerator.kt)
+opphører ikke en kjede uten en eksisterende siste andel. Det verifiserte BA-eksempelet bekrefter derfor ikke
+førstegangsoppdrag med nye opphørs-ID-er i SU. Opphør, referanser og virkning utenfor revurderingsperioden
+må fortsatt prøves i Q1 før hele meldingsformatet kan regnes som avklart.
 
 ## Arbeidsforutsetninger om Oppdrag
 
@@ -97,7 +115,7 @@ Disse delene må prøves. Barnetrygdens gamle fagområde `IT05` skal ikke brukes
 | `Utbetaling` | Krever en ikke-tom liste med ordinære utbetalingslinjer. |
 | `SimuleringBodyXmlBuilder` | Har en intern variant som tar `OppdragRequest` og eksplisitt simuleringsperiode. |
 | `SimuleringResponseMapper` | Filtrerer månedsresultater på vårt saksnummer og kjente fagområder, og avviser flere beholdte utbetalinger i samme måned. |
-| `SimuleringProxyClientGcp` | Har et internt transportutkast for historisk simulering. Det gjenbruker vanlig transport, men returnerer ufiltrert respons og rå XML. Ikke koblet til historisk service eller route. |
+| `SimuleringProxyClientGcp` | Implementerer en egen historisk klientkontrakt med ufiltrert, typet respons og rå XML. Historisk service og route bruker denne kontrakten. Ordinær mapping er uendret. |
 | `HistoriskInfotrygdRevurderingPostgresRepo.lagreVedtak` | Åpner sin egen transaksjon. |
 | `FerdigstillVedtakService` | Slår opp ordinært vedtak ved ferdigstilling etter godkjent utbetalingskvittering. Historisk ferdigstilling må kobles inn. |
 | Historisk `/iverksett`-route | Returnerer fortsatt konflikt. Produksjonsiverksettelse er ikke åpnet. |
@@ -109,14 +127,13 @@ Vanlig `Endring.Opphør` forutsetter en eksisterende SU-linje i vår betalingshi
 en kunstig tidligere SU-utbetaling eller svekke kjedeinvariantene for å representere et opphør mot Infotrygd.
 At dagens modell ikke kan uttrykke dette direkte, er ikke bevis på en begrensning hos Oppdrag.
 
-## Foreslått første leveranse
+## Grunnlaget fra del 1
 
-Første del er en ren meldingsbygger med XML-tester. Byggeren skal ikke lagre eller iverksette noe,
+Første del inneholder en ren meldingsbygger med XML-tester. Byggeren skal ikke lagre eller iverksette noe,
 gjøre nettverkskall eller åpne en ny route.
 
-Neste del er et transportutkast i den eksisterende simuleringsklienten. Det kan sende meldingskandidaten
-til simulering når det kalles, men er ikke koblet til behandlingsflyten. Det lagrer eller iverksetter
-heller ikke noe og åpner ingen route.
+Del 1 inneholder også transport i den eksisterende simuleringsklienten, uten kobling til behandlingsflyten.
+Del 2 kobler disse delene til service, lagring og route, som beskrevet nedenfor.
 
 ### Domenets utbetalingsgrunnlag
 
@@ -129,8 +146,9 @@ at vedtaksreferansene ikke er endret, og at gjeldende kilde er Infotrygd.
 Resultatet skal skille mellom teknisk opphør mot Infotrygd og eventuelle nye ytelsesbeløp. Et teknisk
 opphør skal ikke gjøres om til en ordinær SU-endringslinje.
 
-Kodeutkastet avviser kilde fra vårt system og saker med eksisterende SU-oppdrag med typed feil.
-Dette er bare leveranseavgrensninger. Den ferdige løsningen skal også støtte disse sakene.
+Kodeutkastet avviser fortsatt historiske måneder der gjeldende vedtak kommer fra vårt system.
+Dette er en leveranseavgrensning for senere korrigering, ikke et forbud mot SU-utbetaling i en annen
+periode. Sperren mot enhver eksisterende SU-utbetaling fra del 1 er fjernet i del 2.
 Kildevalideringen gjenbrukes, ikke kopieres til meldingsbyggeren.
 
 ### Meldingsbygger i klientmodulen
@@ -140,14 +158,14 @@ Kodeutkastet ligger i
 Byggeren er intern i klientmodulen og returnerer et `UtbetalingRequest.OppdragRequest` for simulering.
 Klientmodulen har allerede en avhengighet til domenemodulen.
 
-Innverdiene omfatter utbetalingsgrunnlaget, saksnummer, personident, utbetalings-ID, attestant,
+Innverdiene omfatter utbetalingsgrunnlaget, saksnummer, personident, utbetalings-ID, behandler,
 avstemmingsdata og nødvendige eksplisitte valg for det uverifiserte opphørsformatet.
 Utbetalings-ID-en skal brukes som felles `henvisning` i meldingen.
 
 Ukjente felt skal ikke få standardverdier som ser verifiserte ut. En kandidat skal merkes som
 utforskende. Manglende nødvendige valg skal gi typed feil, ikke en delvis eller tilsynelatende gyldig melding.
 Oppdragets endringskode og opphørslinjenes endringskode, datoer og sats er eksplisitte innverdier uten
-standardverdier. Erstatningslinjenes kode er derimot fast `ENDR`. Linje-ID-er og eventuelle referanser til
+standardverdier. Erstatningslinjenes kode er derimot fast `NY`. Linje-ID-er og eventuelle referanser til
 foregående linjer i samme meldingskandidat må velges eksplisitt. Utkastet lager én opphørslinje per valgt måned.
 Opphørslinjens statusdato følger valgt måned; oppgitte vedtaksdatoer er uverifiserte formatvalg og beviser
 ikke hvilken periode Oppdrag påvirker.
@@ -155,8 +173,9 @@ ikke hvilken periode Oppdrag påvirker.
 Eksisterende `buildXmlRequestBody(simuleringsperiode, request)` kan brukes uten å endre vanlig
 utbetalingsmapping. Ingen nye modulavhengigheter, utvidelse av `internal`-synlighet eller endringer i ordinær
 `trengerNyttOppdrag()` er planlagt i første leveranse.
-Den eksisterende XML-byggeren for simulering skriver linjens saksbehandler-ID som attestant-ID.
-Kodeutkastet endrer ikke dette; håndteringen av attestant må avklares før faktisk integrasjon.
+Den eksisterende XML-byggeren for simulering skriver linjens saksbehandler-ID `SU` som attestant-ID.
+Del 2 beholder dette som i ordinær simulering. Det betyr ikke at behandlingen er attestert;
+håndteringen ved faktisk iverksettelse må avklares separat.
 
 ### Tilfeller byggeren må skille mellom
 
@@ -187,24 +206,28 @@ Ved faktisk simulering må vi kunne velge en bredere simuleringsperiode enn revu
 Vi må undersøke hele responsen, også opplysninger fra gammelt fagområde eller annet `fagsystemId`.
 Ordinære filtre skal ikke fjernes globalt.
 
-### Transportutkast i eksisterende klient
+### Transporten fra del 1
 
 `SimuleringProxyClientGcp.simulerHistoriskUtbetaling(request, simuleringsperiode)` tar
 meldingskandidaten og en eksplisitt simuleringsperiode. Kalleren bruker det validerte
 `HistoriskInfotrygdOppdragsgrunnlag` og meldingsbyggeren før dette kallet.
-Metoden er intern i klientmodulen. Det er ikke laget en ny klient eller endret modulavhengigheter,
-og det ordinære `SimuleringClient`-grensesnittet er uendret.
+Metoden er intern i klientmodulen. Del 2 bruker den gjennom `HistoriskSimuleringClient` i domenemodulen,
+implementert av samme `SimuleringProxyClientGcp`. Det er ikke lagt til modulavhengigheter eller utvidet
+`internal`-synlighet. Det ordinære `SimuleringClient`-grensesnittet er uendret.
 
 Historisk og ordinær simulering deler HTTP-kallet til `/simulerberegning`, autentisering med
 OBO- eller systemtoken og mapping av proxyfeil. Ordinær simulering bruker fortsatt
 `SimuleringResponseMapper` med sine eksisterende filtre.
 
-Det historiske kallet returnerer `HistoriskSimuleringsrespons` med hele den eksisterende
+Den interne transportmetoden returnerer `HistoriskSimuleringTransportrespons` med hele den eksisterende
 `SimulerBeregningResponse`-modellen og rå XML. Perioder, fagområder, oppdragsreferanser og detaljer
 filtreres ikke bort, heller ikke ved ukjente klassekoder eller flere oppdrag i samme periode.
 Infomeldinger og fravær av beregning beholdes som i proxyens respons. Et svar uten beregning
 gjøres ikke om til en nullutbetaling. Ugyldig XML gir teknisk feil, også ved HTTP 200.
-Tolkning av nettoresultat og mapping til vårt vanlige simuleringsresultat gjenstår.
+Del 2 mapper responsen til en egen historisk modell. Ordinær `Simulering` brukes ikke:
+den har bare én utbetaling per måned, og den ordinære mapperen filtrerer på saksnummer, fagområde og
+kjente klassekoder. Råsvaret alene gjør ikke den filtrerte modellen egnet for historisk resultatvisning.
+Tolkning av økonomisk resultat på tvers av fagområder gjenstår.
 
 Ingen kall mot et eksternt miljø er gjort som del av kodeutkastet. Tilkobling og miljøvalg er
 forutsetninger for senere utprøving, ikke nye klienter eller miljøendringer i dette utkastet.
@@ -214,6 +237,109 @@ Testene bruker syntetiske data.
 
 Simulering alene bekrefter ikke at faktisk iverksettelse, kvittering, kravgrunnlag og senere
 revurderinger virker. Dette må prøves i egnet testmiljø før produksjonsiverksettelse åpnes.
+
+## Del 2: Behandlingsflyt og kontrakt til frontend
+
+Kompatibilitet: ikke nødvendig for det tidligere simuleringsfeltet fra del 1.
+Produksjon: simuleringsflyten er ikke lansert. Konsumenter/data: ingen for dette feltet, avklart i oppgaven.
+Eksisterende behandlinger, beregninger og importdata beholdes. Den eksisterende JSON-kolonnen brukes;
+ingen tidligere Flyway-migrering er endret.
+
+`HistoriskInfotrygdRevurderingService` kontrollerer behandlingsstatus, beregning og gjeldende vedtak
+før klientkallet. Kallet gjøres uten å holde en database-session åpen. Etter svaret kontrolleres
+vedtakene og SU-utbetalingshistorikken på nytt. Resultatet lagres bare dersom behandlingen fortsatt
+er uendret. Sammenligningen og oppdateringen skjer i én kort transaksjon med radlås.
+
+Resultatet lagres sammen med en kopi av beregningen. Ny beregning fjerner tidligere simulering,
+også ved identiske beløp. `SIMULERT` krever et vellykket klientkall, beregningsresultat for riktig person
+og minst én returnert beregningsperiode. En infomelding uten beregning regnes ikke som nullutbetaling
+eller vellykket simulering. Disse kontrollene bekrefter teknisk gyldighet, ikke at meldingskandidaten
+har riktig økonomisk virkning.
+
+Meldingskandidaten bruker saksnummeret som `fagsystemId`. Oppdragets endringskode er `NY` uten tidligere
+SU-utbetaling og `ENDR` med tidligere SU-utbetaling. Opphørslinjene har `NY`, nullsats og den enkelte
+revurderingsmåneden som vedtaksperiode og statusdato. Eventuelle erstatningslinjer har `NY`, fullt
+nytt månedsbeløp og ingen referanse til tidligere linjer. Dette er eksplisitte valg for utprøving.
+De beviser ikke at kobling til eksisterende linjer er unødvendig eller at senere utbetalinger er upåvirket.
+Det bygges ikke nye linjer for senere måneder.
+
+### Endepunkt og svar
+
+`POST /historisk/alderssak/revurderinger/{revurderingId}/simuler` krever saksbehandlerrolle og
+samme persontilgang som øvrige historiske ruter, inkludert eksisterende avgrensning for Q1-testmodus.
+Vellykket lagring auditeres som endring. Avvist persontilgang og klient-/domenefeil følger eksisterende
+auditmønster.
+
+Forespørselen angir hele kalendermåneder og må dekke revurderingsperioden. Den kan dekke flere måneder:
+
+```json
+{
+  "simuleringsperiode": {
+    "fraOgMed": "2018-03-01",
+    "tilOgMed": "2018-12-31"
+  }
+}
+```
+
+Vellykket kall returnerer `200` med oppdatert `HistoriskInfotrygdRevurderingResponse`.
+Feltet `simulering` er `null` før simulering og etter ny beregning. Når resultatet finnes, inneholder det:
+
+| Felt | Innhold |
+| --- | --- |
+| `simuleringsperiode` | Perioden forespørselen ba Oppdrag simulere. |
+| `simulert` | Tidspunktet resultatet ble mottatt og knyttet til beregningen. |
+| `harEksisterendeSuOppdrag` | Om saken hadde oversendte SU-utbetalinger ved simuleringen. |
+| `resultat` | Person, beregningsdato, faggruppe, Oppdrags samlede beløp og alle beregningsperioder. |
+| `resultat.perioder[].utbetalinger[]` | Alle fagområder og `fagsystemId`, oppdragsreferanser, mottaker, forfall, feilkonto og detaljer. |
+| `infomelding` | Eventuell infomelding, også når beregningen finnes. |
+
+Detaljer beholder beløp, perioder, tilbakeføring, klassekode, klassetype og øvrige returnerte referanser.
+Ukjente koder filtreres ikke bort. `resultat.beløp` skal ikke vises som beregnet SU-etterbetaling:
+Oppdrags beløp kan omfatte andre ytelser. Rå XML lagres, men inngår ikke i frontend-responsen.
+Vanlig henting av behandlingen returnerer samme lagrede resultat uten nytt klientkall.
+JSON-formen er låst i `HistoriskSimuleringJsonTest`.
+
+| HTTP-status | Feilkode |
+| --- | --- |
+| `400` | `ugyldig_historisk_simuleringsperiode` |
+| `401` / `403` | Eksisterende autentiserings- og tilgangsfeil. |
+| `404` | Eksisterende feil for ukjent historisk behandling. |
+| `409` | `historisk_simulering_ikke_aktivert`, `historisk_simulering_grunnlag_endret`, `historisk_simulering_ugyldig_vedtaksgrunnlag` eller `historisk_simulering_ugyldig_tilstand`. |
+| `502` | `historisk_simulering_klientfeil` eller `historisk_simulering_ugyldig_resultat`. |
+
+Dette er backendens kontraktforslag til den separate frontend-PR-en. Frontend må støtte kall,
+`SIMULERT`, resultatvisning, feilkoder og `MANGLER_SIMULERING` før håndhevingen aktiveres.
+
+### Aktivering og avgrensning
+
+`HISTORISK_SIMULERING_AKTIVERT` aktiverer utprøvingen bare i `su-se-bakover-q1` i `dev-gcp`.
+Øvrige miljømanifester har verdien `false`. Local og Test bruker stub eller injisert fake, aldri en
+ekte historisk simuleringsklient. Den lokale standardstubben svarer eksplisitt at simuleringen ikke er
+tilgjengelig, fremfor å konstruere et økonomisk resultat.
+
+`HISTORISK_SIMULERING_KREVES_FOR_ATTESTERING` er `false` i alle manifestene. Flagget styrer både
+kravet ved sending og sperregrunnen i responsen. Dermed låses ikke dagens frontend av en sperregrunn
+den ennå ikke kan håndtere. Kontroll av gjeldende vedtak gjelder også når flagget er av.
+Iverksettelsesruten er fortsatt sperret.
+
+### Utprøving i Q1
+
+Utprøvingen er **ikke gjennomført**. Notatene om overgang fra Infotrygd, sammenkobling og kravgrunnlag
+er spørsmål til utprøvingen, ikke dokumentasjon av observert Oppdrag-oppførsel.
+Registrer avidentifiserte observasjoner, valgt periode, meldingskandidat og resultat for hvert tilfelle.
+Ikke legg persondata eller rå meldinger i dokumentasjonen.
+
+| Tilfelle | Det som skal dokumenteres | Status |
+| --- | --- | --- |
+| Bare tidligere Infotrygd-utbetaling, ingen løpende ytelse | Gammel og ny utbetaling i valgt periode; hvilke fagområder og oppdragsreferanser som returneres. | Ikke prøvd |
+| Infotrygd i 2018 og SU-utbetaling i en senere periode | Om valgt kandidat fungerer på samme `fagsystemId`, og om teknisk kobling til eksisterende linjer trengs. | Ikke prøvd |
+| Rent opphør | Resultatet uten erstatningsytelse og hvordan tidligere utbetaling vises. | Ikke prøvd |
+| Bredere simuleringsperiode | Virkning før og etter revurderingsperioden, inkludert senere SU-ytelse. | Ikke prøvd |
+| Flere fagområder og oppdragsreferanser | Hva som kan summeres som SU-resultat, og hva som tilhører andre ytelser. | Ikke prøvd |
+
+At en person har senere løpende ytelse, er ikke en faglig avvisningsgrunn for en tidligere historisk
+periode. Hvordan Oppdrag behandler meldingen må likevel observeres. Kravgrunnlag, kvittering og senere
+korrigering av SU-utbetaling inngår ikke i denne leveransen.
 
 ## Videre produksjonsarbeid
 
@@ -250,7 +376,7 @@ Bakoverkompatibilitet og eventuelle datamigreringer må vurderes mot faktisk pro
 
 | Tema | Konkret spørsmål |
 | --- | --- |
-| Meldingsformat | Godtar Oppdrag valgte `ENDR`-erstatningslinjer med nye ID-er og kombinasjonen av oppdragets `NY`/`ENDR`, opphørslinjens endringskode, `OPPH`, datoer og sats? |
+| Meldingsformat | Godtar Oppdrag kombinasjonen av nye erstatningslinjer med `NY`, oppdragets `NY`/`ENDR`, opphørslinjens endringskode, `OPPH`, datoer og sats? |
 | Periodeeffekt | Hvordan avgrenses korrigeringen til valgte måneder, og trengs det tekniske linjer utenfor dem? |
 | Eksisterende SU-oppdrag | Hvordan kobles historisk korrigering til eksisterende SU-linjer på samme saksnummer? |
 | Ingen økonomisk endring | Når kreves betalingsoppdrag eller teknisk opphør ved uendret beløp eller allerede opphørt måned? |
@@ -271,7 +397,7 @@ Kodeutkastet inneholder disse testene:
 - Domenetestene avviser også endret vedtaksgrunnlag, uendret beløp, allerede opphørt gammel ytelse og
   beregning som ikke dekker hele valgt periode.
 - `HistoriskInfotrygdOppdragRequestBuilderTest` låser XML-kandidater med teknisk `OPPH` og
-  erstatningslinjer med `ENDR` og fullt nytt beløp. Den tester også rent opphør uten erstatningslinjer,
+  erstatningslinjer med `NY` og fullt nytt beløp. Den tester også rent opphør uten erstatningslinjer,
   felles henvisning, manglende formatvalg, kolliderende linje-ID-er og ukjente linjereferanser.
 - `SimuleringProxyClientGcpTest` sender meldingskandidater gjennom klienten til lokal WireMock.
   De nye testene dekker OBO- og systemtoken, bredere simuleringsperiode, rent opphør, infomelding uten
@@ -295,10 +421,12 @@ XML-tester dokumenterer hva vi sender, ikke at Oppdrag godtar meldingen eller gi
 Utprøving i testmiljø må vise at valgt periodes resultat blir korrekt, at andre måneders resultat bevares,
 og at hele oppfølgingen kan gjennomføres.
 
-Transportutkastet og de nye klienttestene er ikke kompilert eller kjørt. Minste kontroll av denne
-utvidelsen er:
+Del 2 har nye service-, database-, route- og kontraktstester. De dekker blant annet simulering og
+attestering, rent opphør, endret grunnlag, klientfeil, ny beregning, gjenlesing og audit. Testene er
+ikke kjørt. Minste kontroll av endringen er:
 
 ```sh
 ./gradlew :client:test --tests '*SimuleringProxyClientGcpTest' --tests '*HistoriskInfotrygdOppdragRequestBuilderTest'
-./gradlew :client:spotlessCheck
+./gradlew :domain:test --tests '*HistoriskInfotrygdRevurderingTest' :service:test --tests '*HistoriskInfotrygdRevurderingServiceTest' :database:test --tests '*HistoriskInfotrygdRevurderingPostgresRepoTest' :web:test --tests '*HistoriskSimulering*' :common:infrastructure:test --tests '*ApplicationConfigTest' :web-regresjonstest:compileKotlin
+./gradlew :client:spotlessCheck :domain:spotlessCheck :service:spotlessCheck :database:spotlessCheck :web:spotlessCheck :test-common:spotlessCheck :common:infrastructure:spotlessCheck :web-regresjonstest:spotlessCheck
 ```
