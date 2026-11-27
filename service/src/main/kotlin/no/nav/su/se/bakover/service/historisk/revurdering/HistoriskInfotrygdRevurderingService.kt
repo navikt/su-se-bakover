@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeBeregneHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeSimulereHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.beregnRevurdering
@@ -228,8 +229,22 @@ class HistoriskInfotrygdRevurderingService(
                 gjeldende.beregnRevurdering(
                     grunnlag = command.månedsgrunnlag,
                     satsFactory = satsFactory,
-                ).mapLeft {
-                    KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
+                ).mapLeft { feil ->
+                    val begrunnelse = when (feil) {
+                        KunneIkkeBeregneHistoriskInfotrygdRevurdering.BlandetYtelseOgOpphør ->
+                            "Beregningen gir ytelse i noen måneder og opphør i andre. " +
+                                "Fradrag kan gi opphør selv om «Ytelse» er valgt, " +
+                                "når beløpet etter fradrag er 0 kroner eller under minstegrensen. " +
+                                "Kontroller fradragene. Perioder med ulikt utfall må revurderes hver for seg."
+                        KunneIkkeBeregneHistoriskInfotrygdRevurdering.GrunnlagDekkerIkkeHelePerioden,
+                        KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerSatsFactory,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerGjeldendeData,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerVedtak,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerSats,
+                        is KunneIkkeBeregneHistoriskInfotrygdRevurdering.EpsUførFlyktningFørJanuar2021,
+                        -> feil.toString()
+                    }
+                    KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(begrunnelse)
                 }
             }.flatMap { beregning ->
                 beregning.lagResultat(gjeldende).mapLeft {

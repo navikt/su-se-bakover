@@ -1169,7 +1169,9 @@ private fun KunneIkkeOppretteHistoriskInfotrygdRevurderingService.tilResultat():
 
     is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedManglerHistoriskVedtak ->
         HttpStatusCode.UnprocessableEntity.errorJson(
-            message = "Måneden $måned ligger ikke i et historisk vedtak",
+            message = "Kan ikke opprette revurderingen: " +
+                "Det finnes ikke et gjeldende historisk Infotrygd-vedtak for $måned. " +
+                "Kontroller revurderingsperioden mot vedtaksoversikten.",
             code = "historisk_infotrygd_maaned_mangler_vedtak",
         )
 

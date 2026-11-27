@@ -96,6 +96,40 @@ import java.util.UUID
 
 internal class HistoriskInfotrygdRevurderingServiceTest {
     @Test
+    fun `forklarer automatisk opphør ved blandet resultat uten å lagre beregningen`() {
+        val repo = HistoriskInfotrygdRevurderingRepoFake()
+        val service = service(
+            TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = repo,
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val fradragSomGirOpphør = FradragForMåned(
+            fradragstype = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 50_000.0,
+            måned = januar,
+            tilhører = FradragTilhører.BRUKER,
+        )
+        val beregningskommando = BeregnHistoriskInfotrygdRevurderingCommand(
+            månedsgrunnlag = beregningskommando().månedsgrunnlag.map { grunnlag ->
+                if (grunnlag.måned == fradragSomGirOpphør.måned) {
+                    grunnlag.copy(fradrag = listOf(fradragSomGirOpphør))
+                } else {
+                    grunnlag
+                }
+            },
+        )
+
+        service.beregn(opprettet.id, beregningskommando, saksbehandler).shouldBeLeft() shouldBe
+            KunneIkkeBeregneHistoriskInfotrygdRevurderingService.UgyldigGrunnlag(
+                "Beregningen gir ytelse i noen måneder og opphør i andre. " +
+                    "Fradrag kan gi opphør selv om «Ytelse» er valgt, " +
+                    "når beløpet etter fradrag er 0 kroner eller under minstegrensen. " +
+                    "Kontroller fradragene. Perioder med ulikt utfall må revurderes hver for seg.",
+            )
+        repo.hent(opprettet.id) shouldBe opprettet
+    }
+
+    @Test
     fun `deaktivert simulering gjør ingen klientkall eller databaseendringer`() {
         val repo = mock<HistoriskInfotrygdRevurderingRepo>()
         val klient = mock<HistoriskSimuleringClient>()
