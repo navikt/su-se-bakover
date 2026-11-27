@@ -51,7 +51,7 @@ internal class ForhåndsvarselTilbakekrevingPdfTest(private val klient: PdfBygge
         val pdfTekst = lagPdfTekst(pdfInnhold)
         verifiserAtDataErBruktIPdf(pdfInnhold, pdfTekst)
 
-        assertContains(pdfTekst.filter { it.isWhitespace() }, "Varsel om at Nav vurderer å kreve tilbake feilutbetalt supplerende stønad".filter { it.isWhitespace() })
+        assertContains(pdfTekst.filterNot { it.isWhitespace() }, "Varsel om at Nav vurderer å kreve tilbake feilutbetalt supplerende stønad".filterNot { it.isWhitespace() })
         val sumBruttoSkalTilbakekreve = requireNotNull(pdfInnhold.kravgrunnlag).sumBruttoSkalTilbakekreve.kroner(utenDesimaler = true)
         assertContains(
             pdfTekst,
@@ -90,7 +90,7 @@ internal class ForhåndsvarselTilbakekrevingPdfTest(private val klient: PdfBygge
         assertContains(pdfTekst, requireNotNull(pdfInnhold.fritekst))
         assertContains(pdfTekst, pdfInnhold.saksbehandlerNavn)
         pdfTekst shouldNotContain "Beløpet er"
-        pdfTekst shouldNotContain "Vedlegg Beregning av feilutbetalt beløp"
+        pdfTekst shouldNotContain "Vedlegg: Beregning av feilutbetalt beløp"
     }
 
     private fun verifiserAtDataErBruktIPdf(pdfInnhold: ForhåndsvarselTilbakekrevingPdfInnhold, pdfTekst: String) {
