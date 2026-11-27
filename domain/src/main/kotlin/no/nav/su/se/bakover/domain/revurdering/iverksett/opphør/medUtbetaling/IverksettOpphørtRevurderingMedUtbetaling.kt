@@ -5,8 +5,8 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import dokument.domain.Dokument
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
@@ -30,7 +30,7 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-    genererPdf: (command: GenererDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    genererPdf: (command: BrevmalCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     satsFactory: SatsFactory,
     fritekst: String,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettOpphørtRevurderingMedUtbetalingResponse> {

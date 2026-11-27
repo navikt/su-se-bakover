@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.RevurderingAvInntektPdfInnhold
@@ -48,5 +51,27 @@ fun HistoriskInfotrygdRevurderingDokumentCommand.Inntekt.fromBrevCommand(
         forventetInntektStørreEnn0 = false,
         satsoversikt = command.satsoversikt.toBrev(),
         harFradrag = command.beregningsperioder.harFradrag(),
+    )
+}
+
+val revurderingAvInntektBrev = Brevmal<IverksettRevurderingDokumentCommand.Inntekt>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
+}
+
+val historiskRevurderingAvInntektBrev = Brevmal<HistoriskInfotrygdRevurderingDokumentCommand.Inntekt>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
     )
 }

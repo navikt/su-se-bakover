@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveV2ClientStub
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.auth.AzureAd
@@ -51,7 +50,6 @@ data class TestClientsBuilder(
     val databaseRepos: DatabaseRepos,
     val azureAd: AzureAd = AzureClientStub,
     val personOppslag: PersonOppslag = PersonOppslagStub(),
-    val pdfGenerator: PdfGeneratorStub = PdfGeneratorStub,
     val pdfByggerKlient: PensjonPdfByggerKlient = PdfByggerKlientStub,
     val journalførClients: JournalførClients = JournalførClients(
         skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakFakeClient(JournalpostIdGeneratorForFakes()),
@@ -90,7 +88,6 @@ data class TestClientsBuilder(
     private val testClients = Clients(
         azureAd = azureAd,
         personOppslag = personOppslag,
-        pdfGenerator = pdfGenerator,
         journalførClients = journalførClients,
         oppgaveClient = oppgaveClient,
         oppgaveV2Client = oppgaveV2Client,

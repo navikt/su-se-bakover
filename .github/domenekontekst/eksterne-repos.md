@@ -12,7 +12,7 @@ gjett ansvar ut fra repositorynavn alene.
 |---|---|
 | [`navikt/su-se-framover`](https://github.com/navikt/su-se-framover) | Frontend/BFF som autentiserer personlige brukere og kaller `su-se-bakover` med on-behalf-of-token |
 | [`navikt/su-se-bakover`](https://github.com/navikt/su-se-bakover) | Backend, domenelogikk, persistens og integrasjoner for saksbehandling |
-| [`navikt/su-pdfgen`](https://github.com/navikt/su-pdfgen) | PDF-generator med maler for supplerende stønad. `PdfClient` sender typed `PdfInnhold` serialisert som JSON til riktig mal. |
+| [`navikt/su-pdfgen`](https://github.com/navikt/su-pdfgen) | Tidligere PDF-generator. Brukes ikke av `su-se-bakover` i prototypen av funksjonell brevarkitektur; PDF lages med pdf-bygger fra `navikt/pensjonsbrev` via `PdfByggerKlientImpl`. |
 
 ## Verifiserte runtime-grenser og repositorymapping
 
@@ -42,6 +42,6 @@ repository som inneholder kilden. Repositorymapping skal kontrolleres på begge 
 - `README.md`
 - `.nais/dev-gcp.yaml`
 - `.nais/prod-gcp.yaml`
-- `dokument/infrastructure/.../client/PdfClient.kt`
+- `dokument/infrastructure/.../client/PdfByggerKlientImpl.kt`
 - `client/.../oppdrag/simulering/SimuleringProxyClientGcp.kt`
 - `client/.../historisk/SupstonadHistoriskClient.kt`

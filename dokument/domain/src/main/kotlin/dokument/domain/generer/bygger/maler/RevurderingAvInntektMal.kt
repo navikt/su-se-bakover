@@ -4,6 +4,7 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.beregning
 import dokument.domain.generer.bygger.dokument
@@ -26,6 +27,7 @@ data class RevurderingAvInntektPdfInnhold(
     val harFradrag: Boolean,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Revurdering.Inntekt
+    override fun bestilling(): PdfBestilling = revurderingAvInntekt(dokumentMal.tittel, this)
 }
 
 val revurderingAvInntekt = { tittel: String, pdfInnhold: RevurderingAvInntektPdfInnhold ->

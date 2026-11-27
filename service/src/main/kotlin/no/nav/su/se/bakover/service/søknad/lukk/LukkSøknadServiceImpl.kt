@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.service.søknad.lukk
 
 import arrow.core.getOrElse
 import dokument.domain.Dokument
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.BrevService
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -99,12 +99,12 @@ class LukkSøknadServiceImpl(
 
     private fun persisterBrevKlartForSending(
         tx: TransactionContext,
-        genererDokumentCommand: GenererDokumentCommand,
+        genererDokumentCommand: BrevmalCommand,
         sakId: UUID,
         søknadId: UUID,
     ) {
         return brevService.lagDokumentPdf(genererDokumentCommand).getOrElse {
-            // TODO jah: Kan vel være en left? Lag en overload på lagreDokument som tar inn GenererDokumentCommand+Dokument.Metadata+tx.
+            // TODO jah: Kan vel være en left? Lag en overload på lagreDokument som tar inn BrevmalCommand+Dokument.Metadata+tx.
             throw IllegalArgumentException("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
         }.let {
             brevService.lagreDokument(

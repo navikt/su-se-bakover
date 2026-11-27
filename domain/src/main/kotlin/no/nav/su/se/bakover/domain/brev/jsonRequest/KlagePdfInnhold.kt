@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
@@ -34,3 +37,25 @@ fun KlageDokumentCommand.Avvist.fromBrevCommand(
     saksnummer = saksnummer.nummer,
     dødsbo = dødsbo,
 )
+
+val klageOversendtBrev = Brevmal<KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring>(
+    dokumenttype = Dokumenttype.INFORMASJON_ANNET,
+    brevtype = Brevtype.OVERSENDELSE_KA,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
+}
+
+val klageAvvistBrev = Brevmal<KlageDokumentCommand.Avvist>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
+}

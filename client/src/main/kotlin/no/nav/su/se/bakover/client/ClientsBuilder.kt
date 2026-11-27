@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.forsteside.ForstesideGeneratorClient
@@ -40,7 +39,6 @@ interface ClientsBuilder {
 data class Clients(
     val azureAd: AzureAd,
     val personOppslag: PersonOppslag,
-    val pdfGenerator: PdfGenerator,
     val journalførClients: JournalførClients,
     val forstesideGeneratorClient: ForstesideGeneratorClient,
     val pdfByggerKlient: PensjonPdfByggerKlient,

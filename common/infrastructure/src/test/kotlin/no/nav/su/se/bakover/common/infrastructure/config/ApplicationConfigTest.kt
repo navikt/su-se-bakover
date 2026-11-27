@@ -47,7 +47,6 @@ class ApplicationConfigTest {
         naisCluster = ApplicationConfig.NaisCluster.Prod,
         gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         leaderPodLookupPath = "leaderPodLookupPath",
-        pdfgenLocal = false,
         pdfByggerLocal = false,
         historiskAlderTestmodus = false,
         serviceUser = ServiceUserConfig(
@@ -94,7 +93,6 @@ class ApplicationConfigTest {
                 url = "http://pdl-api.default.svc.nais.local",
                 clientId = "pdlClientId",
             ),
-            pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
             skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                 url = "skjermingUrl",
                 clientId = "skjermingClientId",
@@ -303,7 +301,6 @@ class ApplicationConfigTest {
                         url = "mocked",
                         clientId = "mocked",
                     ),
-                    pdfgenUrl = "mocked",
                     skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                         url = "skjermingUrl",
                         clientId = "skjermingClientId",

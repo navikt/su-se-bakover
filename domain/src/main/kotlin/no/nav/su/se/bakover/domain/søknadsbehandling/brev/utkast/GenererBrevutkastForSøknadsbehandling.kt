@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast
 import arrow.core.Either
 import arrow.core.left
 import dokument.domain.Dokument
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanGenerereBrev
@@ -16,7 +16,7 @@ fun genererBrevutkastForSøknadsbehandling(
     command: BrevutkastForSøknadsbehandlingCommand,
     fritekst: String,
     hentSøknadsbehandling: (SøknadsbehandlingId) -> Søknadsbehandling?,
-    lagDokument: (GenererDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    lagDokument: (BrevmalCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     satsFactory: SatsFactory,
 ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
     val søknadsbehandling = (

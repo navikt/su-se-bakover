@@ -16,7 +16,7 @@ import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import java.time.LocalDate
 
 /**
- * DTO for brev til su-pdfgen
+ * DTO for satsoversikten i brev.
  */
 data class Satsoversikt(
     val perioder: List<Satsperiode>,

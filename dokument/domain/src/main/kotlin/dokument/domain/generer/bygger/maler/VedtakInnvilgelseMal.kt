@@ -4,6 +4,7 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.beregning
 import dokument.domain.generer.bygger.brev
@@ -36,6 +37,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Søknadsbehandling.InnvilgetVedtak
+    override fun bestilling(): PdfBestilling = vedtakInnvilgelse(dokumentMal.tittel, this)
 }
 
 val vedtakInnvilgelse = { _: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfInnhold ->

@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.getDistinkteParagrafer
 import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
@@ -99,4 +102,26 @@ fun Opphørsgrunn.tilBrev(): OpphørsgrunnBrev {
         Opphørsgrunn.UFØRHET -> OpphørsgrunnBrev.UFØRHET
         Opphørsgrunn.FORMUE -> OpphørsgrunnBrev.FORMUE
     }
+}
+
+val opphørsvedtakBrev = Brevmal<IverksettRevurderingDokumentCommand.Opphør>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
+}
+
+val historiskOpphørsvedtakBrev = Brevmal<HistoriskInfotrygdRevurderingDokumentCommand.Opphør>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
 }

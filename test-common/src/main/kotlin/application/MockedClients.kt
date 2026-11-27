@@ -12,7 +12,6 @@ import org.mockito.Mockito.mock
 fun mockedClients() = Clients(
     azureAd = AzureClientStub,
     personOppslag = mock(),
-    pdfGenerator = mock(),
     journalførClients = JournalførClients(
         skattedokumentUtenforSak = mock(),
         skattedokumentPåSak = mock(),

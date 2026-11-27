@@ -4,6 +4,7 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.brev
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
@@ -40,6 +41,7 @@ data class ForhåndsvarselTilbakekrevingPdfInnhold(
     val tilOgMed: String? = null,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Tilbakekreving.Forhåndsvarsel(dødsbo)
+    override fun bestilling(): PdfBestilling = forhåndsvarselTilbakekreving(dokumentMal.tittel, this)
 }
 
 data class KravgrunnlagBrev(

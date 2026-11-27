@@ -11,7 +11,6 @@ fun applicationConfig() = ApplicationConfig(
     naisCluster = null,
     gitCommit = null,
     leaderPodLookupPath = "leaderPodLookupPath",
-    pdfgenLocal = false,
     pdfByggerLocal = false,
     historiskAlderTestmodus = false,
     serviceUser = ServiceUserConfig(
@@ -64,7 +63,6 @@ fun applicationConfig() = ApplicationConfig(
             url = "pdlUrl",
             clientId = "pdlClientId",
         ),
-        pdfgenUrl = "pdfgenUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
             url = "krrUrl",

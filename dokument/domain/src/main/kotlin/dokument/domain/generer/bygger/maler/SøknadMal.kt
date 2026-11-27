@@ -4,6 +4,7 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.kroner
 import dokument.domain.generer.bygger.maler.Formuetekster.Companion.epsFormue
@@ -51,6 +52,7 @@ data class SøknadPdfInnhold(
     val søknadInnhold: SøknadInnhold,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Lokalkontor.Søknad
+    override fun bestilling(): PdfBestilling = soknad(this)
 }
 val soknad = { pdfInnhold: SøknadPdfInnhold ->
     val innhold = pdfInnhold.søknadInnhold

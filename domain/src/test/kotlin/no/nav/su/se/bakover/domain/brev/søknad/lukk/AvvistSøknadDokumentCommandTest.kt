@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import arrow.core.right
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.maler.AvvistSøknadDokumentCommand
 import dokument.domain.generer.bygger.maler.AvvistSøknadVedtakPdfInnhold
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -10,8 +11,7 @@ import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.hentFelles
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail
@@ -44,17 +44,18 @@ internal class AvvistSøknadDokumentCommandTest {
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        AvvistSøknadDokumentCommand(
-            fritekst = "fritekst",
-            saksbehandler = saksbehandler,
+        val command = AvvistSøknadDokumentCommand(
             fødselsnummer = person.ident.fnr,
-            sakstype = Sakstype.UFØRE,
             saksnummer = Saksnummer(2021),
-        ).tilPdfInnhold(
+            sakstype = Sakstype.UFØRE,
+            saksbehandler = saksbehandler,
+            fritekst = "fritekst",
+        )
+        command.hentFelles(
             clock = fixedClock,
             hentPerson = { person.right() },
             hentNavnForIdent = { "saksbehandler".right() },
-        ).getOrFail() shouldBe AvvistSøknadVedtakPdfInnhold(
+        ).map { command.lagInnhold(it) }.getOrFail() shouldBe AvvistSøknadVedtakPdfInnhold(
             Sakstype.UFØRE,
             expectedPersonalia,
             "saksbehandler",

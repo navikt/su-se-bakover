@@ -66,11 +66,16 @@ fun Innhold.fritekst(verdi: GenerellData) {
     }
 }
 
+/**
+ * Saksbehandlers fritekst som avsnitt. En eller flere blanke linjer skiller avsnitt.
+ * Blank fritekst gir ingen avsnitt, og et avsnitt starter eller slutter aldri med linjeskift.
+ */
 fun Innhold.fritekst(verdi: String) {
-    val tekst = verdi.replace("\r\n", "\n")
-    tekst.split(Regex("\n[ \t]*\n")).forEach { avsnitt ->
-        paragraph { linjer(avsnitt) }
-    }
+    verdi.replace("\r\n", "\n")
+        .split(Regex("""\n\s*\n"""))
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .forEach { avsnitt -> paragraph { linjer(avsnitt) } }
 }
 
 fun ContentBuilder.linjer(tekst: String, fontType: FontType = FontType.PLAIN) {

@@ -7,7 +7,7 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -181,7 +181,7 @@ sealed interface UnderkjentRevurdering :
         override fun lagForhåndsvarsel(
             utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
-        ): Either<Revurdering.UgyldigTilstand, GenererDokumentCommand> {
+        ): Either<Revurdering.UgyldigTilstand, BrevmalCommand> {
             return ForhåndsvarselDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,
@@ -244,7 +244,7 @@ sealed interface UnderkjentRevurdering :
         override fun lagForhåndsvarsel(
             utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
-        ): Either<Revurdering.UgyldigTilstand, GenererDokumentCommand> {
+        ): Either<Revurdering.UgyldigTilstand, BrevmalCommand> {
             return ForhåndsvarselDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,

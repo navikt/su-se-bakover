@@ -6,6 +6,7 @@ import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.avslagsparagrafer
 import dokument.domain.generer.bygger.beregning
@@ -51,6 +52,7 @@ data class OpphørsvedtakPdfInnhold(
     val harFradrag: Boolean,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Revurdering.Opphørsvedtak
+    override fun bestilling(): PdfBestilling = opphørsvedtak(dokumentMal.tittel, this)
 }
 
 val opphørsvedtak = { tittel: String, pdfInnhold: OpphørsvedtakPdfInnhold ->

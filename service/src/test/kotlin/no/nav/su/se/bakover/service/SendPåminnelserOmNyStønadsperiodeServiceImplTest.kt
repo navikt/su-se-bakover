@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import dokument.domain.generer.BrevmalCommand
 import dokument.domain.generer.DokumentMal
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -158,7 +158,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
             serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
 
-            val captor = argumentCaptor<GenererDokumentCommand>()
+            val captor = argumentCaptor<BrevmalCommand>()
             verify(serviceAndMocks.brevService, times(2)).lagDokumentPdf(captor.capture(), anyOrNull())
 
             captor.lastValue shouldBe PåminnelseNyStønadsperiodeDokumentCommand(
@@ -406,7 +406,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 ),
                 sendt = emptySet(),
             )
-            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+            verify(it.brevService, times(0)).lagDokumentPdf(any<BrevmalCommand>(), anyOrNull())
         }
     }
 
@@ -448,7 +448,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 oppgave.dødsdato shouldBe dødsdato
                 oppgave.fnr shouldBe sak.fnr
             }
-            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+            verify(it.brevService, times(0)).lagDokumentPdf(any<BrevmalCommand>(), anyOrNull())
         }
     }
 
@@ -478,7 +478,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 context.sendt() shouldBe emptySet()
             }
             verify(it.oppgaveService, times(0)).opprettOppgaveMedSystembruker(any())
-            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+            verify(it.brevService, times(0)).lagDokumentPdf(any<BrevmalCommand>(), anyOrNull())
         }
     }
 
@@ -512,7 +512,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 context.sendt() shouldBe emptySet()
             }
             verify(it.oppgaveService).opprettOppgaveMedSystembruker(any())
-            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+            verify(it.brevService, times(0)).lagDokumentPdf(any<BrevmalCommand>(), anyOrNull())
         }
     }
 

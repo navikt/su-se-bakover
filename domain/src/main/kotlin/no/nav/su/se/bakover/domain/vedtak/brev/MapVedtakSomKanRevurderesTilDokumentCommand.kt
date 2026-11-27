@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak.brev
 
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -17,7 +17,7 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
     clock: Clock,
     satsFactory: SatsFactory,
     fritekst: String,
-): GenererDokumentCommand {
+): BrevmalCommand {
     return when (this) {
         is VedtakOpphørUtenUtbetaling -> fail("Historisk vedtak. Skal ikke sende nye brev for VedtakOpphørUtenUtbetaling.")
 

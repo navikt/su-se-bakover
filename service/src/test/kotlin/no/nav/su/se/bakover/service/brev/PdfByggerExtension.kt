@@ -7,9 +7,15 @@ import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
-import org.testcontainers.images.PullPolicy
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
+
+/**
+ * Felles lås for testklasser som bruker pdf-bygger-containeren. Brukes med `@ResourceLock(PDF_BYGGER_RESSURS)`,
+ * slik at bare én klasse sender bestillinger om gangen. På maskiner med arm64 kjører amd64-bildet emulert,
+ * og mange samtidige LaTeX-kompileringer gir tidsavbrudd.
+ */
+const val PDF_BYGGER_RESSURS = "pdf-bygger"
 
 /**
  * Starter én pdf-bygger-container per JVM og deler den mellom alle testklasser som bruker extensionen.
@@ -22,12 +28,14 @@ class PdfByggerExtension : ParameterResolver {
 
     private class PdfByggerContainer : ExtensionContext.Store.CloseableResource {
         private val container = GenericContainer(
-            // Bruker versjon i tag publisert 6 november 2026:
-            // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1518344620?tag=main
-            // Main er bakoveerkompatibel
-            DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:main"),
+            // Låst til digest, slik at samme kode alltid testes mot samme pdf-bygger.
+            // Dette er bildet som var tag main 26. november 2026 (bygget 12:05 UTC).
+            // Oppdater digesten bevisst når en nyere pdf-bygger skal tas i bruk:
+            // docker buildx imagetools inspect ghcr.io/navikt/pensjonsbrev/pdf-bygger:main
+            DockerImageName.parse(
+                "ghcr.io/navikt/pensjonsbrev/pdf-bygger@sha256:213886ded10f4824d9b79fe103d397a2e2afd7be783208f3a63cd4e97946a5d2",
+            ),
         )
-            .withImagePullPolicy(PullPolicy.alwaysPull())
             .withExposedPorts(8080)
             .withCreateContainerCmdModifier { it.withPlatform("linux/amd64") }
             .withEnv("JAVA_TOOL_OPTIONS", "-Dio.ktor.development=true")

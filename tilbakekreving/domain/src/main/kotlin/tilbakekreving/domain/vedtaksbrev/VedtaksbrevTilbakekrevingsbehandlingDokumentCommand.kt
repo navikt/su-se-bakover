@@ -1,6 +1,9 @@
 package tilbakekreving.domain.vedtaksbrev
 
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.BrevmalCommand
+import dokument.domain.generer.Felles
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -20,14 +23,16 @@ data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
     override val correlationId: CorrelationId?,
     override val sakId: UUID,
     override val sakstype: Sakstype,
-    val saksbehandler: NavIdentBruker,
-    val attestant: NavIdentBruker?,
+    override val saksbehandler: NavIdentBruker,
+    override val attestant: NavIdentBruker?,
     val fritekst: String?,
     val vurderingerMedKrav: VurderingerMedKrav,
     val skalTilbakekreve: Boolean,
     val dødsbo: Boolean,
-) : GenererDokumentCommand,
+) : BrevmalCommand,
     SakshendelseCommand {
+    override val mal: Brevmal<VedtaksbrevTilbakekrevingsbehandlingDokumentCommand> get() = vedtaksbrevTilbakekrevingBrev
+    override fun lagInnhold(felles: Felles): PdfInnhold = mal.lagInnhold(felles, this)
     override val utførtAv: NavIdentBruker = saksbehandler
     override val brukerroller: List<Brukerrolle> = emptyList()
 }

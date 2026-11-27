@@ -45,7 +45,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Duration
@@ -137,33 +136,17 @@ internal class KontrollsamtaleNotatIdempotensTest {
 
     @ParameterizedTest
     @EnumSource(ApplicationConfig.RuntimeEnvironment::class)
-    fun `kontrollnotat og pdf-bygger bruker samme innholdsmodell i alle miljøer`(
+    fun `kontrollnotat lages med pdf-bygger i alle miljøer`(
         runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
     ) {
-        val nyKlient = mock<PensjonPdfByggerKlient> {
+        val klient = mock<PensjonPdfByggerKlient> {
             on { lagPdf(any()) } doReturn pdfBytes.right()
         }
-        val gammelKlient = mock<PdfGenerator> {
-            on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
-        }
-        val pdfGenerator = PdfByggerService(nyKlient, gammelKlient, runtimeEnvironment, fixedClock)
+        val pdfGenerator = PdfByggerService(klient, runtimeEnvironment)
 
         service(pdfGenerator).opprettJournalpost(sakInfo, notat, person(fnr = fnr)) shouldBe journalpostId.right()
 
-        when (runtimeEnvironment) {
-            ApplicationConfig.RuntimeEnvironment.Prod, ApplicationConfig.RuntimeEnvironment.Local -> {
-                verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
-                verifyNoInteractions(nyKlient)
-            }
-            ApplicationConfig.RuntimeEnvironment.Test -> {
-                verify(nyKlient).lagPdf(any())
-                verifyNoInteractions(gammelKlient)
-            }
-            ApplicationConfig.RuntimeEnvironment.Dev -> {
-                verify(nyKlient).lagPdf(any())
-                verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
-            }
-        }
+        verify(klient).lagPdf(any())
     }
 
     @Test

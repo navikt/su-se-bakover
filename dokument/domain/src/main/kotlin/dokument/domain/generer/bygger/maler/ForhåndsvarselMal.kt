@@ -3,6 +3,7 @@ package dokument.domain.generer.bygger.maler
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
@@ -19,6 +20,7 @@ data class ForhåndsvarselPdfInnhold(
     val fritekst: String,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.Revurdering.Forhåndsvarsel
+    override fun bestilling(): PdfBestilling = forhåndsvarsel(dokumentMal.tittel, this)
 }
 
 val forhåndsvarsel = { tittel: String, pdfInnhold: ForhåndsvarselPdfInnhold ->

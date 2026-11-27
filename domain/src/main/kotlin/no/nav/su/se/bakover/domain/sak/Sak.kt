@@ -9,7 +9,7 @@ import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Månedsberegning
-import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.BrevmalCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -417,7 +417,7 @@ data class Sak(
         val sak: Sak,
         val søknad: Søknad.Journalført.MedOppgave.Lukket,
         val søknadsbehandling: LukketSøknadsbehandling,
-        val lagBrevRequest: Either<IkkeLagBrevRequest, GenererDokumentCommand>,
+        val lagBrevRequest: Either<IkkeLagBrevRequest, BrevmalCommand>,
     ) {
         init {
             lagBrevRequest.onRight {

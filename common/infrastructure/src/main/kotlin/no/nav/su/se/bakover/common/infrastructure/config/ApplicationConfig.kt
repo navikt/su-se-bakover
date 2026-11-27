@@ -63,7 +63,6 @@ data class ApplicationConfig(
     val naisCluster: NaisCluster?,
     val gitCommit: GitCommit?,
     val leaderPodLookupPath: String,
-    val pdfgenLocal: Boolean,
     val pdfByggerLocal: Boolean,
     val historiskAlderTestmodus: Boolean,
     val serviceUser: ServiceUserConfig,
@@ -202,7 +201,6 @@ data class ApplicationConfig(
     data class ClientsConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
-        val pdfgenUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
@@ -224,7 +222,6 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
-                pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
@@ -246,7 +243,6 @@ data class ApplicationConfig(
             fun createLocalConfig() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
-                pdfgenUrl = "mocked",
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
@@ -693,7 +689,6 @@ data class ApplicationConfig(
                 if (it == null) log.error("Kunne ikke bestemme git commit hash fra environment variabel NAIS_APP_IMAGE.")
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
-            pdfgenLocal = false,
             pdfByggerLocal = false,
             historiskAlderTestmodus = historiskAlderTestmodus(),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
@@ -711,7 +706,6 @@ data class ApplicationConfig(
             naisCluster = naisCluster(),
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             leaderPodLookupPath = "",
-            pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
             pdfByggerLocal = getEnvironmentVariableOrDefault("PDFBYGGER_LOCAL", "false").toBooleanStrict(),
             historiskAlderTestmodus = false,
             serviceUser = ServiceUserConfig.createLocalConfig(),

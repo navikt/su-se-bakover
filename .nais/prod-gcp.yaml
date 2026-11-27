@@ -100,9 +100,6 @@ spec:
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
           cluster: prod-gcp
-        - application: su-pdfgen
-          namespace: supstonad
-          cluster: prod-gcp
         - application: logging
           namespace: nais-system
         - application: kabal-api
@@ -200,8 +197,6 @@ spec:
       value: "3ce0163f-aca2-4d1f-9f26-bb4f9bbf99f6"
     - name: DATABASE_NAME
       value: "supstonad-db-15-prod"
-    - name: PDFGEN_URL
-      value: "http://su-pdfgen"
     - name: DOKARKIV_URL
       value: "https://dokarkiv.prod-fss-pub.nais.io"
     - name: DOKARKIV_CLIENT_ID

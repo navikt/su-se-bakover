@@ -7,19 +7,20 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
-import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.PdfGenerator
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.generer.BrevmalCommand
 import dokument.domain.generer.SammenslåPdf
+import dokument.domain.generer.lagBrev
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
-import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.brev.jsonRequest.hentFelles
 import person.domain.IdentClient
 import person.domain.PersonService
 import java.time.Clock
@@ -38,35 +39,30 @@ class BrevServiceImpl(
     private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : BrevService {
 
-    // basert på kommandotypen så avjøres typen av Metadata
     override fun lagDokumentPdf(
-        command: GenererDokumentCommand,
+        command: BrevmalCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-        return command.tilPdfInnhold(
-            clock = clock,
-            // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
-            hentPerson = { personService.hentPersonMedSystembruker(command.fødselsnummer, command.sakstype) },
-            hentNavnForIdent = identClient::hentNavnForNavIdent,
-        ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }
-            .flatMap { pdfInnhold ->
-                pdfGenerator.genererPdf(pdfInnhold).mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
-                    .map { pdfA ->
-                        Pair(pdfA, pdfInnhold)
-                    }
-            }
-            .map { (pdfA, pdfInnhold) ->
-                pdfA.tilDokument(
-                    id = id,
-                    pdfInnhold = pdfInnhold,
-                    command = command,
+        return lagBrev(
+            command = command,
+            hentFelles = { brevmalCommand ->
+                brevmalCommand.hentFelles(
                     clock = clock,
-                )
-            }
+                    // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
+                    hentPerson = { fnr -> personService.hentPersonMedSystembruker(fnr, brevmalCommand.sakstype) },
+                    hentNavnForIdent = identClient::hentNavnForNavIdent,
+                ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }
+            },
+            lagPdf = { innhold ->
+                pdfGenerator.genererPdf(innhold).mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
+            },
+            id = id,
+            opprettet = Tidspunkt.now(clock),
+        )
     }
 
     override fun lagDokumentMedForsideSomVedlegg(
-        command: GenererDokumentCommand,
+        command: BrevmalCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
         return lagDokumentPdf(

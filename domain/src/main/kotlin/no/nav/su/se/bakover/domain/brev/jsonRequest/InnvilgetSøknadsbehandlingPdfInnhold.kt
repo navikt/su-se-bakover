@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.Brevtype
+import dokument.domain.generer.Brevmal
+import dokument.domain.generer.Dokumenttype
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
@@ -36,3 +39,14 @@ fun IverksettSøknadsbehandlingDokumentCommand.Innvilgelse.fromBrevCommand(
 
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
+
+val innvilgetSøknadsbehandlingBrev = Brevmal<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>(
+    dokumenttype = Dokumenttype.VEDTAK,
+    brevtype = Brevtype.VEDTAK,
+) { felles, kommando ->
+    kommando.fromBrevCommand(
+        personalia = felles.personalia,
+        saksbehandlerNavn = felles.saksbehandlerNavn,
+        attestantNavn = felles.attestantNavn ?: "-",
+    )
+}
