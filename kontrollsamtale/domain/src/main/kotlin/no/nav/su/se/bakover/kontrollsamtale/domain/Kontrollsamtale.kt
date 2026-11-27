@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppd
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
 import java.time.Clock
 import java.time.LocalDate
-import java.time.Month
 import java.util.UUID
 
 /**
@@ -231,13 +230,7 @@ data class Kontrollsamtale(
     }
 }
 
-internal fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate {
-    return if (innkallingsdato.month == Month.NOVEMBER) {
-        innkallingsdato.withDayOfMonth(25)
-    } else {
-        innkallingsdato.endOfMonth()
-    }
-}
+internal fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate = innkallingsdato.endOfMonth()
 
 internal fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clock: Clock): LocalDate? {
     val stønadsstart = periode.fraOgMed
