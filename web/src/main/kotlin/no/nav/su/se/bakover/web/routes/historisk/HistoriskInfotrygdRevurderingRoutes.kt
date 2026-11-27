@@ -84,12 +84,12 @@ internal data class HistoriskInfotrygdRevurderingResponse(
     val sakId: UUID,
     val periode: PeriodeJson,
     val status: String,
+    val saksbehandler: String,
     val avslutningsbegrunnelse: String?,
     val vedtaksbrevvalg: String,
     val vedtaksbrevFritekst: String?,
     val forhåndsvarsel: HistoriskInfotrygdForhåndsvarselResponse,
     val sperregrunnerForAttestering: List<String>,
-    val simuleringTilgjengelig: Boolean,
     val simulering: HistoriskSimuleringResponse?,
     val opprettet: String,
     val oppdatert: String,
@@ -98,7 +98,6 @@ internal data class HistoriskInfotrygdRevurderingResponse(
 internal data class HistoriskSimuleringResponse(
     val simuleringsperiode: PeriodeJson,
     val simulert: String,
-    val harEksisterendeSuOppdrag: Boolean,
     val resultat: HistoriskSimuleringsrespons.Beregning,
     val infomelding: String?,
 )
@@ -280,15 +279,12 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
     personService: PersonService,
     historiskAlderTestmodus: Boolean,
-    simuleringTilgjengelig: Boolean,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    fun HistoriskInfotrygdRevurdering.toResponse() =
-        toResponse(service.krevSimuleringForAttestering, simuleringTilgjengelig)
+    fun HistoriskInfotrygdRevurdering.toResponse() = toResponse(service.krevSimuleringForAttestering)
 
-    fun HistoriskInfotrygdBeregningResultat.toResponse() =
-        toResponse(service.krevSimuleringForAttestering, simuleringTilgjengelig)
+    fun HistoriskInfotrygdBeregningResultat.toResponse() = toResponse(service.krevSimuleringForAttestering)
 
     fun sjekkTilgangTilHistoriskRevurdering(fnr: Fnr) =
         sjekkTilgangTilHistoriskPerson(
@@ -803,23 +799,21 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
 
 internal fun HistoriskInfotrygdRevurdering.toResponse(
     krevSimulering: Boolean,
-    simuleringTilgjengelig: Boolean = false,
 ) = HistoriskInfotrygdRevurderingResponse(
     id = id.value,
     sakId = sakId,
     periode = periode.toJson(),
     status = status.name,
+    saksbehandler = saksbehandler.navIdent,
     avslutningsbegrunnelse = avslutningsbegrunnelse,
     vedtaksbrevvalg = vedtaksbrevvalg.toResponseverdi(),
     vedtaksbrevFritekst = vedtaksbrevFritekst,
     forhåndsvarsel = forhåndsvarsel.toResponse(),
     sperregrunnerForAttestering = sperregrunnerForAttestering(krevSimulering),
-    simuleringTilgjengelig = simuleringTilgjengelig,
     simulering = simulering?.let {
         HistoriskSimuleringResponse(
             simuleringsperiode = it.simuleringsperiode.toJson(),
             simulert = it.simulert.toString(),
-            harEksisterendeSuOppdrag = it.harEksisterendeSuOppdrag,
             resultat = requireNotNull(it.respons.beregning),
             infomelding = it.respons.infomelding,
         )
@@ -1079,9 +1073,9 @@ private fun Fradragstype.erSystemtype(): Boolean = when (this) {
     else -> false
 }
 
-private fun HistoriskInfotrygdBeregningResultat.toResponse(krevSimulering: Boolean, simuleringTilgjengelig: Boolean) =
+private fun HistoriskInfotrygdBeregningResultat.toResponse(krevSimulering: Boolean) =
     HistoriskInfotrygdBeregningResponse(
-        behandling = requireNotNull(revurdering).toResponse(krevSimulering, simuleringTilgjengelig),
+        behandling = requireNotNull(revurdering).toResponse(krevSimulering),
         økonomiskRetning = økonomiskRetning.name,
         måneder = måneder.map {
             HistoriskInfotrygdBeregningForMånedResponse(

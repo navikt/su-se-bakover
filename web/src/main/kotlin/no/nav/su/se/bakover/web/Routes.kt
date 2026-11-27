@@ -97,7 +97,6 @@ internal fun Application.setupKtorRoutes(
                         supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
                         personService = accessProtectedServices.person,
                         historiskAlderTestmodus = applicationConfig.historiskAlderTestmodus,
-                        simuleringTilgjengelig = applicationConfig.historiskSimuleringAktivert,
                     )
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,

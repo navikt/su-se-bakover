@@ -20,7 +20,6 @@ internal class HistoriskSimuleringJsonTest {
         val response = HistoriskSimuleringResponse(
             simuleringsperiode = periode.toJson(),
             simulert = data.tidspunkt.toString(),
-            harEksisterendeSuOppdrag = false,
             resultat = beregning.copy(
                 perioder = beregning.perioder.map { it.copy(utbetalinger = it.utbetalinger.take(1)) },
             ),
@@ -31,7 +30,6 @@ internal class HistoriskSimuleringJsonTest {
             {
               "simuleringsperiode": {"fraOgMed":"2018-01-01","tilOgMed":"2018-01-31"},
               "simulert": "2026-11-13T10:00:00Z",
-              "harEksisterendeSuOppdrag": false,
               "infomelding": "Syntetisk testrespons",
               "resultat": {
                 "gjelderId": "12345678910",
