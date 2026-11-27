@@ -1,5 +1,6 @@
 package dokument.domain
 
+import dokument.domain.generer.DokumentMal
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -13,4 +14,6 @@ interface GenererDokumentCommand {
     val fødselsnummer: Fnr
     val saksnummer: Saksnummer
     val sakstype: Sakstype
+
+    val dokumentMal: DokumentMal
 }

@@ -43,6 +43,19 @@ class BrevServiceImpl(
         command: GenererDokumentCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+        val dokument = pdfGenerator.genererPdf(command)
+            .mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
+            .map { pdfA ->
+                pdfA.tilDokument(
+                    id = id,
+                    // TODO endre til å kun sende inn tittel fra dokumentMal
+                    // eller endre pdfGenerator.genererPdf(command) til å returnere Pair<PdfA, PdfInnhold>
+                    pdfInnhold = pdfInnhold,
+                    command = command,
+                    clock = clock,
+                )
+            }
+        // TODO alt nedenfor blir erstattet inkludert hele MapDokumentCommandToPdfInnhold.kt
         return command.tilPdfInnhold(
             clock = clock,
             // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
@@ -107,13 +120,16 @@ class BrevServiceImpl(
             is HentDokumenterForIdType.HentDokumenterForRevurdering -> dokumentRepo.hentForRevurdering(
                 hentDokumenterForIdType.id,
             )
+
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> dokumentRepo.hentForHistoriskRevurdering(
                 hentDokumenterForIdType.id,
             )
+
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
     }
+
     override fun leggTilForsideSomVedleggPåOpplastetPdf(
         pdf: PdfA,
         brukerId: String,

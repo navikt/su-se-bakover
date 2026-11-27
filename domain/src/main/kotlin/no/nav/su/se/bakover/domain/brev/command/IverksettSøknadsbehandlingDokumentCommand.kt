@@ -2,11 +2,17 @@ package no.nav.su.se.bakover.domain.brev.command
 
 import beregning.domain.Beregning
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.generer.DokumentMal
+import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.harFradrag
+import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
+import no.nav.su.se.bakover.domain.brev.toBrev
 
 sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCommand {
     /**
@@ -23,7 +29,33 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
         val attestant: NavIdentBruker.Attestant?,
         val satsoversikt: Satsoversikt,
         val fritekst: String,
-    ) : IverksettSøknadsbehandlingDokumentCommand
+    ) : IverksettSøknadsbehandlingDokumentCommand {
+        override val dokumentMal = DokumentMal.Søknadsbehandling.InnvilgetVedtak
+
+        fun tilPdfInnhold(
+            personalia: PersonaliaPdfInnhold,
+            saksbehandlerNavn: String,
+            attestantNavn: String,
+        ): InnvilgetSøknadsbehandlingPdfInnhold {
+            val tildato = beregning.periode.tilOgMed
+            val beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold
+            return InnvilgetSøknadsbehandlingPdfInnhold(
+                personalia = personalia,
+                fradato = beregning.periode.fraOgMed.formatMonthYear(),
+                tildato = tildato.formatMonthYear(),
+                søkedato = tildato.minusMonths(1).formatMonthYear(),
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+                harEktefelle = harEktefelle,
+                beregningsperioder = beregningsperioder,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+                fritekst = fritekst,
+                satsoversikt = satsoversikt.toBrev(),
+                harFradrag = beregningsperioder.harFradrag(),
+                sakstype = sakstype,
+            )
+        }
+    }
 
     /**
      * Når vi avslår en søknad, så sender vi et enkeltvedtak.

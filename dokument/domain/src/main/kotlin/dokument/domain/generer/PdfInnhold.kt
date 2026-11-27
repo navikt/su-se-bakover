@@ -1,6 +1,5 @@
 package dokument.domain.generer
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -15,9 +14,6 @@ import no.nav.su.se.bakover.common.serialize
 )
 interface PdfInnhold {
     fun toJson(): String = serialize(this)
-
-    @get:JsonIgnore
-    val dokumentMal: DokumentMal
 
     @get:JsonProperty
     val sakstype: Sakstype
