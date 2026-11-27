@@ -202,7 +202,7 @@ private fun Innhold.slikKanDuUttaleDeg(sakstype: Sakstype) {
         "Send et skriftlig svar ved å bruke vedlagte forside $forside " +
             "eller du kan sende inn dokumentasjon i tjenesten nav.no/ettersende.",
     )
-    paragraph("Du kan få hjelp ved å ringe 55 55 33 34 eller henvende deg til Nav-kontoret ditt.")
+    paragraph("Du kan få hjelp ved å ringe ${telefonnummer(sakstype)} eller henvende deg til Nav-kontoret ditt.")
 }
 
 fun vedleggOmFeilutbetaltBeløp(kravgrunnlag: KravgrunnlagBrev?): List<Attachment> {
