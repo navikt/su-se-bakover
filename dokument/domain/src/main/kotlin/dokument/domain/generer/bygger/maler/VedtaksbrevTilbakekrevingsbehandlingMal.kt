@@ -166,7 +166,7 @@ private val vedtaksbrevDødsbo = { pdfInnhold: VedtaksbrevTilbakekrevingsbehandl
         paragraph(
             "Vi gir opplysninger til Skatteetaten om dette vedtaket. " +
                 "Skatteetaten fastsetter det endelige skattebeløpet, " +
-                "og vil vurdere om det er grunnlag for å endre skatteoppgjøret ditt. ",
+                "og vil vurdere om det er grunnlag for å endre skatteoppgjøret. ",
         )
         title3("Hvordan betaler boet tilbake?")
         paragraph(
