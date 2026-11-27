@@ -11,10 +11,6 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avsluttRevu
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistSøknadVedtakPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistSøknadVedtakVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselTilbakekrevingDødsboPdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselTilbakekrevingDødsboVerdier
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselTilbakekrevingPdf
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselTilbakekrevingVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentVerdier
@@ -54,8 +50,6 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.Søknadsbehandling.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
     DokumentMal.Skattegrunnlag() to Pair(skattegrunnlagPdf, skattegrunnlagVerdier),
     DokumentMal.Søknadsbehandling.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
-    DokumentMal.Tilbakekreving.Forhåndsvarsel(false) to Pair(forhåndsvarselTilbakekrevingPdf, forhåndsvarselTilbakekrevingVerdier),
-    DokumentMal.Tilbakekreving.Forhåndsvarsel(dødsbo = true) to Pair(forhåndsvarselTilbakekrevingDødsboPdf, forhåndsvarselTilbakekrevingDødsboVerdier),
     DokumentMal.Søknadsbehandling.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
     DokumentMal.Tidsstyrt.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
     DokumentMal.Revurdering.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
